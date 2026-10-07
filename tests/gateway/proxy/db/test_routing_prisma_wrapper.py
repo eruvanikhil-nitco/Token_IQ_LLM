@@ -171,7 +171,7 @@ async def test_connect_logs_writer_and_reader_success(caplog):
     reader_inner.connect = AsyncMock()
     routing = RoutingPrismaWrapper(writer=writer, reader=reader)
 
-    with caplog.at_level(logging.INFO, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.INFO, logger="Token IQ Proxy"):
         await routing.connect()
 
     messages = [r.getMessage() for r in caplog.records]
@@ -593,7 +593,7 @@ async def test_iam_refresh_logs_carry_log_prefix(caplog):
         log_prefix="[reader]",
     )
 
-    with caplog.at_level(logging.INFO, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.INFO, logger="Token IQ Proxy"):
         await wrapper.start_token_refresh_task()
         # Loop emits "RDS IAM token refresh loop started..." on first tick.
         # Cancel immediately so the loop body runs once and we can assert.
@@ -910,7 +910,7 @@ def test_prisma_client_init_falls_back_to_writer_when_reader_iam_token_fails(
 
     from token_iq.gateway.proxy.utils import PrismaClient
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         client = PrismaClient(
             database_url="postgresql://writer@writer.aurora.local:5432/litellm",
             proxy_logging_obj=MagicMock(),
@@ -979,7 +979,7 @@ async def test_connect_logs_writer_degradation(caplog):
     reader_inner.connect = AsyncMock()
     routing = RoutingPrismaWrapper(writer=writer, reader=reader)
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         await routing.connect()
 
     assert any(

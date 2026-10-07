@@ -20,7 +20,7 @@ class CompletionTimeout:
         """
         Used when ``model_timeout`` and kwargs timeouts are all unset.
 
-        ``global_timeout`` is the explicitly-configured ``litellm.request_timeout``
+        ``global_timeout`` is the explicitly-configured ``token_iq.request_timeout``
         (numeric / string) or ``None`` when it was never set. ``None`` falls back to
         :data:`~litellm.constants.COMPLETION_HTTP_FALLBACK_SECONDS`; any explicit value
         (including ``6000``) is honored.
@@ -44,7 +44,7 @@ class CompletionTimeout:
         1. ``model_timeout`` (call argument / merged ``litellm_params``)
         2. ``kwargs["timeout"]``
         3. ``kwargs["request_timeout"]``
-        4. ``global_timeout`` (the explicitly-configured ``litellm.request_timeout``),
+        4. ``global_timeout`` (the explicitly-configured ``token_iq.request_timeout``),
            or 600 when nothing was configured.
 
         Coerce :class:`httpx.Timeout` when the provider does not support it.

@@ -1147,9 +1147,9 @@ class TestOpenTelemetry(unittest.TestCase):
     def test_open_telemetry_config_manual_defaults(self):
         """Manual OpenTelemetryConfig creation should populate default identifiers."""
         config = OpenTelemetryConfig(exporter="console", endpoint="http://collector")
-        self.assertEqual(config.service_name, "litellm")
+        self.assertEqual(config.service_name, "token_iq")
         self.assertEqual(config.deployment_environment, "production")
-        self.assertEqual(config.model_id, "litellm")
+        self.assertEqual(config.model_id, "token_iq")
 
     @patch.dict(os.environ, {}, clear=True)
     def test_open_telemetry_config_custom_service_name(self):
@@ -1420,7 +1420,7 @@ class TestOpenTelemetry(unittest.TestCase):
             mock_provider_instance.add_span_processor.assert_called_once_with(
                 mock_span_processor
             )
-            mock_provider_instance.get_tracer.assert_called_once_with("litellm")
+            mock_provider_instance.get_tracer.assert_called_once_with("token_iq")
             self.assertEqual(result, mock_tracer)
 
     @patch.dict(os.environ, {}, clear=True)
@@ -1449,9 +1449,9 @@ class TestOpenTelemetry(unittest.TestCase):
 
         # Verify Resource.create was called with correct default attributes
         expected_attributes = {
-            "service.name": "litellm",
+            "service.name": "token_iq",
             "deployment.environment": "production",
-            "model_id": "litellm",
+            "model_id": "token_iq",
         }
         mock_resource_create.assert_called_once_with(expected_attributes)
         mock_detector.detect.assert_called_once()
@@ -1558,9 +1558,9 @@ class TestOpenTelemetry(unittest.TestCase):
 
         # Verify the resource has the expected default attributes
         attributes = result.attributes
-        self.assertEqual(attributes.get("service.name"), "litellm")
+        self.assertEqual(attributes.get("service.name"), "token_iq")
         self.assertEqual(attributes.get("deployment.environment"), "production")
-        self.assertEqual(attributes.get("model_id"), "litellm")
+        self.assertEqual(attributes.get("model_id"), "token_iq")
 
     @patch.dict(
         os.environ,
@@ -1587,7 +1587,7 @@ class TestOpenTelemetry(unittest.TestCase):
         self.assertEqual(attributes.get("deployment.environment"), "test-env")
         self.assertEqual(attributes.get("custom.attribute"), "test-value")
         # model_id should still be set from the base attributes since it wasn't in OTEL_RESOURCE_ATTRIBUTES
-        self.assertEqual(attributes.get("model_id"), "litellm")
+        self.assertEqual(attributes.get("model_id"), "token_iq")
 
     @patch.dict(
         os.environ,
@@ -3204,7 +3204,7 @@ class TestOpenTelemetrySemanticConventions138(unittest.TestCase):
             config=OpenTelemetryConfig(ignore_context_propagation=True),
             tracer_provider=tracer_provider,
         )
-        otel.tracer = tracer_provider.get_tracer("litellm")
+        otel.tracer = tracer_provider.get_tracer("token_iq")
 
         other_tracer = tracer_provider.get_tracer("other_provider")
         other_span = other_tracer.start_span("parent_span")
@@ -3261,7 +3261,7 @@ class TestOpenTelemetrySemanticConventions138(unittest.TestCase):
         tracer_provider.add_span_processor(SimpleSpanProcessor(span_exporter))
 
         otel = OpenTelemetry(tracer_provider=tracer_provider)
-        otel.tracer = tracer_provider.get_tracer("litellm")
+        otel.tracer = tracer_provider.get_tracer("token_iq")
 
         parent_span = otel.tracer.start_span("parent_span")
 
@@ -3319,7 +3319,7 @@ class TestOpenTelemetrySemanticConventions138(unittest.TestCase):
             config=OpenTelemetryConfig(ignore_context_propagation=False),
             tracer_provider=tracer_provider,
         )
-        otel.tracer = tracer_provider.get_tracer("litellm")
+        otel.tracer = tracer_provider.get_tracer("token_iq")
 
         parent_span = otel.tracer.start_span("parent_span")
 
@@ -3407,7 +3407,7 @@ class TestOpenTelemetrySemanticConventions138(unittest.TestCase):
         tracer_provider.add_span_processor(SimpleSpanProcessor(span_exporter))
 
         otel = OpenTelemetry(tracer_provider=tracer_provider)
-        otel.tracer = tracer_provider.get_tracer("litellm")
+        otel.tracer = tracer_provider.get_tracer("token_iq")
 
         start = datetime.utcnow()
         end = start + timedelta(seconds=1)
@@ -3772,7 +3772,7 @@ class TestResponseIdFallback(unittest.TestCase):
         )
 
     def test_gateway_call_id_emitted_as_span_attribute(self):
-        """litellm.call_id must be set on the span from standard_logging_payload."""
+        """token_iq.call_id must be set on the span from standard_logging_payload."""
         otel = OpenTelemetry()
         mock_span = MagicMock()
 
@@ -3792,7 +3792,7 @@ class TestResponseIdFallback(unittest.TestCase):
 
         otel.set_attributes(mock_span, kwargs, response_obj)
 
-        mock_span.set_attribute.assert_any_call("litellm.call_id", call_id)
+        mock_span.set_attribute.assert_any_call("token_iq.call_id", call_id)
 
 
 class TestOpenTelemetryResponsesAPI(unittest.TestCase):
@@ -5232,7 +5232,7 @@ class TestOpenTelemetrySetResponseStatusCodeAttribute(unittest.TestCase):
 
 
 class TestOpenTelemetryPreprocessingDuration(unittest.TestCase):
-    """litellm.preprocessing.duration_ms (proxy-receive -> first provider
+    """token_iq.preprocessing.duration_ms (proxy-receive -> first provider
     handoff) on the SERVER span. Read from container metadata so the
     success (model_call_details) and failure (request_data) paths work
     uniformly. Excludes retries via the set-once first_api_call_start_time.
@@ -5265,7 +5265,7 @@ class TestOpenTelemetryPreprocessingDuration(unittest.TestCase):
         )
         attrs = self._attr(span, exp)
         self.assertAlmostEqual(
-            attrs["litellm.preprocessing.duration_ms"], 250.0, places=1
+            attrs["token_iq.preprocessing.duration_ms"], 250.0, places=1
         )
 
     def test_failure_shape_request_data(self):
@@ -5286,7 +5286,7 @@ class TestOpenTelemetryPreprocessingDuration(unittest.TestCase):
         )
         attrs = self._attr(span, exp)
         self.assertAlmostEqual(
-            attrs["litellm.preprocessing.duration_ms"], 30.0, places=1
+            attrs["token_iq.preprocessing.duration_ms"], 30.0, places=1
         )
 
     def test_missing_received_at_omits(self):
@@ -5295,7 +5295,7 @@ class TestOpenTelemetryPreprocessingDuration(unittest.TestCase):
         otel.set_preprocessing_duration_attribute(
             span, {"first_api_call_start_time": datetime(2026, 1, 1)}
         )
-        assert "litellm.preprocessing.duration_ms" not in self._attr(span, exp)
+        assert "token_iq.preprocessing.duration_ms" not in self._attr(span, exp)
 
     def test_missing_handoff_omits(self):
         otel = OpenTelemetry()
@@ -5303,7 +5303,7 @@ class TestOpenTelemetryPreprocessingDuration(unittest.TestCase):
         otel.set_preprocessing_duration_attribute(
             span, {"metadata": {"litellm_received_at": datetime(2026, 1, 1)}}
         )
-        assert "litellm.preprocessing.duration_ms" not in self._attr(span, exp)
+        assert "token_iq.preprocessing.duration_ms" not in self._attr(span, exp)
 
     def test_negative_duration_omitted(self):
         # clock skew: handoff before receive -> omit, not a negative value
@@ -5316,7 +5316,7 @@ class TestOpenTelemetryPreprocessingDuration(unittest.TestCase):
                 "metadata": {"litellm_received_at": datetime(2026, 1, 1, 0, 0, 5)},
             },
         )
-        assert "litellm.preprocessing.duration_ms" not in self._attr(span, exp)
+        assert "token_iq.preprocessing.duration_ms" not in self._attr(span, exp)
 
     def test_none_span_is_noop(self):
         OpenTelemetry().set_preprocessing_duration_attribute(
@@ -5327,7 +5327,7 @@ class TestOpenTelemetryPreprocessingDuration(unittest.TestCase):
         otel = OpenTelemetry()
         span, exp = self._span()
         otel.set_preprocessing_duration_attribute(span, None)
-        assert "litellm.preprocessing.duration_ms" not in self._attr(span, exp)
+        assert "token_iq.preprocessing.duration_ms" not in self._attr(span, exp)
 
 
 class TestGetSpanContextGatewayMetadataFallback(unittest.TestCase):
@@ -5519,12 +5519,12 @@ class TestOpenTelemetryInferenceIdentityAttributes(unittest.TestCase):
         attrs = self._attr(span, exp)
 
         assert attrs["http.route"] == "/v1/chat/completions"
-        assert json.loads(attrs["litellm.team.metadata"]) == {
+        assert json.loads(attrs["token_iq.team.metadata"]) == {
             "tier": "gold",
             "cost_center": "42",
         }
-        assert attrs["litellm.model_group"] == "gpt-4o"
-        assert attrs["litellm.provider.model"] == "azure/my-deployment"
+        assert attrs["token_iq.model_group"] == "gpt-4o"
+        assert attrs["token_iq.provider.model"] == "azure/my-deployment"
 
     def test_team_metadata_defaults_to_none_stamped(self):
         """With no allowlist configured (the default), a team's metadata must
@@ -5532,14 +5532,14 @@ class TestOpenTelemetryInferenceIdentityAttributes(unittest.TestCase):
         otel = OpenTelemetry()
         span, exp = self._span()
         otel.set_attributes(span, self._kwargs(), {"model": "azure/gpt-4o"})
-        assert "litellm.team.metadata" not in self._attr(span, exp)
+        assert "token_iq.team.metadata" not in self._attr(span, exp)
 
     def test_only_allowlisted_team_metadata_keys_stamped(self):
         """Sub-keys outside the allowlist are excluded from the stamped value."""
         otel = self._otel_with_team_metadata_keys(["tier"])
         span, exp = self._span()
         otel.set_attributes(span, self._kwargs(), {"model": "azure/gpt-4o"})
-        assert json.loads(self._attr(span, exp)["litellm.team.metadata"]) == {
+        assert json.loads(self._attr(span, exp)["token_iq.team.metadata"]) == {
             "tier": "gold"
         }
 
@@ -5549,7 +5549,7 @@ class TestOpenTelemetryInferenceIdentityAttributes(unittest.TestCase):
         otel = OpenTelemetry(baggage_team_metadata_keys=["cost_center"])
         span, exp = self._span()
         otel.set_attributes(span, self._kwargs(), {"model": "azure/gpt-4o"})
-        assert json.loads(self._attr(span, exp)["litellm.team.metadata"]) == {
+        assert json.loads(self._attr(span, exp)["token_iq.team.metadata"]) == {
             "cost_center": "42"
         }
 
@@ -5561,7 +5561,7 @@ class TestOpenTelemetryInferenceIdentityAttributes(unittest.TestCase):
         kwargs["standard_logging_object"]["hidden_params"] = {}
         span, exp = self._span()
         otel.set_attributes(span, kwargs, {"model": "azure/gpt-4o"})
-        assert self._attr(span, exp)["litellm.provider.model"] == "azure/my-deployment"
+        assert self._attr(span, exp)["token_iq.provider.model"] == "azure/my-deployment"
 
     def test_empty_team_metadata_is_dropped(self):
         """An empty team_metadata dict must not stamp a useless '{}'."""
@@ -5570,7 +5570,7 @@ class TestOpenTelemetryInferenceIdentityAttributes(unittest.TestCase):
         kwargs["litellm_params"]["metadata"]["user_api_key_team_metadata"] = {}
         span, exp = self._span()
         otel.set_attributes(span, kwargs, {"model": "azure/gpt-4o"})
-        assert "litellm.team.metadata" not in self._attr(span, exp)
+        assert "token_iq.team.metadata" not in self._attr(span, exp)
 
     def test_missing_route_is_dropped(self):
         """An SDK request has no route; http.route must be absent, not empty."""

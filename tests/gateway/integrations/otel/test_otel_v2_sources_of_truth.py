@@ -247,7 +247,7 @@ def test_vector_store_management_is_not_chat(call_type):
     names nothing for them, so they take a vendor value rather than defaulting into
     the chat series."""
     assert resolve_operation(call_type) is GenAIOperation.LITELLM_VECTOR_STORE_MANAGEMENT
-    assert resolve_operation(call_type).value == "litellm.vector_store_management"
+    assert resolve_operation(call_type).value == "token_iq.vector_store_management"
 
 
 @pytest.mark.parametrize(
@@ -262,7 +262,7 @@ def test_vector_store_file_management_is_not_chat(call_type):
     """The file operations are a distinct REST resource from the store lifecycle, so
     they get their own vendor value instead of sharing one bucket."""
     assert resolve_operation(call_type) is GenAIOperation.LITELLM_VECTOR_STORE_FILE_MANAGEMENT
-    assert resolve_operation(call_type).value == "litellm.vector_store_file_management"
+    assert resolve_operation(call_type).value == "token_iq.vector_store_file_management"
 
 
 @pytest.mark.parametrize(
@@ -278,7 +278,7 @@ def test_responses_management_is_not_chat(call_type):
     read as a chat completion: the retrieved object replays the original call's tokens and
     would inflate the chat series on every read. Regression test for LIT-5602."""
     assert resolve_operation(call_type) is GenAIOperation.LITELLM_RESPONSES_MANAGEMENT
-    assert resolve_operation(call_type).value == "litellm.responses_management"
+    assert resolve_operation(call_type).value == "token_iq.responses_management"
 
 
 def test_creating_a_response_is_still_chat():
@@ -322,7 +322,7 @@ def test_non_chat_route_spans_carry_semconv_name_and_modality(call_type, operati
     """The emitted span, not just the mapping table: name is
     ``{gen_ai.operation.name} {gen_ai.request.model}``, the modality rides
     ``gen_ai.output.type``, and the route stays recoverable from
-    ``litellm.call_type`` now that several routes share one operation."""
+    ``token_iq.call_type`` now that several routes share one operation."""
     data = LLMCallSpanData.from_standard_logging_payload(
         _sample_payload(call_type=call_type, model="some-model", custom_llm_provider="openai")
     )
@@ -792,7 +792,7 @@ def test_request_identity_from_user_api_key_auth():
 
 def test_request_context_splits_group_from_dispatched_model():
     """On the proxy the caller asks for a model *group* that routes to a concrete
-    deployment: ``gen_ai.request.model`` is the group, ``litellm.provider.model``
+    deployment: ``gen_ai.request.model`` is the group, ``token_iq.provider.model``
     is the dispatched (provider-prefixed) deployment model."""
     from token_iq.gateway.integrations.otel.model.metadata import RequestContext
 

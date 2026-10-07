@@ -54,7 +54,7 @@ def _config_table(prisma_client: "PrismaClient") -> TableActions[_VantageConfigR
 
 
 def _get_registered_vantage_logger():
-    """Return the VantageLogger already registered in litellm.callbacks, if any."""
+    """Return the VantageLogger already registered in token_iq.callbacks, if any."""
     from token_iq.gateway.integrations.vantage.vantage_logger import VantageLogger
 
     vantage_loggers: Final = gateway.logging_callback_manager.get_custom_loggers_for_type(callback_type=VantageLogger)

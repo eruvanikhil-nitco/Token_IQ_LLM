@@ -825,7 +825,7 @@ def _set_session_and_user_attrs(span: "Span", kwargs: dict, standard_logging_pay
     (`metadata.user_api_key_end_user_id`). We deliberately do NOT fall back
     to `trace_id`, because that would create a distinct "session" for every
     single request and distort Arize's Session-grouping analytics. The
-    `trace_id` is still emitted under its own `litellm.trace_id` key so
+    `trace_id` is still emitted under its own `token_iq.trace_id` key so
     spans remain filterable by trace.
 
     USER_ID is *only* emitted when no upstream path (model_params.user or
@@ -844,7 +844,7 @@ def _set_session_and_user_attrs(span: "Span", kwargs: dict, standard_logging_pay
 
     trace_id: Final = standard_logging_payload.get("trace_id")
     if trace_id:
-        safe_set_attribute(span, "litellm.trace_id", str(trace_id))
+        safe_set_attribute(span, "token_iq.trace_id", str(trace_id))
 
     optional_params: Final = kwargs.get("optional_params") or {}
     model_params: Final = standard_logging_payload.get("model_parameters") or {}
@@ -859,13 +859,13 @@ def _set_session_and_user_attrs(span: "Span", kwargs: dict, standard_logging_pay
 
     team_id: Final = metadata.get("user_api_key_team_id")
     if team_id:
-        safe_set_attribute(span, "litellm.team_id", str(team_id))
+        safe_set_attribute(span, "token_iq.team_id", str(team_id))
     team_alias: Final = metadata.get("user_api_key_team_alias")
     if team_alias:
-        safe_set_attribute(span, "litellm.team_alias", str(team_alias))
+        safe_set_attribute(span, "token_iq.team_alias", str(team_alias))
     key_alias: Final = metadata.get("user_api_key_alias")
     if key_alias:
-        safe_set_attribute(span, "litellm.key_alias", str(key_alias))
+        safe_set_attribute(span, "token_iq.key_alias", str(key_alias))
 
 
 def _set_response_cost_attr(span: "Span", standard_logging_payload) -> None:

@@ -120,7 +120,7 @@ def init_rds_client(
         )
     elif aws_access_key_id is not None:
         # uses auth params passed to completion
-        # aws_access_key_id is not None, assume user is trying to auth using litellm.completion
+        # aws_access_key_id is not None, assume user is trying to auth using token_iq.completion
 
         client = boto3.client(
             service_name="rds",

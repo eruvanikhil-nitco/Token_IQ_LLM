@@ -254,7 +254,7 @@ def _mcp_meta_trace_carrier(req_ctx: object) -> dict[str, str] | None:
     every message under the session's first request;
     see ``resolve_mcp_span_context``. The client's W3C Baggage is
     deliberately excluded: it is caller-controlled, and the otel baggage processor
-    stamps allowlisted baggage keys (``litellm.team.id``, ``litellm.metadata.*``,
+    stamps allowlisted baggage keys (``token_iq.team.id``, ``litellm.metadata.*``,
     ...) onto the span, so honoring remote baggage would let a client spoof a
     span's identity attribution.
     """

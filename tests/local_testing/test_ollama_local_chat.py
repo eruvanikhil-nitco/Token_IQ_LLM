@@ -42,7 +42,7 @@
 #                 },
 #             }
 #         ]
-#         response = litellm.completion(
+#         response = token_iq.completion(
 #             model="ollama_chat/mistral",
 #             messages=messages,
 #             functions=functions,

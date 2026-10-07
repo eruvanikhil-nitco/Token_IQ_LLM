@@ -610,7 +610,7 @@ def init_bedrock_client(
         )
     elif aws_access_key_id is not None:
         # uses auth params passed to completion
-        # aws_access_key_id is not None, assume user is trying to auth using litellm.completion
+        # aws_access_key_id is not None, assume user is trying to auth using token_iq.completion
 
         client = boto3.client(
             service_name="bedrock-runtime",
@@ -1222,7 +1222,7 @@ class BedrockModelInfo(BaseLLMModelInfo):
 
         Only route to AmazonAnthropicClaude3MessagesConfig() for BaseMessagesConfig
 
-        All other routes should return None since they will go through litellm.completion
+        All other routes should return None since they will go through token_iq.completion
         """
 
         #########################################################
@@ -1232,7 +1232,7 @@ class BedrockModelInfo(BaseLLMModelInfo):
             return gateway.BedrockClaudePlatformMessagesConfig()
 
         #########################################################
-        # Converse routes should go through litellm.completion()
+        # Converse routes should go through token_iq.completion()
         if BedrockModelInfo._explicit_converse_route(model):
             return None
 
@@ -1254,7 +1254,7 @@ class BedrockModelInfo(BaseLLMModelInfo):
             return gateway.AmazonAnthropicClaudeMessagesConfig()
 
         #########################################################
-        # These routes will go through litellm.completion()
+        # These routes will go through token_iq.completion()
         #########################################################
         return None
 

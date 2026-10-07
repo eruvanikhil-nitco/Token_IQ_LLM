@@ -333,7 +333,7 @@ def test_real_llm_failure_still_emitted():
 def test_provider_auth_failure_span_carries_stack_trace():
     """Regression for LIT-6163: a 401 the provider returned is not an expected
     client error, so the error span built from the real failure payload keeps
-    ``litellm.provider.error.stack_trace`` alongside code and llm_provider."""
+    ``token_iq.provider.error.stack_trace`` alongside code and llm_provider."""
     from token_iq.gateway.exceptions import AuthenticationError
     from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
 
@@ -349,9 +349,9 @@ def test_provider_auth_failure_span_carries_stack_trace():
     (span,) = exporter.get_finished_spans()
     assert span.status.status_code is StatusCode.ERROR
     assert span.attributes["error.type"] == "AuthenticationError"
-    assert span.attributes["litellm.provider.error.code"] == "401"
-    assert span.attributes["litellm.provider.error.llm_provider"] == "anthropic"
-    assert "test_otel_v2_logger" in span.attributes["litellm.provider.error.stack_trace"]
+    assert span.attributes["token_iq.provider.error.code"] == "401"
+    assert span.attributes["token_iq.provider.error.llm_provider"] == "anthropic"
+    assert "test_otel_v2_logger" in span.attributes["token_iq.provider.error.stack_trace"]
 
 
 def test_unmapped_provider_auth_failure_span_carries_stack_trace():
@@ -370,8 +370,8 @@ def test_unmapped_provider_auth_failure_span_carries_stack_trace():
     (span,) = exporter.get_finished_spans()
     assert span.status.status_code is StatusCode.ERROR
     assert span.attributes["error.type"] == "AnthropicError"
-    assert span.attributes["litellm.provider.error.code"] == "401"
-    assert "test_otel_v2_logger" in span.attributes["litellm.provider.error.stack_trace"]
+    assert span.attributes["token_iq.provider.error.code"] == "401"
+    assert "test_otel_v2_logger" in span.attributes["token_iq.provider.error.stack_trace"]
 
 
 def test_idempotent_on_repeat_callback():
@@ -872,7 +872,7 @@ def test_mcp_span_ignores_client_supplied_baggage(make_payload, span_name):
 
     ``params._meta`` is caller-controlled and the baggage processor stamps
     allowlisted baggage keys onto every span, so extracting remote baggage would
-    let a client spoof a span's identity (e.g. ``litellm.team.id``). The propagator
+    let a client spoof a span's identity (e.g. ``token_iq.team.id``). The propagator
     extracts trace context only, so the spoofed keys never reach the span while the
     legitimate traceparent parenting still works."""
     logger, exporter = _logger()
@@ -883,7 +883,7 @@ def test_mcp_span_ignores_client_supplied_baggage(make_payload, span_name):
     token = set_mcp_message_trace_carrier(
         {
             "traceparent": "00-11111111111111111111111111111111-2222222222222222-01",
-            "baggage": "litellm.team.id=spoofed-team,litellm.metadata.user_api_key_user_id=attacker",
+            "baggage": "token_iq.team.id=spoofed-team,litellm.metadata.user_api_key_user_id=attacker",
         }
     )
     try:
@@ -1208,7 +1208,7 @@ def test_async_post_call_failure_hook_stamps_error_on_root_span():
     (span,) = exporter.get_finished_spans()
     assert span.attributes["error.type"] == "ProxyException"
     assert "messages is required" in span.attributes["error.message"]
-    assert span.attributes["litellm.provider.error.code"] == "400"
+    assert span.attributes["token_iq.provider.error.code"] == "400"
     assert span.status.status_code is StatusCode.ERROR
     assert any(e.name == "exception" for e in span.events)
 
@@ -1230,7 +1230,7 @@ def test_async_post_call_failure_hook_falls_back_to_user_api_key_parent_span():
     server.end()
     (span,) = exporter.get_finished_spans()
     assert span.attributes["error.type"] == "ProxyException"
-    assert span.attributes["litellm.provider.error.code"] == "401"
+    assert span.attributes["token_iq.provider.error.code"] == "401"
 
 
 def test_async_post_call_failure_hook_stamps_the_mcp_messages_own_transport():
@@ -1346,7 +1346,7 @@ def test_record_error_attributes_on_span_decorates_without_ending():
     (span,) = exporter.get_finished_spans()
     assert span.attributes["error.type"] == "ProxyException"
     assert span.attributes["error.message"] == "Invalid JSON body"
-    assert span.attributes["litellm.provider.error.code"] == "422"
+    assert span.attributes["token_iq.provider.error.code"] == "422"
     assert span.status.status_code is StatusCode.ERROR
     assert [e.name for e in span.events] == ["exception"]
 
@@ -1370,7 +1370,7 @@ def test_record_error_attributes_on_span_does_not_duplicate_an_already_stamped_e
     server.end()
     (span,) = exporter.get_finished_spans()
     assert [e.name for e in span.events] == ["exception"]
-    assert span.attributes["litellm.provider.error.code"] == "400"
+    assert span.attributes["token_iq.provider.error.code"] == "400"
     assert span.status.status_code is StatusCode.ERROR
 
 
@@ -1399,7 +1399,7 @@ def test_start_phase_span_stamps_error_attributes_on_failure():
     auth = by_name["auth /chat/completions"]
     assert auth.attributes["error.type"] == "ProxyException"
     assert "ExpiredToken" in auth.attributes["error.message"]
-    assert auth.attributes["litellm.provider.error.code"] == "401"
+    assert auth.attributes["token_iq.provider.error.code"] == "401"
     assert auth.status.status_code is StatusCode.ERROR
     assert any(e.name == "exception" for e in auth.events)
 
@@ -1415,7 +1415,7 @@ def test_start_phase_span_success_carries_no_error():
 
 def test_real_logging_pre_call_opens_span_end_to_end():
     """Regression guard: a real ``LiteLLMLoggingObj.pre_call`` must fire
-    ``log_pre_api_call`` on the V2 logger (via ``litellm.input_callback``), so the
+    ``log_pre_api_call`` on the V2 logger (via ``token_iq.input_callback``), so the
     boundary span is opened and then closed by the success callback. If the logger
     is not wired into ``input_callback``, no span is produced at all."""
     from token_iq import gateway
@@ -1520,10 +1520,10 @@ class _Auth:
 def test_provider_model_and_team_metadata_on_real_boundary_flow():
     """End-to-end on the proxy boundary path (the gap a pure-emitter test misses):
 
-    - ``litellm.team.metadata`` (filtered to the allowlisted sub-keys) is known
+    - ``token_iq.team.metadata`` (filtered to the allowlisted sub-keys) is known
       at auth, so it rides identity Baggage seeded there onto EVERY span
       (server + LLM call).
-    - ``litellm.provider.model`` is only known once routing picks a deployment
+    - ``token_iq.provider.model`` is only known once routing picks a deployment
       (in the payload at close), AFTER the auth seed and AFTER the boundary span
       starts — so it can't ride Baggage. It's stamped directly on the LLM-call
       span by the mapper, and is absent from the server span (which starts first).
@@ -2032,13 +2032,13 @@ def test_registers_into_gateway_service_callback(monkeypatch):
     otel_registrations = [
         cb
         for cb in gateway.service_callback
-        if cb.__class__.__module__.startswith("litellm.integrations.otel")
+        if cb.__class__.__module__.startswith("token_iq.gateway.integrations.otel")
     ]
     assert len(otel_registrations) == 1
 
 
 def test_registers_into_gateway_input_callback(monkeypatch):
-    """The logger must land in ``litellm.input_callback`` — the list
+    """The logger must land in ``token_iq.input_callback`` — the list
     ``Logging.pre_call`` iterates to fire ``log_pre_api_call``. Without this the
     boundary hook never runs and the gen-AI span is never opened (the span goes
     completely missing). Deduped like ``service_callback``.
@@ -2057,21 +2057,21 @@ def test_registers_into_gateway_input_callback(monkeypatch):
     otel_registrations = [
         cb
         for cb in gateway.input_callback
-        if cb.__class__.__module__.startswith("litellm.integrations.otel")
+        if cb.__class__.__module__.startswith("token_iq.gateway.integrations.otel")
     ]
     assert len(otel_registrations) == 1
 
 
 def test_registers_into_async_success_and_failure_callbacks(monkeypatch):
-    """The logger must self-register into ``litellm._async_success_callback`` and
-    ``litellm._async_failure_callback`` — the lists ``Logging.async_success_handler``
+    """The logger must self-register into ``token_iq._async_success_callback`` and
+    ``token_iq._async_failure_callback`` — the lists ``Logging.async_success_handler``
     / ``async_failure_handler`` iterate to fire ``async_log_success_event`` /
     ``async_log_failure_event``, where the boundary span is *closed*.
 
     ``input_callback`` opens the span; these lists close it. Relying only on the
-    proxy's ``litellm.callbacks`` fan-out to populate them is not enough: a logger
+    proxy's ``token_iq.callbacks`` fan-out to populate them is not enough: a logger
     that reached litellm via ``service_callback`` / ``success_callback`` (or was
-    created after the fan-out ran) is absent from ``litellm.callbacks``, so on a
+    created after the fan-out ran) is absent from ``token_iq.callbacks``, so on a
     pass-through request (which never runs ``function_setup``) the span opens and is
     never ended — the gen-AI span leaks and never exports, while DB/service spans
     still show up. Self-registration here guarantees every open has a close.
@@ -2097,14 +2097,14 @@ def test_registers_into_async_success_and_failure_callbacks(monkeypatch):
         otel_registrations = [
             cb
             for cb in callback_list
-            if cb.__class__.__module__.startswith("litellm.integrations.otel")
+            if cb.__class__.__module__.startswith("token_iq.gateway.integrations.otel")
         ]
         assert len(otel_registrations) == 1
 
 
 def test_boundary_span_closes_without_proxy_fanout(monkeypatch):
     """A span opened at ``pre_call`` is still closed and exported when the logger is
-    registered ONLY via its own ``__init__`` (no ``litellm.callbacks`` fan-out, as
+    registered ONLY via its own ``__init__`` (no ``token_iq.callbacks`` fan-out, as
     happens for a logger configured through ``service_callback``) and the close runs
     through the real ``async_success_handler``.
 
@@ -2119,7 +2119,7 @@ def test_boundary_span_closes_without_proxy_fanout(monkeypatch):
     monkeypatch.setattr(gateway, "input_callback", [], raising=False)
     monkeypatch.setattr(gateway, "_async_success_callback", [], raising=False)
     monkeypatch.setattr(gateway, "_async_failure_callback", [], raising=False)
-    # Crucially: the logger is NOT in litellm.callbacks, so the proxy fan-out would
+    # Crucially: the logger is NOT in token_iq.callbacks, so the proxy fan-out would
     # never reach it. Only __init__ self-registration wires the open + close hooks.
     monkeypatch.setattr(gateway, "callbacks", [], raising=False)
 

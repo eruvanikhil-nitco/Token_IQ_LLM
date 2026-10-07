@@ -2313,7 +2313,7 @@ async def test_completion_fine_tuned_model():
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
-        # Act: Call the litellm.completion function
+        # Act: Call the token_iq.completion function
         response = await gateway.acompletion(
             model="vertex_ai_beta/4965075652664360960",
             messages=[{"role": "user", "content": "Write a short poem about the sky"}],

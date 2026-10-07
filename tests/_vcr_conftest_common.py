@@ -603,7 +603,7 @@ def patch_vcrpy_cassette_load_guard() -> None:
 def _should_drop_telemetry_record(request) -> bool:
     """Whether to refuse to record this request into the active cassette.
 
-    Several test modules set ``litellm.success_callback = ["langfuse"]`` (and
+    Several test modules set ``token_iq.success_callback = ["langfuse"]`` (and
     similar) at *import* time, which globally enables observability logging for
     the whole worker. Unrelated tests then emit telemetry whose async flush
     (litellm's background logging worker) lands in a *later* test's VCR window

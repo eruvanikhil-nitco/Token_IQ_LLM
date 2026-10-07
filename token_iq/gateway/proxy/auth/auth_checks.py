@@ -906,7 +906,7 @@ async def common_checks(
 
     # 2. If team can call model (or key's access_group_ids grant it)
     if _model and team_object:
-        with tracer.trace("litellm.proxy.auth.common_checks.can_team_access_model"):
+        with tracer.trace("token_iq.proxy.auth.common_checks.can_team_access_model"):
             try:
                 await can_team_access_model(
                     model=_model,
@@ -927,7 +927,7 @@ async def common_checks(
 
     # 2.2. If team member has per-member model scope, enforce it
     if _model and team_object and valid_token and valid_token.user_id:
-        with tracer.trace("litellm.proxy.auth.common_checks.check_team_member_model_access"):
+        with tracer.trace("token_iq.proxy.auth.common_checks.check_team_member_model_access"):
             await _check_team_member_model_access(
                 model=_model,
                 team_object=team_object,
@@ -959,7 +959,7 @@ async def common_checks(
 
     ## 2.1 If user can call model (if personal key)
     if _model and team_object is None and user_object is not None:
-        with tracer.trace("litellm.proxy.auth.common_checks.can_user_call_model"):
+        with tracer.trace("token_iq.proxy.auth.common_checks.can_user_call_model"):
             await can_user_call_model(
                 model=_model,
                 llm_router=llm_router,
@@ -967,7 +967,7 @@ async def common_checks(
             )
 
     # 1.1 - 2.2 - 3.0.2 - 3.0.3: Project checks (blocked, model access, budget)
-    with tracer.trace("litellm.proxy.auth.common_checks.run_project_checks"):
+    with tracer.trace("token_iq.proxy.auth.common_checks.run_project_checks"):
         await _run_project_checks(
             project_object=project_object,
             _model=_model,
@@ -1091,7 +1091,7 @@ async def common_checks(
             if coro is not None
         )
 
-        with tracer.trace("litellm.proxy.auth.common_checks.budget_checks"):
+        with tracer.trace("token_iq.proxy.auth.common_checks.budget_checks"):
             budget_results: Final = await asyncio.gather(*budget_check_coros, return_exceptions=True)
         budget_error: Final = next((r for r in budget_results if isinstance(r, BaseException)), None)
         if budget_error is not None:
@@ -1132,7 +1132,7 @@ async def common_checks(
     )
 
     # 11. [OPTIONAL] Vector store checks - is the object allowed to access the vector store
-    with tracer.trace("litellm.proxy.auth.common_checks.vector_store_access_check"):
+    with tracer.trace("token_iq.proxy.auth.common_checks.vector_store_access_check"):
         await vector_store_access_check(
             request_body=request_body,
             team_object=team_object,
@@ -1140,7 +1140,7 @@ async def common_checks(
         )
 
     # 12. [OPTIONAL] Tool allowlist - key/team allowed_tools (no DB in hot path)
-    with tracer.trace("litellm.proxy.auth.common_checks.check_tools_allowlist"):
+    with tracer.trace("token_iq.proxy.auth.common_checks.check_tools_allowlist"):
         await check_tools_allowlist(
             request_body=request_body,
             valid_token=valid_token,

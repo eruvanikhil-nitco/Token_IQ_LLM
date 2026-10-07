@@ -42,7 +42,7 @@ class GenericPromptManager(CustomPromptManagement):
         }
 
         # Use with completion
-        response = litellm.completion(
+        response = token_iq.completion(
             model="generic_prompt/gpt-4",
             prompt_id="my_prompt_id",
             prompt_variables={"variable": "value"},

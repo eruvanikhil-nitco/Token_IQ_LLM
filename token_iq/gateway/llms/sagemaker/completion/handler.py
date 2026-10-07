@@ -314,7 +314,7 @@ class SagemakerLLM(BaseAWSLLM):
             status_code: Final = getattr(e, "response", {}).get("ResponseMetadata", {}).get("HTTPStatusCode", 500)
             error_message = getattr(e, "response", {}).get("Error", {}).get("Message", str(e))
             if "Inference Component Name header is required" in error_message:
-                error_message += "\n pass in via `litellm.completion(..., model_id={InferenceComponentName})`"
+                error_message += "\n pass in via `token_iq.completion(..., model_id={InferenceComponentName})`"
             raise SagemakerError(status_code=status_code, message=error_message)
 
         return sagemaker_config.transform_response(
@@ -537,7 +537,7 @@ class SagemakerLLM(BaseAWSLLM):
         except Exception as e:
             error_message = f"{e}"
             if "Inference Component Name header is required" in error_message:
-                error_message += "\n pass in via `litellm.completion(..., model_id={InferenceComponentName})`"
+                error_message += "\n pass in via `token_iq.completion(..., model_id={InferenceComponentName})`"
             raise SagemakerError(status_code=500, message=error_message)
         return sagemaker_config.transform_response(
             model=model,

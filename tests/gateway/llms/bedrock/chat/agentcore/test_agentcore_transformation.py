@@ -66,7 +66,7 @@ class TestAgentCoreAcceptHeader:
     def test_accept_header_in_completion_request_jwt(self):
         """
         End-to-end test: verify Accept header appears in the final HTTP request
-        when using JWT auth through litellm.completion().
+        when using JWT auth through token_iq.completion().
 
         No exception swallowing: if completion() raises (for example because the
         injected client was silently ignored and a real network call was made),
@@ -273,7 +273,7 @@ class TestAgentCoreStreamingJsonFallback:
         """
         When stream=True but the agent returns Content-Type: application/json,
         content is extracted and returned instead of silently returning empty.
-        Exercises the full path through litellm.completion().
+        Exercises the full path through token_iq.completion().
         """
         from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 

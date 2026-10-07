@@ -677,8 +677,8 @@ class InMemoryGuardrailHandler:
         Delete a guardrail in memory and remove from litellm callbacks.
 
         The callback is purged from every callback list, not just
-        litellm.callbacks: request handling promotes guardrail callbacks into the
-        success/failure/async lists, so removing it from only litellm.callbacks
+        token_iq.callbacks: request handling promotes guardrail callbacks into the
+        success/failure/async lists, so removing it from only token_iq.callbacks
         leaves the old instance stranded in those lists on every re-initialization.
         """
         # Remove from in-memory storage
@@ -823,7 +823,7 @@ class InMemoryGuardrailHandler:
     ) -> Guardrail | None:
         """
         Force re-initialization of a guardrail even if it exists in memory.
-        Removes old callback from litellm.callbacks and creates fresh instance.
+        Removes old callback from token_iq.callbacks and creates fresh instance.
 
         If the new config fails to initialize (e.g. an invalid on_flagged
         combination or an invalid regex), the previous instance is restored
@@ -844,7 +844,7 @@ class InMemoryGuardrailHandler:
         if guardrail_id in self.IN_MEMORY_GUARDRAILS:
             self.delete_in_memory_guardrail(guardrail_id)
 
-        # Initialize fresh (will add new callback to litellm.callbacks). If the new
+        # Initialize fresh (will add new callback to token_iq.callbacks). If the new
         # params are invalid (a raising guardrail __init__), restore the previous
         # instance instead of leaving the guardrail silently removed: a guardrail
         # that was enforcing must never fail open because an update was bad.

@@ -44,7 +44,7 @@ def _deprioritize_script_dir_in_sys_path() -> None:
 _deprioritize_script_dir_in_sys_path()
 sys.path.append(os.getcwd())
 
-config_filename: Final = "litellm.secrets"
+config_filename: Final = "token_iq.secrets"
 
 gateway_mode: Final = compat.env("TOKEN_IQ_MODE", "DEV")  # "PRODUCTION", "DEV"
 if gateway_mode == "DEV":

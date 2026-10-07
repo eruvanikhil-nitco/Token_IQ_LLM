@@ -849,7 +849,7 @@ def test_handler_parameter_exclusion():
     ],
 )
 def test_api_base_and_api_key_passthrough(function_name, is_async, is_stream):
-    """Test that api_base and api_key parameters are passed through to litellm.completion/acompletion when using generate_content"""
+    """Test that api_base and api_key parameters are passed through to token_iq.completion/acompletion when using generate_content"""
     import asyncio
     import unittest.mock
 
@@ -871,7 +871,7 @@ def test_api_base_and_api_key_passthrough(function_name, is_async, is_stream):
     test_api_key = "test-api-key-123"
 
     # Mock the appropriate litellm function (completion vs acompletion)
-    mock_target = "litellm.acompletion" if is_async else "litellm.completion"
+    mock_target = "litellm.acompletion" if is_async else "token_iq.completion"
 
     with unittest.mock.patch(mock_target) as mock_completion:
         # Mock return value
@@ -914,7 +914,7 @@ def test_api_base_and_api_key_passthrough(function_name, is_async, is_stream):
         # Verify that the appropriate litellm function was called
         mock_completion.assert_called_once()
 
-        # Get the arguments passed to litellm.completion/acompletion
+        # Get the arguments passed to token_iq.completion/acompletion
         call_args, call_kwargs = mock_completion.call_args
 
         # Verify that api_base and api_key were passed through
@@ -1069,9 +1069,9 @@ async def test_google_generate_content_with_openai():
             ],
         )
 
-        # Print the request args sent to litellm.completion
+        # Print the request args sent to token_iq.completion
         call_args, call_kwargs = mock_completion.call_args
-        print("Arguments sent to litellm.completion:")
+        print("Arguments sent to token_iq.completion:")
         print(f"Args: {call_args}")
         print(f"Kwargs: {call_kwargs}")
 
@@ -1081,7 +1081,7 @@ async def test_google_generate_content_with_openai():
         # Print the response for verification
         print(f"Response: {response}")
         #########################################################
-        # validate only expected fields were sent to litellm.completion
+        # validate only expected fields were sent to token_iq.completion
         passed_fields = set(call_kwargs.keys())
         # remove any GenericLiteLLMParams fields
         passed_fields = passed_fields - set(GenericGatewayParams.model_fields.keys())

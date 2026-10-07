@@ -1,7 +1,7 @@
 """
 Performance benchmarks for the A2A (agent-to-agent) message-translation hot path.
 
-Both directions are covered: the client direction (litellm.completion talking to
+Both directions are covered: the client direction (token_iq.completion talking to
 an upstream A2A agent) converts OpenAI messages into a prompt and extracts text
 from the A2A response, and the proxy server-ingress direction converts an inbound
 A2A message into OpenAI messages before bridging to a completion. All are pure-CPU

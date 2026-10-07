@@ -3732,7 +3732,7 @@ async def test_add_user_to_team_logs_unknown_team_at_error(mocker, caplog):
         side_effect=HTTPException(status_code=404, detail={"error": "Team not found"}),
     )
 
-    with caplog.at_level(logging.DEBUG, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.DEBUG, logger="Token IQ Proxy"):
         await _add_user_to_team(
             user_id="sso-user",
             team_id="deleted-team",
@@ -3763,7 +3763,7 @@ async def test_add_user_to_team_keeps_already_a_member_quiet(mocker, caplog):
         side_effect=HTTPException(status_code=400, detail={"error": "User already exists in team"}),
     )
 
-    with caplog.at_level(logging.DEBUG, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.DEBUG, logger="Token IQ Proxy"):
         await _add_user_to_team(
             user_id="sso-user",
             team_id="existing-team",

@@ -6490,7 +6490,7 @@ def _cyclic_fallback_router(num_retries=0):
 
 
 async def _drive_cyclic_fallback(router, capture, recorder=None, **request_kwargs):
-    router_logger = logging.getLogger("LiteLLM Router")
+    router_logger = logging.getLogger("Token IQ Router")
     previous_level = router_logger.level
     router_logger.setLevel(capture.level)
     router_logger.addHandler(capture)

@@ -53,7 +53,7 @@ MODEL = "claude-sonnet-4-5-20250929"
 @pytest.fixture
 def otel_success_callback(otel_with_exporter, monkeypatch):
     """Register our in-memory OTEL instance where async_success_handler looks
-    for success callbacks (litellm._async_success_callback), so the real
+    for success callbacks (token_iq._async_success_callback), so the real
     logging path drives it."""
     otel, exporter = otel_with_exporter
     monkeypatch.setattr(gateway, "callbacks", [otel])

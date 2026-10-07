@@ -420,7 +420,7 @@ class GenericAPILogger(CustomBatchLogger):
         messages: Final = kwargs.get("messages")
         cost: Final = kwargs.get("response_cost", 0.0)
         optional_params: Final = kwargs.get("optional_params", {})
-        call_type: Final = kwargs.get("call_type", "litellm.completion")
+        call_type: Final = kwargs.get("call_type", "token_iq.completion")
         cache_hit: Final = kwargs.get("cache_hit", False)
         usage: Final = response_obj["usage"]
         id: Final = response_obj.get("id", str(uuid.uuid4()))

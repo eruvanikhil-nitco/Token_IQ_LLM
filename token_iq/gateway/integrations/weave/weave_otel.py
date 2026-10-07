@@ -190,12 +190,12 @@ class WeaveOtelLogger(OpenTelemetry):
         WANDB_HOST: Optional. Custom Weave host URL. Defaults to cloud endpoint.
 
     Usage:
-        litellm.callbacks = ["weave_otel"]
+        token_iq.callbacks = ["weave_otel"]
 
         Or manually:
         from token_iq.gateway.integrations.weave.weave_otel import WeaveOtelLogger
         weave_logger = WeaveOtelLogger(callback_name="weave_otel")
-        litellm.callbacks = [weave_logger]
+        token_iq.callbacks = [weave_logger]
 
     Reference:
         https://docs.wandb.ai/weave/guides/tracking/otel

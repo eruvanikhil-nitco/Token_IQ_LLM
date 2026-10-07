@@ -112,7 +112,7 @@ async def test_openai_model_does_not_forward_stream_options_to_responses_api():
 
 def test_anthropic_experimental_pass_through_messages_handler_dynamic_api_key_and_api_base_and_custom_values():
     """
-    Test that api key, api base, and extra kwargs are forwarded to litellm.completion for Azure models.
+    Test that api key, api base, and extra kwargs are forwarded to token_iq.completion for Azure models.
     Azure models are routed through chat/completions (not the Responses API).
     """
     from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler import (
@@ -226,9 +226,9 @@ async def _async_return(value):
 
 def test_anthropic_experimental_pass_through_messages_handler_custom_llm_provider():
     """
-    Test that litellm.completion is called when a custom LLM provider is given.
+    Test that token_iq.completion is called when a custom LLM provider is given.
 
-    Provider resolution now happens exactly once, inside litellm.completion itself
+    Provider resolution now happens exactly once, inside token_iq.completion itself
     (BerriAI/litellm#37716), so the handler passes the original unresolved model through.
     """
     from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler import (
@@ -247,7 +247,7 @@ def test_anthropic_experimental_pass_through_messages_handler_custom_llm_provide
         except (ValueError, TypeError, AttributeError) as e:
             print(f"Error: {e}")
 
-        # Assert that litellm.completion was called when using a custom LLM provider
+        # Assert that token_iq.completion was called when using a custom LLM provider
         mock_completion.assert_called_once()
 
         # Verify that the custom provider was passed through

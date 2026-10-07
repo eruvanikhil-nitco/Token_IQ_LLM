@@ -167,7 +167,7 @@ def _assistant_content_and_tool_calls(response_obj: Any) -> tuple:
 
 
 class AdaptiveRouterPostCallHook(CustomLogger):
-    """One hook instance per AdaptiveRouter. Registered into litellm.callbacks."""
+    """One hook instance per AdaptiveRouter. Registered into token_iq.callbacks."""
 
     def __init__(self, adaptive_router: AdaptiveRouter) -> None:
         self.adaptive_router = adaptive_router

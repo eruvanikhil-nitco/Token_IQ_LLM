@@ -171,9 +171,9 @@ def test_stamp_error_writes_full_attribute_set_and_event():
     assert result == ("ProxyException", "boom")
     assert s.attributes["error.type"] == "ProxyException"
     assert s.attributes["error.message"] == "boom"
-    assert s.attributes["litellm.provider.error.code"] == "401"
-    assert s.attributes["litellm.provider.error.stack_trace"] == "tb"
-    assert s.attributes["litellm.provider.error.llm_provider"] == "anthropic"
+    assert s.attributes["token_iq.provider.error.code"] == "401"
+    assert s.attributes["token_iq.provider.error.stack_trace"] == "tb"
+    assert s.attributes["token_iq.provider.error.llm_provider"] == "anthropic"
     assert s.status.status_code is StatusCode.ERROR
     assert [e.name for e in s.events] == ["exception"]
 
@@ -185,7 +185,7 @@ def test_stamp_error_opt_outs_skip_status_and_event():
     span.end()
     (s,) = exporter.get_finished_spans()
     assert s.attributes["error.type"] == "ProxyException"
-    assert s.attributes["litellm.provider.error.code"] == "401"
+    assert s.attributes["token_iq.provider.error.code"] == "401"
     assert s.status.status_code is StatusCode.UNSET
     assert s.events == ()
 

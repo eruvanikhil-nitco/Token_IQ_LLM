@@ -252,7 +252,7 @@ def _find_callback(name):
     for cb in gateway.callbacks:
         if isinstance(cb, CiscoAIDefenseGuardrail) and cb.guardrail_name == name:
             return cb
-    raise AssertionError(f"Cisco guardrail {name!r} not in litellm.callbacks")
+    raise AssertionError(f"Cisco guardrail {name!r} not in token_iq.callbacks")
 
 
 def _make_streaming_chunks(parts):

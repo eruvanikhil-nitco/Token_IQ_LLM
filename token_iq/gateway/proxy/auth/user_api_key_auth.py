@@ -1240,7 +1240,7 @@ async def _user_api_key_auth_builder(
     custom_auth_api_key: bool = False
 
     try:
-        with tracer.trace("litellm.proxy.auth.pre_db_read_auth_checks"):
+        with tracer.trace("token_iq.proxy.auth.pre_db_read_auth_checks"):
             await pre_db_read_auth_checks(
                 request_data=request_data,
                 request=request,
@@ -1276,7 +1276,7 @@ async def _user_api_key_auth_builder(
 
         ### USER-DEFINED AUTH FUNCTION ###
         if enterprise_custom_auth is not None:
-            with tracer.trace("litellm.proxy.auth.enterprise_custom_auth"):
+            with tracer.trace("token_iq.proxy.auth.enterprise_custom_auth"):
                 response = await enterprise_custom_auth(
                     request=request, api_key=api_key, user_custom_auth=user_custom_auth
                 )
@@ -1429,7 +1429,7 @@ async def _user_api_key_auth_builder(
                     # standard JWT auth_builder below
 
                 if do_standard_jwt_auth:
-                    with tracer.trace("litellm.proxy.auth.jwt_auth_builder"):
+                    with tracer.trace("token_iq.proxy.auth.jwt_auth_builder"):
                         result: Final = await JWTAuthManager.auth_builder(
                             request_data=request_data,
                             general_settings=general_settings,
@@ -1662,7 +1662,7 @@ async def _user_api_key_auth_builder(
             try:
                 end_user_params["end_user_id"] = end_user_id
 
-                with tracer.trace("litellm.proxy.auth.get_end_user_object"):
+                with tracer.trace("token_iq.proxy.auth.get_end_user_object"):
                     _end_user_object = await get_end_user_object(
                         end_user_id=end_user_id,
                         prisma_client=prisma_client,
@@ -1708,7 +1708,7 @@ async def _user_api_key_auth_builder(
         if valid_token is None:
             ## Check CACHE
             try:
-                with tracer.trace("litellm.proxy.auth.get_key_object_check_cache"):
+                with tracer.trace("token_iq.proxy.auth.get_key_object_check_cache"):
                     valid_token = IdentityStore.key_from_principal(
                         await IdentityStore(
                             prisma_client,
@@ -1895,7 +1895,7 @@ async def _user_api_key_auth_builder(
                 api_key = hash_token(token=api_key)
 
             try:
-                with tracer.trace("litellm.proxy.auth.get_key_object_from_db"):
+                with tracer.trace("token_iq.proxy.auth.get_key_object_from_db"):
                     valid_token = IdentityStore.key_from_principal(
                         await IdentityStore(
                             prisma_client,
@@ -1949,7 +1949,7 @@ async def _user_api_key_auth_builder(
             # Check 2. If user_id for this token is in budget - done in common_checks()
             if valid_token.user_id is not None:
                 try:
-                    with tracer.trace("litellm.proxy.auth.get_user_object"):
+                    with tracer.trace("token_iq.proxy.auth.get_user_object"):
                         user_obj = await get_user_object(
                             user_id=valid_token.user_id,
                             prisma_client=prisma_client,
@@ -2072,7 +2072,7 @@ async def _user_api_key_auth_builder(
                     )
 
             if not skip_budget_checks:
-                with tracer.trace("litellm.proxy.auth.budget_checks"):
+                with tracer.trace("token_iq.proxy.auth.budget_checks"):
                     # Check 4. Max Budget Alert Check (runs before budget enforcement
                     # so multi-threshold 100% alerts fire on the request that crosses
                     # max_budget, before BudgetExceededError is raised below)
@@ -2166,7 +2166,7 @@ async def _user_api_key_auth_builder(
                 try:
                     if valid_token.team_id == UI_TEAM_ID:
                         raise TeamNotFoundError(team_id=UI_TEAM_ID)
-                    with tracer.trace("litellm.proxy.auth.get_team_object"):
+                    with tracer.trace("token_iq.proxy.auth.get_team_object"):
                         _team_obj = await get_team_object(
                             team_id=valid_token.team_id,
                             prisma_client=prisma_client,
@@ -2223,7 +2223,7 @@ async def _user_api_key_auth_builder(
             global_proxy_spend = None
             if gateway.max_budget > 0 and prisma_client is not None:  # user set proxy max budget
                 cache_key: Final = GLOBAL_PROXY_SPEND_CACHE_KEY
-                with tracer.trace("litellm.proxy.auth.get_global_proxy_spend"):
+                with tracer.trace("token_iq.proxy.auth.get_global_proxy_spend"):
                     global_proxy_spend = await _fetch_global_spend_with_event_coordination(
                         cache_key=cache_key,
                         user_api_key_cache=user_api_key_cache,

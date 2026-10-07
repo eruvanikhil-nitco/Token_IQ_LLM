@@ -30,10 +30,10 @@ class GenAIOperation(str, Enum):
     CREATE_AGENT = "create_agent"  # reserved for future agent spans
     INVOKE_AGENT = "invoke_agent"  # agent (A2A) message spans
     EXECUTE_TOOL = "execute_tool"  # MCP tool-call spans
-    LITELLM_VECTOR_STORE_MANAGEMENT = "litellm.vector_store_management"
-    LITELLM_VECTOR_STORE_FILE_MANAGEMENT = "litellm.vector_store_file_management"
-    LITELLM_RESPONSES_MANAGEMENT = "litellm.responses_management"
-    LITELLM_MODERATION = "litellm.moderation"
+    LITELLM_VECTOR_STORE_MANAGEMENT = "token_iq.vector_store_management"
+    LITELLM_VECTOR_STORE_FILE_MANAGEMENT = "token_iq.vector_store_file_management"
+    LITELLM_RESPONSES_MANAGEMENT = "token_iq.responses_management"
+    LITELLM_MODERATION = "token_iq.moderation"
 
 
 class GenAIOutputType(str, Enum):
@@ -212,9 +212,9 @@ class GatewayError:
     vendor namespace rather than squatting on the semconv-owned ``error.*``
     namespace."""
 
-    CODE: Final = "litellm.provider.error.code"
-    STACK_TRACE: Final = "litellm.provider.error.stack_trace"
-    LLM_PROVIDER: Final = "litellm.provider.error.llm_provider"
+    CODE: Final = "token_iq.provider.error.code"
+    STACK_TRACE: Final = "token_iq.provider.error.stack_trace"
+    LLM_PROVIDER: Final = "token_iq.provider.error.llm_provider"
 
 
 class ExceptionEvent:
@@ -277,55 +277,55 @@ class HTTP:
 class Gateway:
     """Vendor-extension keys (no semconv equivalent). Always ``litellm.*``."""
 
-    CALL_ID: Final = "litellm.call_id"
+    CALL_ID: Final = "token_iq.call_id"
     # The litellm route that produced the call. Needed because the convention maps
     # several routes onto one operation: transcription and OCR are both
     # ``generate_content`` with a ``text`` output type, so this is the only thing
     # that tells them apart.
-    CALL_TYPE: Final = "litellm.call_type"
+    CALL_TYPE: Final = "token_iq.call_type"
     COST_PREFIX: Final = "litellm.cost."
     METADATA_PREFIX: Final = "litellm.metadata."
-    TEAM_ID: Final = "litellm.team.id"
-    TEAM_ALIAS: Final = "litellm.team.alias"
+    TEAM_ID: Final = "token_iq.team.id"
+    TEAM_ALIAS: Final = "token_iq.team.alias"
     # The team's free-form metadata dict, JSON-serialized into a single value.
-    TEAM_METADATA: Final = "litellm.team.metadata"
-    KEY_HASH: Final = "litellm.api_key.hash"
-    END_USER: Final = "litellm.end_user.id"
+    TEAM_METADATA: Final = "token_iq.team.metadata"
+    KEY_HASH: Final = "token_iq.api_key.hash"
+    END_USER: Final = "token_iq.end_user.id"
     # The model string litellm actually sent to the provider (the deployment's
     # ``litellm_params.model``), distinct from the user-facing ``gen_ai.request.model``.
-    PROVIDER_MODEL: Final = "litellm.provider.model"
-    REQUEST_STREAMING: Final = "litellm.request.streaming"
-    TOOLS_DECLARED: Final = "litellm.request.tools.declared"
-    GUARDRAIL_NAME: Final = "litellm.guardrail.name"
-    GUARDRAIL_MODE: Final = "litellm.guardrail.mode"
-    GUARDRAIL_STATUS: Final = "litellm.guardrail.status"
-    GUARDRAIL_PROVIDER: Final = "litellm.guardrail.provider"
-    GUARDRAIL_ACTION: Final = "litellm.guardrail.action"
-    GUARDRAIL_RESPONSE: Final = "litellm.guardrail.response"
-    GUARDRAIL_VIOLATION_CATEGORIES: Final = "litellm.guardrail.violation_categories"
-    GUARDRAIL_CONFIDENCE_SCORE: Final = "litellm.guardrail.confidence_score"
-    GUARDRAIL_RISK_SCORE: Final = "litellm.guardrail.risk_score"
-    GUARDRAIL_MASKED_ENTITY_COUNT: Final = "litellm.guardrail.masked_entity_count"
-    GUARDRAIL_DURATION: Final = "litellm.guardrail.duration"
-    GUARDRAIL_ID: Final = "litellm.guardrail.id"
-    GUARDRAIL_POLICY_TEMPLATE: Final = "litellm.guardrail.policy_template"
-    GUARDRAIL_DETECTION_METHOD: Final = "litellm.guardrail.detection_method"
+    PROVIDER_MODEL: Final = "token_iq.provider.model"
+    REQUEST_STREAMING: Final = "token_iq.request.streaming"
+    TOOLS_DECLARED: Final = "token_iq.request.tools.declared"
+    GUARDRAIL_NAME: Final = "token_iq.guardrail.name"
+    GUARDRAIL_MODE: Final = "token_iq.guardrail.mode"
+    GUARDRAIL_STATUS: Final = "token_iq.guardrail.status"
+    GUARDRAIL_PROVIDER: Final = "token_iq.guardrail.provider"
+    GUARDRAIL_ACTION: Final = "token_iq.guardrail.action"
+    GUARDRAIL_RESPONSE: Final = "token_iq.guardrail.response"
+    GUARDRAIL_VIOLATION_CATEGORIES: Final = "token_iq.guardrail.violation_categories"
+    GUARDRAIL_CONFIDENCE_SCORE: Final = "token_iq.guardrail.confidence_score"
+    GUARDRAIL_RISK_SCORE: Final = "token_iq.guardrail.risk_score"
+    GUARDRAIL_MASKED_ENTITY_COUNT: Final = "token_iq.guardrail.masked_entity_count"
+    GUARDRAIL_DURATION: Final = "token_iq.guardrail.duration"
+    GUARDRAIL_ID: Final = "token_iq.guardrail.id"
+    GUARDRAIL_POLICY_TEMPLATE: Final = "token_iq.guardrail.policy_template"
+    GUARDRAIL_DETECTION_METHOD: Final = "token_iq.guardrail.detection_method"
     # Provider-reported billable usage counters, JSON-serialized into one value.
-    GUARDRAIL_USAGE: Final = "litellm.guardrail.usage"
+    GUARDRAIL_USAGE: Final = "token_iq.guardrail.usage"
     # Numeric USD cost of the guardrail invocation; lives under the litellm.cost.*
     # namespace (COST_PREFIX) beside the LLM call's litellm.cost.total.
-    GUARDRAIL_COST: Final = "litellm.cost.guardrail"
-    # Whether litellm.cost.guardrail is already inside litellm.cost.total (True,
+    GUARDRAIL_COST: Final = "token_iq.cost.guardrail"
+    # Whether token_iq.cost.guardrail is already inside litellm.cost.total (True,
     # the billed default) or reported alongside it (False) — without this a trace
     # consumer cannot tell whether adding the two double-counts.
-    GUARDRAIL_COST_IN_SPEND: Final = "litellm.guardrail.cost_in_spend"
-    SERVICE_NAME: Final = "litellm.service.name"
-    SERVICE_CALL_TYPE: Final = "litellm.service.call_type"
-    PREPROCESSING_MS: Final = "litellm.preprocessing.duration_ms"
+    GUARDRAIL_COST_IN_SPEND: Final = "token_iq.guardrail.cost_in_spend"
+    SERVICE_NAME: Final = "token_iq.service.name"
+    SERVICE_CALL_TYPE: Final = "token_iq.service.call_type"
+    PREPROCESSING_MS: Final = "token_iq.preprocessing.duration_ms"
     # The logical name of the MCP server a tool call was routed to. There is no
     # semconv key for an MCP server's *name* (the convention uses ``server.address``
     # for its network location), so it lives under the vendor namespace.
-    MCP_SERVER_NAME: Final = "litellm.mcp.server.name"
+    MCP_SERVER_NAME: Final = "token_iq.mcp.server.name"
 
 
 class Metric:

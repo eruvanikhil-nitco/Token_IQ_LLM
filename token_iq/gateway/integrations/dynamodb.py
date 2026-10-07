@@ -36,7 +36,7 @@ class DyanmoDBLogger:
             metadata: Final = litellm_params.get("metadata", {}) or {}  # if litellm_params['metadata'] == None
             messages: Final = kwargs.get("messages")
             optional_params: Final = kwargs.get("optional_params", {})
-            call_type: Final = kwargs.get("call_type", "litellm.completion")
+            call_type: Final = kwargs.get("call_type", "token_iq.completion")
             usage: Final = response_obj["usage"]
             id: Final = response_obj.get("id", str(uuid.uuid4()))
 

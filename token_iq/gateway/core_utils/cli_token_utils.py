@@ -331,7 +331,7 @@ def get_gateway_gateway_api_key(
         >>> import litellm
         >>> api_key = litellm.get_litellm_gateway_api_key()
         >>> if api_key:
-        >>>     response = litellm.completion(
+        >>>     response = token_iq.completion(
         >>>         model="gpt-3.5-turbo",
         >>>         messages=[{"role": "user", "content": "Hello"}],
         >>>         api_key=api_key,

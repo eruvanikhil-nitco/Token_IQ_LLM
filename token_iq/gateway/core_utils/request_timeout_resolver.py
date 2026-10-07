@@ -1,12 +1,12 @@
-"""Single source of truth for whether ``litellm.request_timeout`` was configured.
+"""Single source of truth for whether ``token_iq.request_timeout`` was configured.
 
-``litellm.request_timeout`` always holds a value (the package default,
+``token_iq.request_timeout`` always holds a value (the package default,
 :data:`~litellm.constants.DEFAULT_REQUEST_TIMEOUT_SECONDS`), so a bare read can't
 tell "user asked for this" from "nobody set it". This resolver answers that:
 
 * ``request_timeout_explicitly_set`` is the authoritative signal, set when the
   value comes from the ``REQUEST_TIMEOUT`` env var or ``litellm_settings``.
-* A runtime value that differs from the package default (e.g. ``litellm.request_timeout
+* A runtime value that differs from the package default (e.g. ``token_iq.request_timeout
   = 300`` in SDK code) is also treated as explicit, for backwards compatibility.
 """
 
@@ -18,7 +18,7 @@ from token_iq.gateway.constants import DEFAULT_REQUEST_TIMEOUT_SECONDS
 
 
 def get_configured_request_timeout() -> float | None:
-    """Return the explicitly-configured ``litellm.request_timeout``, else ``None``."""
+    """Return the explicitly-configured ``token_iq.request_timeout``, else ``None``."""
     from token_iq import gateway
 
     timeout: Final = float(gateway.request_timeout)

@@ -425,7 +425,7 @@ class TestGatewayCompletionUserAgent:
     """Test User-Agent is correctly passed through LiteLLM completion calls."""
 
     def test_completion_passes_user_agent_to_headers(self):
-        """litellm.completion() correctly passes user_agent to request headers."""
+        """token_iq.completion() correctly passes user_agent to request headers."""
         from token_iq.gateway.llms.databricks.chat.transformation import DatabricksConfig
 
         config = DatabricksConfig()

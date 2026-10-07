@@ -199,7 +199,7 @@ class BitBucketPromptManager(CustomPromptManagement):
         }
 
         # Use with completion
-        response = litellm.completion(
+        response = token_iq.completion(
             model="bitbucket/gpt-4",
             prompt_id="my_prompt",
             prompt_variables={"variable": "value"},

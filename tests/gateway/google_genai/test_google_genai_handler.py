@@ -176,7 +176,7 @@ def test_stream_transformation_error_sync():
         "translate_completion_output_params_streaming",
         return_value=None,
     ):
-        # Patch litellm.completion directly to prevent real API calls
+        # Patch token_iq.completion directly to prevent real API calls
         with patch("token_iq.gateway.completion", return_value=mock_stream):
             # Call the handler with stream=True and expect a ValueError
             with pytest.raises(

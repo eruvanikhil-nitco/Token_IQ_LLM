@@ -12,8 +12,8 @@ def get_api_base(model: str, optional_params: dict | LiteLLM_Params) -> str | No
     Returns the api base used for calling the model.
 
     Parameters:
-    - model: str - the model passed to litellm.completion()
-    - optional_params - the'litellm_params' in router.completion *OR* additional params passed to litellm.completion - eg. api_base, api_key, etc. See `LiteLLM_Params`
+    - model: str - the model passed to token_iq.completion()
+    - optional_params - the'litellm_params' in router.completion *OR* additional params passed to token_iq.completion - eg. api_base, api_key, etc. See `LiteLLM_Params`
 
     Returns:
     - string (api_base) or None

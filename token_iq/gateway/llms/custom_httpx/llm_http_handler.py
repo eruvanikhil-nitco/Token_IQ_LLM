@@ -294,7 +294,7 @@ def _collect_ws_project_quota_callbacks() -> tuple[ProjectQuotaCallback, ...]:
     enforcement, so the Responses WebSocket loop can charge every
     ``response.create`` frame, not just the connection's first one.
 
-    Uses duck-typing on ``litellm.callbacks`` (rather than importing the
+    Uses duck-typing on ``token_iq.callbacks`` (rather than importing the
     proxy hook directly) to avoid a layering violation (SDK importing from
     the proxy layer).
     """
@@ -5159,7 +5159,7 @@ class BaseLLMHTTPHandler:
         override inherited through any intermediate class is still detected --
         a false negative here would silently disable agentic features.
 
-        String entries in ``litellm.callbacks`` (e.g. ``"datadog"``) are
+        String entries in ``token_iq.callbacks`` (e.g. ``"datadog"``) are
         resolved to their ``CustomLogger`` instance via
         ``get_custom_logger_compatible_class`` -- same pattern as
         ``ProxyLogging._callback_capabilities`` -- so a string-registered

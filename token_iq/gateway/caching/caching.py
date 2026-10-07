@@ -320,7 +320,7 @@ class Cache:
         Get the cache key for the given arguments.
 
         Args:
-            **kwargs: kwargs to litellm.completion() or embedding()
+            **kwargs: kwargs to token_iq.completion() or embedding()
 
         Returns:
             str: The cache key generated from the arguments, or None if no cache key could be generated.
@@ -560,8 +560,8 @@ class Cache:
         Retrieves the cached result for the given arguments.
 
         Args:
-            *args: args to litellm.completion() or embedding()
-            **kwargs: kwargs to litellm.completion() or embedding()
+            *args: args to token_iq.completion() or embedding()
+            **kwargs: kwargs to token_iq.completion() or embedding()
 
         Returns:
             The cached result if it exists, otherwise None.
@@ -652,8 +652,8 @@ class Cache:
         Adds a result to the cache.
 
         Args:
-            *args: args to litellm.completion() or embedding()
-            **kwargs: kwargs to litellm.completion() or embedding()
+            *args: args to token_iq.completion() or embedding()
+            **kwargs: kwargs to token_iq.completion() or embedding()
 
         Returns:
             None

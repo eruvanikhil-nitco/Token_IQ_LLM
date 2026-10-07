@@ -94,7 +94,7 @@ def _register_proxy_test_logger(callback_logger: testLogger) -> None:
 
     ``function_setup`` dedupes by object identity; each parametrized case
     constructs a new ``testLogger`` and must replace the global lists, not
-    only ``litellm.callbacks``.
+    only ``token_iq.callbacks``.
     """
     gateway.callbacks = [callback_logger]
     gateway.success_callback = [callback_logger]

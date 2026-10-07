@@ -198,7 +198,7 @@ class DummyCredentials:
 )
 def test_dynamic_aws_params_propagation(model, param_name, param_value):
     """
-    When passed to litellm.completion, each dynamic AWS authentication parameter
+    When passed to token_iq.completion, each dynamic AWS authentication parameter
     should propagate down to the get_credentials() call in BaseAWSLLM.
 
     Also tests different model parameter values.
@@ -272,7 +272,7 @@ def test_dynamic_aws_params_propagation(model, param_name, param_value):
                 mock_response.json = lambda: json.loads(mock_response.text)
                 mock_post.return_value = mock_response
 
-                # Call litellm.completion with our base & dynamic parameters.
+                # Call token_iq.completion with our base & dynamic parameters.
                 gateway.completion(**base_params)
 
                 print(

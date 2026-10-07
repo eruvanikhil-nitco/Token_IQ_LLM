@@ -7242,7 +7242,7 @@ class TestMCPMetaTraceCarrier:
         deliberately dropped even though it rides in params._meta: it is
         caller-controlled, and the otel baggage processor stamps allowlisted baggage
         keys onto the span, so honoring it would let a client spoof a span's identity
-        (e.g. ``litellm.team.id``). Dropping it at the source is the regression guard."""
+        (e.g. ``token_iq.team.id``). Dropping it at the source is the regression guard."""
         from types import SimpleNamespace
 
         from mcp.types import RequestParams
@@ -7255,7 +7255,7 @@ class TestMCPMetaTraceCarrier:
             {
                 "traceparent": "00-11111111111111111111111111111111-2222222222222222-01",
                 "tracestate": "rojo=1",
-                "baggage": "litellm.team.id=spoofed-team,litellm.metadata.user_api_key_user_id=attacker",
+                "baggage": "token_iq.team.id=spoofed-team,litellm.metadata.user_api_key_user_id=attacker",
                 "progressToken": "p1",
             }
         )

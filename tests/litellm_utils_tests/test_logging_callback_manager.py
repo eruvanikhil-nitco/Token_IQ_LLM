@@ -35,7 +35,7 @@ def mock_custom_logger():
 # Test cases
 def test_add_string_callback():
     """
-    Test adding a string callback to litellm.callbacks - only 1 instance of the string callback should be added
+    Test adding a string callback to token_iq.callbacks - only 1 instance of the string callback should be added
     """
     manager = LoggingCallbackManager()
     test_callback = "test_callback"
@@ -54,7 +54,7 @@ def test_duplicate_langfuse_logger_test():
     for _ in range(10):
         langfuse_logger = LangfusePromptManagement()
         manager.add_gateway_success_callback(langfuse_logger)
-    print("litellm.success_callback: ", gateway.success_callback)
+    print("token_iq.success_callback: ", gateway.success_callback)
     assert len(gateway.success_callback) == 1
 
 
@@ -65,7 +65,7 @@ def test_duplicate_multiple_loggers_test():
         otel_logger = OpenTelemetry()
         manager.add_gateway_success_callback(langfuse_logger)
         manager.add_gateway_success_callback(otel_logger)
-    print("litellm.success_callback: ", gateway.success_callback)
+    print("token_iq.success_callback: ", gateway.success_callback)
     assert len(gateway.success_callback) == 2
 
     # Check exactly one instance of each logger type

@@ -374,7 +374,7 @@ class CustomLogger:
 
     def translate_completion_input_params(self, kwargs) -> ChatCompletionRequest | None:
         """
-        Translates the input params, from the provider's native format to the litellm.completion() format.
+        Translates the input params, from the provider's native format to the token_iq.completion() format.
         """
 
     def translate_completion_output_params(self, response: ModelResponse) -> BaseModel | None:

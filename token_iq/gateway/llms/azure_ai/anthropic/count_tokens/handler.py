@@ -44,7 +44,7 @@ class AzureAIAnthropicCountTokensHandler(AzureAIAnthropicCountTokensConfig):
             api_key: The Azure AI API key
             api_base: The Azure AI API base URL
             litellm_params: Optional LiteLLM parameters
-            timeout: Optional timeout for the request (defaults to litellm.request_timeout)
+            timeout: Optional timeout for the request (defaults to token_iq.request_timeout)
 
         Returns:
             Dictionary containing token count response
@@ -82,7 +82,7 @@ class AzureAIAnthropicCountTokensHandler(AzureAIAnthropicCountTokensConfig):
             # Use LiteLLM's async httpx client
             async_client: Final = get_async_httpx_client(llm_provider=gateway.LlmProviders.AZURE_AI)
 
-            # Use provided timeout or fall back to litellm.request_timeout
+            # Use provided timeout or fall back to token_iq.request_timeout
             request_timeout: Final = timeout if timeout is not None else gateway.request_timeout
 
             response: Final = await async_client.post(

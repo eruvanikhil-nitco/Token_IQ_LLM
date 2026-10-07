@@ -2293,7 +2293,7 @@ class ProxyBaseLLMRequestProcessing:
 
         # Defer async logging when post-call guardrails are configured so the
         # StandardLoggingPayload is built after guardrails write to metadata.
-        # Cache the result to avoid scanning litellm.callbacks twice.
+        # Cache the result to avoid scanning token_iq.callbacks twice.
         _post_call_guardrails_active: Final = self._has_post_call_guardrails()
 
         # Non-streaming: defer the create_task in wrapper_async so the

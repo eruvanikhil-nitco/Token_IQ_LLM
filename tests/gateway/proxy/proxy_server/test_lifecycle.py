@@ -772,7 +772,7 @@ def test_otel_global_provider_published_after_callback_init():
 
 
 def test_startup_warns_for_global_budget_without_database(caplog):
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         ProxyStartupEvent._warn_budget_without_db(max_budget=100.0, prisma_client=None)
 
     assert "litellm.max_budget=100.0" in caplog.text
@@ -781,7 +781,7 @@ def test_startup_warns_for_global_budget_without_database(caplog):
 
 
 def test_startup_does_not_warn_for_global_budget_with_database(caplog):
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         ProxyStartupEvent._warn_budget_without_db(max_budget=100.0, prisma_client=MagicMock())
 
     assert "litellm.max_budget" not in caplog.text
@@ -789,7 +789,7 @@ def test_startup_does_not_warn_for_global_budget_with_database(caplog):
 
 @pytest.mark.parametrize("max_budget", [0, None])
 def test_startup_does_not_warn_without_global_budget(caplog, max_budget):
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         ProxyStartupEvent._warn_budget_without_db(max_budget=max_budget, prisma_client=None)
 
     assert "litellm.max_budget" not in caplog.text

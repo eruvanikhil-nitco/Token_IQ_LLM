@@ -127,7 +127,7 @@ def test_team_metadata_dropped_when_no_allowlisted_key_present():
 
 def test_team_metadata_not_promoted_when_key_excluded_from_promoted_keys():
     """Even with sub-keys allowlisted, team_metadata stays off the wire when
-    ``litellm.team.metadata`` itself isn't in ``promoted_keys``."""
+    ``token_iq.team.metadata`` itself isn't in ``promoted_keys``."""
     data = LLMCallSpanData.from_standard_logging_payload(_payload())
     bag = promoted_baggage(
         data.identity,

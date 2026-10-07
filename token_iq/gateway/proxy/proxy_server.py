@@ -4805,7 +4805,7 @@ class ProxyConfig:
         """
         Enable caching on the router by setting cache_responses=True.
         This ensures caching works without needing caching=True in request body.
-        Router passes caching=self.cache_responses to litellm.completion()
+        Router passes caching=self.cache_responses to token_iq.completion()
         """
         global llm_router
         from token_iq import gateway

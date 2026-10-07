@@ -471,10 +471,10 @@ def test_vector_store_search_is_not_labelled_as_chat():
 @pytest.mark.parametrize(
     "call_type,expected",
     [
-        ("avector_store_create", "litellm.vector_store_management"),
-        ("avector_store_delete", "litellm.vector_store_management"),
-        ("avector_store_file_create", "litellm.vector_store_file_management"),
-        ("avector_store_file_list", "litellm.vector_store_file_management"),
+        ("avector_store_create", "token_iq.vector_store_management"),
+        ("avector_store_delete", "token_iq.vector_store_management"),
+        ("avector_store_file_create", "token_iq.vector_store_file_management"),
+        ("avector_store_file_list", "token_iq.vector_store_file_management"),
     ],
 )
 def test_vector_store_management_is_not_labelled_as_chat(call_type, expected):

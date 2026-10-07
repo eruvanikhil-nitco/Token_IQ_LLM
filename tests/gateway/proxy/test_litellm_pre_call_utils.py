@@ -3539,7 +3539,7 @@ def test_add_gateway_metadata_from_request_headers_baggage_session_id_not_logged
     poisoned = "poisoned\x1b[31mFAKE_RED_TEXT\x1b[0m"
     headers = {"baggage": f"session.id={poisoned}"}
     data = {"metadata": {}}
-    with caplog.at_level(logging.DEBUG, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.DEBUG, logger="Token IQ Proxy"):
         GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
             headers=headers, data=data, _metadata_variable_name="metadata"
         )
@@ -4440,7 +4440,7 @@ async def test_bearer_token_not_in_debug_logs():
     log_capture = StringIO()
     log_handler = logging.StreamHandler(log_capture)
     log_handler.setLevel(logging.DEBUG)
-    logger = logging.getLogger("LiteLLM Proxy")
+    logger = logging.getLogger("Token IQ Proxy")
     logger.addHandler(log_handler)
     original_level = logger.level
     logger.setLevel(logging.DEBUG)

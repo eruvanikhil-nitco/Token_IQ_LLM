@@ -240,7 +240,7 @@ class GoogleGenAIStreamWrapper(AdapterCompletionStreamWrapper):
 
 
 class GoogleGenAIAdapter:
-    """Adapter for transforming Google GenAI generate_content requests to/from litellm.completion format"""
+    """Adapter for transforming Google GenAI generate_content requests to/from token_iq.completion format"""
 
     _parse_tool_call_args: Callable[[str], Mapping[str, object]] = staticmethod(json.loads)
 
@@ -538,7 +538,7 @@ class GoogleGenAIAdapter:
         Transform litellm completion response to Google GenAI generate_content format
 
         Args:
-            response: ModelResponse from litellm.completion
+            response: ModelResponse from token_iq.completion
 
         Returns:
             Dict in Google GenAI generate_content response format
@@ -601,7 +601,7 @@ class GoogleGenAIAdapter:
         Transform streaming litellm completion chunk to Google GenAI generate_content format
 
         Args:
-            response: Streaming ModelResponse chunk from litellm.completion
+            response: Streaming ModelResponse chunk from token_iq.completion
             wrapper: GoogleGenAIStreamWrapper instance
 
         Returns:

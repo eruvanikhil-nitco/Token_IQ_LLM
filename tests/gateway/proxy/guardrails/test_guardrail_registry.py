@@ -412,7 +412,7 @@ def _all_callback_lists():
 
 def test_delete_in_memory_guardrail_removes_callback_from_all_lists():
     """
-    Request handling promotes guardrail callbacks from litellm.callbacks into the
+    Request handling promotes guardrail callbacks from token_iq.callbacks into the
     success/failure/async lists. delete_in_memory_guardrail must purge the callback
     from every list, otherwise a re-initialized guardrail leaves its old instance
     stranded in those lists and instances accumulate.

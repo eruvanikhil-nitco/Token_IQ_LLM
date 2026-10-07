@@ -478,8 +478,8 @@ AUDIO_SPEECH_CHUNK_SIZE: Final = int(
 )  # chunk_size for audio speech streaming. Balance between latency and memory usage
 DEFAULT_MAX_TOKENS_FOR_TRITON: Final = int(os.getenv("DEFAULT_MAX_TOKENS_FOR_TRITON", 2000))
 #### Networking settings ####
-# Sentinel used when `REQUEST_TIMEOUT` is unset: `litellm.request_timeout` keeps this
-# value so longer-running surfaces (Router `timeout or litellm.request_timeout`,
+# Sentinel used when `REQUEST_TIMEOUT` is unset: `token_iq.request_timeout` keeps this
+# value so longer-running surfaces (Router `timeout or token_iq.request_timeout`,
 # speech/TTS, responses, vector stores, etc.) get a long HTTP deadline. Chat
 # `completion()` maps this sentinel down to 600s when the caller did not set a
 # per-request/model timeout—see ``CompletionTimeout.resolve`` in completion_timeout.py. MCP uses

@@ -402,7 +402,7 @@ def test_genai_mapper_guardrail_billing_attrs():
 
     attrs = GenAIMapper().map(data)
     assert attrs[Gateway.GUARDRAIL_COST] == 0.00456
-    assert Gateway.GUARDRAIL_COST == "litellm.cost.guardrail"
+    assert Gateway.GUARDRAIL_COST == "token_iq.cost.guardrail"
     assert attrs[Gateway.GUARDRAIL_USAGE] == data.usage_json
 
     # A guardrail without billing data keeps a sparse span: neither key present.
@@ -462,8 +462,8 @@ def test_set_request_baggage_empty_returns_context():
 
 
 def test_get_baggage_attributes_roundtrip():
-    ctx = ctx_mod.set_request_baggage({"litellm.team.id": "t1"})
-    assert ctx_mod.get_baggage_attributes(ctx)["litellm.team.id"] == "t1"
+    ctx = ctx_mod.set_request_baggage({"token_iq.team.id": "t1"})
+    assert ctx_mod.get_baggage_attributes(ctx)["token_iq.team.id"] == "t1"
 
 
 # --- providers -------------------------------------------------------------- #
@@ -638,7 +638,7 @@ def test_build_tracer_provider_processor_selection():
 
 
 def test_baggage_processor_lifecycle_noops():
-    proc = providers.GatewayBaggageSpanProcessor(allowed_keys=["litellm.team.id"])
+    proc = providers.GatewayBaggageSpanProcessor(allowed_keys=["token_iq.team.id"])
     # no-op lifecycle hooks must not raise
     assert proc.on_end(None) is None  # type: ignore[arg-type]
     assert proc.shutdown() is None
@@ -799,9 +799,9 @@ def test_error_attribute_keys_are_pinned():
 
     assert Error.TYPE == "error.type"
     assert Error.MESSAGE == "error.message"
-    assert GatewayError.CODE == "litellm.provider.error.code"
-    assert GatewayError.STACK_TRACE == "litellm.provider.error.stack_trace"
-    assert GatewayError.LLM_PROVIDER == "litellm.provider.error.llm_provider"
+    assert GatewayError.CODE == "token_iq.provider.error.code"
+    assert GatewayError.STACK_TRACE == "token_iq.provider.error.stack_trace"
+    assert GatewayError.LLM_PROVIDER == "token_iq.provider.error.llm_provider"
 
 
 def test_error_message_falls_back_to_error_type_when_message_absent():
@@ -1083,7 +1083,7 @@ def test_genai_mapper_guardrail_cost_in_spend_attr():
     }
     attrs = GenAIMapper().map(GuardrailSpanData.from_logging_entry(entry))
     assert attrs[Gateway.GUARDRAIL_COST_IN_SPEND] is False
-    assert Gateway.GUARDRAIL_COST_IN_SPEND == "litellm.guardrail.cost_in_spend"
+    assert Gateway.GUARDRAIL_COST_IN_SPEND == "token_iq.guardrail.cost_in_spend"
 
     billed = dict(entry)
     del billed["guardrail_cost_in_spend"]

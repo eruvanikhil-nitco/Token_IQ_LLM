@@ -122,7 +122,7 @@ class DatadogMetricsLogger(CustomBatchLogger):
         if start_time_dt and end_time_dt:
             total_duration: Final = (end_time_dt - start_time_dt).total_seconds()
             series_total_latency: Final[DatadogMetricSeries] = {
-                "metric": "litellm.request.total_latency",
+                "metric": "token_iq.request.total_latency",
                 "type": 3,  # gauge
                 "points": [{"timestamp": timestamp, "value": total_duration}],
                 "tags": tags,
@@ -134,7 +134,7 @@ class DatadogMetricsLogger(CustomBatchLogger):
         if api_call_start_time and end_time_dt:
             llm_api_duration: Final = (end_time_dt - api_call_start_time).total_seconds()
             series_llm_latency: Final[DatadogMetricSeries] = {
-                "metric": "litellm.llm_api.latency",
+                "metric": "token_iq.llm_api.latency",
                 "type": 3,  # gauge
                 "points": [{"timestamp": timestamp, "value": llm_api_duration}],
                 "tags": tags,
@@ -147,7 +147,7 @@ class DatadogMetricsLogger(CustomBatchLogger):
         if litellm_overhead_time_ms is not None:
             overhead_tags: Final = self._extract_tags(log)  # no status_code on latency metric
             series_overhead: Final[DatadogMetricSeries] = {
-                "metric": "litellm.overhead.latency",
+                "metric": "token_iq.overhead.latency",
                 "type": 3,  # gauge
                 "points": [
                     {
@@ -161,7 +161,7 @@ class DatadogMetricsLogger(CustomBatchLogger):
 
         # 4. Request Count / Status Code
         series_count: Final[DatadogMetricSeries] = {
-            "metric": "litellm.llm_api.request_count",
+            "metric": "token_iq.llm_api.request_count",
             "type": 1,  # count
             "points": [{"timestamp": timestamp, "value": 1.0}],
             "tags": tags,
@@ -258,7 +258,7 @@ class DatadogMetricsLogger(CustomBatchLogger):
                 "value": 1.0,
             }
             test_metric_series: Final[DatadogMetricSeries] = {
-                "metric": "litellm.health_check",
+                "metric": "token_iq.health_check",
                 "type": 3,  # Gauge
                 "points": [test_metric_point],
                 "tags": ["env:health_check"],

@@ -23,7 +23,7 @@ async def test_basic_google_ai_studio_responses_api_with_tools():
 @pytest.mark.asyncio
 async def test_mock_basic_google_ai_studio_responses_api_with_tools():
     """
-    - Ensure that this is the request that litellm.completion gets when we pass web search options
+    - Ensure that this is the request that token_iq.completion gets when we pass web search options
 
     litellm.acompletion(messages=[{'role': 'user', 'content': 'what is the latest version of supabase python package and when was it released?'}], model='gemini-2.5-flash', tools=[], web_search_options={'search_context_size': 'low', 'user_location': None})
     """
@@ -63,7 +63,7 @@ async def test_mock_basic_google_ai_studio_responses_api_with_tools():
 
         # Verify the expected parameters were passed
         print(
-            "call kwargs to litellm.completion=",
+            "call kwargs to token_iq.completion=",
             json.dumps(call_kwargs, indent=4, default=str),
         )
         assert "web_search_options" in call_kwargs

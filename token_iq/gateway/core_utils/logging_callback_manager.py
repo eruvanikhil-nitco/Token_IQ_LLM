@@ -40,8 +40,8 @@ class LoggingCallbackManager:
 
     def add_gateway_input_callback(self, callback: CustomLogger | str | Callable):
         """
-        Add a input callback to litellm.input_callback.
-        Auto-routes async callbacks to litellm._async_input_callback.
+        Add a input callback to token_iq.input_callback.
+        Auto-routes async callbacks to token_iq._async_input_callback.
         """
         if not isinstance(callback, str) and self._is_async_callable(callback):
             self._safe_add_callback_to_list(callback=callback, parent_list=gateway._async_input_callback)
@@ -56,7 +56,7 @@ class LoggingCallbackManager:
 
     def add_litellm_callback(self, callback: CustomLogger | str | Callable):
         """
-        Add a callback to litellm.callbacks
+        Add a callback to token_iq.callbacks
 
         Ensures no duplicates are added.
         """
@@ -67,8 +67,8 @@ class LoggingCallbackManager:
 
     def add_gateway_success_callback(self, callback: CustomLogger | str | Callable):
         """
-        Add a success callback to `litellm.success_callback`.
-        Auto-routes async callbacks to litellm._async_success_callback.
+        Add a success callback to `token_iq.success_callback`.
+        Auto-routes async callbacks to token_iq._async_success_callback.
         Special-cases 'dynamodb' and 'openmeter' as async callbacks.
         """
         if (
@@ -83,8 +83,8 @@ class LoggingCallbackManager:
 
     def add_gateway_failure_callback(self, callback: CustomLogger | str | Callable):
         """
-        Add a failure callback to `litellm.failure_callback`.
-        Auto-routes async callbacks to litellm._async_failure_callback.
+        Add a failure callback to `token_iq.failure_callback`.
+        Auto-routes async callbacks to token_iq._async_failure_callback.
         """
         if not isinstance(callback, str) and self._is_async_callable(callback):
             self._safe_add_callback_to_list(callback=callback, parent_list=gateway._async_failure_callback)
@@ -93,13 +93,13 @@ class LoggingCallbackManager:
 
     def add_gateway_async_success_callback(self, callback: CustomLogger | Callable | str):
         """
-        Add a success callback to litellm._async_success_callback
+        Add a success callback to token_iq._async_success_callback
         """
         self._safe_add_callback_to_list(callback=callback, parent_list=gateway._async_success_callback)
 
     def add_gateway_async_failure_callback(self, callback: CustomLogger | Callable | str):
         """
-        Add a failure callback to litellm._async_failure_callback
+        Add a failure callback to token_iq._async_failure_callback
         """
         self._safe_add_callback_to_list(callback=callback, parent_list=gateway._async_failure_callback)
 
@@ -123,12 +123,12 @@ class LoggingCallbackManager:
         Remove all callbacks of a specific type from a callback list.
 
         Args:
-            callback_list: The list to remove callbacks from (e.g., litellm.callbacks)
+            callback_list: The list to remove callbacks from (e.g., token_iq.callbacks)
             callback_type: The class type to match (e.g., SemanticToolFilterHook)
 
         Example:
             litellm.logging_callback_manager.remove_callbacks_by_type(
-                litellm.callbacks, SemanticToolFilterHook
+                token_iq.callbacks, SemanticToolFilterHook
             )
         """
         if not isinstance(callback_list, list):
@@ -343,7 +343,7 @@ class LoggingCallbackManager:
 
     def _get_all_callbacks(self) -> list[CustomLogger | Callable | str]:
         """
-        Get all callbacks from litellm.callbacks, litellm.success_callback, litellm.failure_callback, litellm._async_success_callback, litellm._async_failure_callback
+        Get all callbacks from token_iq.callbacks, token_iq.success_callback, token_iq.failure_callback, token_iq._async_success_callback, token_iq._async_failure_callback
         """
         return (
             gateway.callbacks

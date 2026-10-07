@@ -596,7 +596,7 @@ async def test_recovery_warns_with_identifiers_and_never_logs_credentials(monkey
     row = _row_written_under_previous_salt_key(monkeypatch, old_payload)
     prisma = _make_prisma_with_existing(row=row)
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         await store_user_oauth_credential(prisma, "alice", "srv-1", "tok-after-reauthorization")
 
     messages = [rec.getMessage() for rec in caplog.records]
@@ -614,7 +614,7 @@ async def test_get_user_oauth_credential_warns_when_row_cannot_be_decrypted(monk
     old_payload = json.dumps({"type": "oauth2", "access_token": "tok-written-before-rotation"})
     prisma = _make_prisma_with_existing(row=_row_written_under_previous_salt_key(monkeypatch, old_payload))
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         assert await get_user_oauth_credential(prisma, "alice", "srv-1") is None
 
     matching = [rec.getMessage() for rec in caplog.records if "could not be decrypted" in rec.getMessage()]
@@ -641,7 +641,7 @@ async def test_list_user_oauth_credentials_warns_per_row_when_rows_cannot_be_dec
     healthy.server_id = "srv-3"
     prisma.db.mcpusercredentials.find_many = AsyncMock(return_value=[wedged_one, healthy, wedged_two])
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         result = await list_user_oauth_credentials(prisma, "alice")
 
     assert [cred["server_id"] for cred in result] == ["srv-3"]
@@ -687,7 +687,7 @@ async def test_readable_byok_row_does_not_warn_on_the_read_path(caplog):
 
     prisma = _make_prisma_with_existing(row=_legacy_row("sk-live-byok-secret"))
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         assert await get_user_oauth_credential(prisma, "alice", "srv-1") is None
 
     assert [rec.getMessage() for rec in caplog.records if "could not be decrypted" in rec.getMessage()] == []

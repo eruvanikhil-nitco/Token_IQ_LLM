@@ -637,7 +637,7 @@ class TestPiiMaskingSafetyGuard:
         """Drive the monitor path and hand back the result plus the ERROR records it logged."""
         with (
             patch.object(guardrail, "call_v2_guard", new_callable=AsyncMock) as mock_call,
-            caplog.at_level(logging.ERROR, logger="LiteLLM Proxy"),
+            caplog.at_level(logging.ERROR, logger="Token IQ Proxy"),
         ):
             mock_call.return_value = (lakera_response, {})
             result = await guardrail.async_pre_call_hook(

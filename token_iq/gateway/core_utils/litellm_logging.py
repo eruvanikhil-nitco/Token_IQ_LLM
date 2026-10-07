@@ -1279,7 +1279,7 @@ class Logging(GatewayLoggingBaseClass):
                             details_to_log.pop("prompt", None)
 
                         add_breadcrumb(
-                            category="litellm.llm_call",
+                            category="token_iq.llm_call",
                             message=f"Model Call Details pre-call: {details_to_log}",
                             level="info",
                         )
@@ -1446,7 +1446,7 @@ class Logging(GatewayLoggingBaseClass):
                             details_to_log.pop("prompt", None)
 
                         add_breadcrumb(
-                            category="litellm.llm_call",
+                            category="token_iq.llm_call",
                             message=f"Model Call Details post-call: {details_to_log}",
                             level="info",
                         )

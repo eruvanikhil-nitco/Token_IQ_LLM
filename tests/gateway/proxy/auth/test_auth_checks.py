@@ -7412,7 +7412,7 @@ async def test_delete_cache_key_object_is_best_effort_when_the_cache_backend_fai
     from token_iq.gateway.proxy.auth.auth_checks import _delete_cache_key_object
 
     hashed_token = "a" * 64
-    caplog.set_level(logging.WARNING, logger="LiteLLM Proxy")
+    caplog.set_level(logging.WARNING, logger="Token IQ Proxy")
 
     failing_cache = MagicMock()
     failing_cache.delete_cache = MagicMock()

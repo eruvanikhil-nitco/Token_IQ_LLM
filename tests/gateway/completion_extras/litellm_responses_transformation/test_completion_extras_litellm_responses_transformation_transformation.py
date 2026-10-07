@@ -1801,7 +1801,7 @@ def test_apply_patch_tool_call_converted_to_chat_completion_tool_call():
     Test that ResponseApplyPatchToolCall items from the Responses API are
     correctly converted to ChatCompletions-style tool calls by the bridge.
 
-    This is a regression test for a bug where litellm.completion() with a
+    This is a regression test for a bug where token_iq.completion() with a
     responses/ model prefix crashed when the model returned an
     apply_patch_call, because _convert_response_output_to_choices did not
     handle ResponseApplyPatchToolCall items. The model DID use the tool,

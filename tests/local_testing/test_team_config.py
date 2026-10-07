@@ -31,6 +31,6 @@
 #         "messages": [{"role": "user", "content": "Hey, how's it going?"}],
 #     }
 #     team_config.pop("team_id")
-#     response = litellm.completion(**{**data, **team_config})
+#     response = token_iq.completion(**{**data, **team_config})
 
 #     print(f"response: {response}")

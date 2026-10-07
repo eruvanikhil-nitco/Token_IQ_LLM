@@ -50,7 +50,7 @@ class TraceloopLogger:
             optional_params: Final = kwargs.get("optional_params", {})
             start_time = int(start_time.timestamp())
             end_time = int(end_time.timestamp())
-            span: Final = tracer.start_span("litellm.completion", kind=SpanKind.CLIENT, start_time=start_time)
+            span: Final = tracer.start_span("token_iq.completion", kind=SpanKind.CLIENT, start_time=start_time)
 
             if span.is_recording():
                 span.set_attribute(SpanAttributes.LLM_REQUEST_MODEL, kwargs.get("model"))

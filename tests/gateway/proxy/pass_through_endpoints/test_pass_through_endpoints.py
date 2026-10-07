@@ -4383,7 +4383,7 @@ async def test_pass_through_relay_client_disconnect_logs_partial_relay_warning(c
             first_chunk = await iterator.__anext__()
             assert first_chunk == upstream_chunks[0]
 
-            with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+            with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
                 await iterator.aclose()
 
             partial_relay_warnings = [
@@ -4436,7 +4436,7 @@ async def test_pass_through_relay_full_consumption_logs_no_partial_relay_warning
             )
 
             assert isinstance(response, StreamingResponse)
-            with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+            with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
                 relayed = [chunk async for chunk in response.body_iterator]
 
             assert b"".join(relayed) == b"".join(upstream_chunks)

@@ -1687,7 +1687,7 @@ class CustomStreamWrapper:
 
         loop = asyncio.get_event_loop() # 👈 gets the current event loop
 
-        response = litellm.completion(.., stream=True)
+        response = token_iq.completion(.., stream=True)
 
         response.set_logging_event_loop(loop=loop) # 👈 enables async_success callbacks for sync logging
 

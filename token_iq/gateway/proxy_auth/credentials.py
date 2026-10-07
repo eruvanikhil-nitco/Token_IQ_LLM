@@ -200,7 +200,7 @@ class ProxyAuthHandler:
         litellm.api_base = "https://my-proxy.example.com"
 
         # Auth headers are now automatically injected
-        response = litellm.completion(model="gpt-4", messages=[...])
+        response = token_iq.completion(model="gpt-4", messages=[...])
     """
 
     def __init__(self, credential: TokenCredential, scope: str):

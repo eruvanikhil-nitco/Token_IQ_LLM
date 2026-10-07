@@ -3012,7 +3012,7 @@ def test_xff_misconfig_warning_emitted_once(caplog):
     import logging
 
     with (
-        caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"),
+        caplog.at_level(logging.WARNING, logger="Token IQ Proxy"),
         patch("token_iq.gateway.proxy.proxy_server.general_settings", misconfig, create=True),
     ):
         for _ in range(3):

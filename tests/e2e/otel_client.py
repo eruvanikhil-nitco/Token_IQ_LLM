@@ -2,7 +2,7 @@
 Jaeger query API (the destination's own API - completeness is judged on what the
 backend actually holds, never on "export succeeded" proxy-side).
 
-Traces are fetched server-side by the ``litellm.call_id`` tag the gen-AI span
+Traces are fetched server-side by the ``token_iq.call_id`` tag the gen-AI span
 carries (the request's x-litellm-call-id response header), so read-back is
 immune to the query page filling up with unrelated traffic (background jobs,
 other suites sharing the stack). Jaeger returns every span of a matching trace,
@@ -29,7 +29,7 @@ from e2e_http import URL, NetworkError, NoBody, Result, Success, get
 #: OTEL resource service.name the proxy exports under (OTEL_SERVICE_NAME default).
 JAEGER_SERVICE = "litellm"
 #: Span tag carrying the request's x-litellm-call-id (stamped on the gen-AI span).
-CALL_ID_TAG = "litellm.call_id"
+CALL_ID_TAG = "token_iq.call_id"
 
 
 class JaegerTag(BaseModel):

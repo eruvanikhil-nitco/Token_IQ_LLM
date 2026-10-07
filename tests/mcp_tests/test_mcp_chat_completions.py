@@ -146,7 +146,7 @@ async def test_acompletion_mcp_respects_manual_approval(monkeypatch):
 @pytest.mark.asyncio
 async def test_completion_mcp_with_streaming_no_timeout_error(monkeypatch):
     """
-    Test that litellm.completion with stream=True and MCP tools does not raise
+    Test that token_iq.completion with stream=True and MCP tools does not raise
     RuntimeError: Timeout context manager should be used inside a task.
 
     This test ensures that the fix in ba43f742ab86d51b7da63077b85b39d0ac808d30

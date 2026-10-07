@@ -1,7 +1,7 @@
 """
 Unit tests for ProxyLogging._init_litellm_callbacks.
 
-Validates that string callbacks in litellm.callbacks are replaced in-place
+Validates that string callbacks in token_iq.callbacks are replaced in-place
 with their initialized instances, preventing duplicate entries (string + instance)
 that caused double-counting of metrics like token_iq_proxy_total_requests_metric.
 """
@@ -38,13 +38,13 @@ class TestInitGatewayCallbacks:
     )
     def test_should_replace_string_callback_with_instance(self, _mock_hooks):
         """
-        When litellm.callbacks contains a string callback (e.g. "lago"),
+        When token_iq.callbacks contains a string callback (e.g. "lago"),
         _init_litellm_callbacks should replace the string with the initialized
         CustomLogger instance, not leave both the string and instance in the list.
         """
         fake_logger = FakeCustomLogger()
 
-        # Start with a string callback in litellm.callbacks
+        # Start with a string callback in token_iq.callbacks
         gateway.callbacks = ["lago"]  # type: ignore
 
         proxy_logging = self._make_proxy_logging()
@@ -78,7 +78,7 @@ class TestInitGatewayCallbacks:
     )
     def test_should_not_duplicate_existing_instance_callbacks(self, _mock_hooks):
         """
-        When litellm.callbacks already contains a CustomLogger instance (not a string),
+        When token_iq.callbacks already contains a CustomLogger instance (not a string),
         _init_litellm_callbacks should not create a duplicate.
         """
         existing_logger = FakeCustomLogger()
@@ -89,13 +89,13 @@ class TestInitGatewayCallbacks:
 
         proxy_logging._init_litellm_callbacks(llm_router=None)
 
-        # Count how many FakeCustomLogger instances are in litellm.callbacks
+        # Count how many FakeCustomLogger instances are in token_iq.callbacks
         instance_count = sum(
             1 for c in gateway.callbacks if isinstance(c, FakeCustomLogger)
         )
         assert instance_count == 1, (
             f"Expected exactly 1 FakeCustomLogger instance, found {instance_count}. "
-            f"litellm.callbacks = {gateway.callbacks}"
+            f"token_iq.callbacks = {gateway.callbacks}"
         )
 
         # Clean up
@@ -108,7 +108,7 @@ class TestInitGatewayCallbacks:
     def test_should_handle_unrecognized_string_callback(self, _mock_hooks):
         """
         When _init_custom_logger_compatible_class returns None for a string callback,
-        the string should remain in litellm.callbacks (not crash).
+        the string should remain in token_iq.callbacks (not crash).
         """
         gateway.callbacks = ["unknown_callback"]  # type: ignore
 
@@ -132,7 +132,7 @@ class TestInitGatewayCallbacks:
     )
     def test_should_replace_multiple_string_callbacks(self, _mock_hooks):
         """
-        When litellm.callbacks contains multiple string callbacks,
+        When token_iq.callbacks contains multiple string callbacks,
         each should be replaced with its corresponding initialized instance.
         """
         fake_logger_a = FakeCustomLogger()

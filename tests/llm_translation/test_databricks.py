@@ -990,7 +990,7 @@ def test_completion_with_prompt_caching_anthropic_model(monkeypatch):
         assert mock_post.call_args.kwargs["stream"] == False
 
         # TODO: add test for entire expected output schema in the future
-        # Check the response object returned from litellm.completion()
+        # Check the response object returned from token_iq.completion()
         assert "claude-3-7-sonnet" in response["model"]
         assert response["usage"]["cache_read_input_tokens"] == 0
         assert response["usage"]["cache_creation_input_tokens"] == 1545
@@ -1054,7 +1054,7 @@ def test_completion_with_prompt_caching_anthropic_model_repeat(monkeypatch):
         assert mock_post.call_args.kwargs["stream"] == False
 
         # TODO: add test for entire expected output schema in the future
-        # Check the response object returned from litellm.completion()
+        # Check the response object returned from token_iq.completion()
         assert "claude-3-7-sonnet" in response["model"]
         assert response["usage"]["cache_read_input_tokens"] == 1545
         assert response["usage"]["cache_creation_input_tokens"] == 0
@@ -1116,7 +1116,7 @@ def test_completion_with_prompt_caching_nonanthropic_model(monkeypatch):
         assert mock_post.call_args.kwargs["stream"] == False
 
         # TODO: add test for entire expected output schema in the future
-        # Check the response object returned from litellm.completion()
+        # Check the response object returned from token_iq.completion()
         assert "gpt-oss-20b" in response["model"]
         assert ("cache_read_input_tokens" not in response["usage"]) or response[
             "usage"
@@ -1250,7 +1250,7 @@ def test_databricks_anthropic_user_string_content_cache_injection(monkeypatch):
         assert mock_post.call_args.kwargs["stream"] == False
 
         # TODO: add test for entire expected output schema in the future
-        # Check the response object returned from litellm.completion()
+        # Check the response object returned from token_iq.completion()
         assert "claude-3-7-sonnet" in response["model"]
         assert response["usage"]["cache_read_input_tokens"] == 0
         assert response["usage"]["cache_creation_input_tokens"] == 1545
@@ -1297,7 +1297,7 @@ def test_databricks_anthropic_system_string_content_cache_injection(monkeypatch)
         assert mock_post.call_args.kwargs["stream"] == False
 
         # TODO: add test for entire expected output schema in the future
-        # Check the response object returned from litellm.completion()
+        # Check the response object returned from token_iq.completion()
         assert "claude-3-7-sonnet" in response["model"]
         assert response["usage"]["cache_read_input_tokens"] == 0
         assert response["usage"]["cache_creation_input_tokens"] == 1545
@@ -1351,7 +1351,7 @@ def test_databricks_anthropic_system_string_content_cache_injection_not_enough_t
         assert mock_post.call_args.kwargs["stream"] == False
 
         # TODO: add test for entire expected output schema in the future
-        # Check the response object returned from litellm.completion()
+        # Check the response object returned from token_iq.completion()
         assert "claude-3-7-sonnet" in response["model"]
         assert response["usage"]["cache_read_input_tokens"] == 0
         assert response["usage"]["cache_creation_input_tokens"] == 0

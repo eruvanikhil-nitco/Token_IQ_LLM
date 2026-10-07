@@ -42,12 +42,12 @@ NEWRELIC_METRICS_MAX_DRAIN_PASSES: Final = 3
 # from inflating the shared batch payload into a 413
 NEWRELIC_METRIC_ATTRIBUTE_MAX_LEN: Final = 255
 
-NEWRELIC_METRIC_REQUESTS: Final = "litellm.requests"
-NEWRELIC_METRIC_COST_USD: Final = "litellm.cost.usd"
-NEWRELIC_METRIC_PROMPT_TOKENS: Final = "litellm.tokens.prompt"
-NEWRELIC_METRIC_COMPLETION_TOKENS: Final = "litellm.tokens.completion"
-NEWRELIC_METRIC_TOTAL_TOKENS: Final = "litellm.tokens.total"
-NEWRELIC_METRIC_REQUEST_DURATION_MS: Final = "litellm.request.duration_ms"
+NEWRELIC_METRIC_REQUESTS: Final = "token_iq.requests"
+NEWRELIC_METRIC_COST_USD: Final = "token_iq.cost.usd"
+NEWRELIC_METRIC_PROMPT_TOKENS: Final = "token_iq.tokens.prompt"
+NEWRELIC_METRIC_COMPLETION_TOKENS: Final = "token_iq.tokens.completion"
+NEWRELIC_METRIC_TOTAL_TOKENS: Final = "token_iq.tokens.total"
+NEWRELIC_METRIC_REQUEST_DURATION_MS: Final = "token_iq.request.duration_ms"
 
 
 class NewRelicSummaryValue(TypedDict):

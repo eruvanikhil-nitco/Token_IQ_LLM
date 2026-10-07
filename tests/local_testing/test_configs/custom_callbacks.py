@@ -79,7 +79,7 @@ class testCustomCallbackProxy(CustomLogger):
         messages = kwargs.get("messages", None)
         user = kwargs.get("user", None)
 
-        # Access litellm_params passed to litellm.completion(), example access `metadata`
+        # Access litellm_params passed to token_iq.completion(), example access `metadata`
         litellm_params = kwargs.get("litellm_params", {})
         metadata = litellm_params.get(
             "metadata", {}

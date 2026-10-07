@@ -18,7 +18,7 @@ class TestBedrockConverseStructuredOutput(BaseAnthropicMessagesStructuredOutputT
     """
     E2E tests for structured outputs with Bedrock Converse API.
 
-    Uses the bedrock/converse/ prefix which routes through litellm.completion()
+    Uses the bedrock/converse/ prefix which routes through token_iq.completion()
     and the AmazonConverseConfig transformation.
     """
 

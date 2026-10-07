@@ -118,7 +118,7 @@ async def test_completion_with_retry_policy_no_error(sync_mode):
 @pytest.mark.asyncio
 async def test_completion_with_retries(sync_mode):
     """
-    If completion_with_retries is called with num_retries=3, and max_retries=0, then litellm.completion should receive num_retries , max_retries=0
+    If completion_with_retries is called with num_retries=3, and max_retries=0, then token_iq.completion should receive num_retries , max_retries=0
     """
     from unittest.mock import patch, MagicMock, AsyncMock
 

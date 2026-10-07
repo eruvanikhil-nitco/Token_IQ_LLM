@@ -23,11 +23,11 @@ Configuration:
 
 Usage - Python SDK:
     from token_iq import gateway
-    litellm.callbacks = ["newrelic"]
+    token_iq.callbacks = ["newrelic"]
 
     # Or with explicit configuration:
     from token_iq.gateway.integrations.newrelic import NewRelicLogger
-    litellm.callbacks = [NewRelicLogger(turn_off_message_logging=True)]
+    token_iq.callbacks = [NewRelicLogger(turn_off_message_logging=True)]
 
 Usage - Proxy Server (config.yaml):
     litellm_settings:

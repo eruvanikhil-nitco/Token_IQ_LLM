@@ -58,7 +58,7 @@
 #             }
 #             }
 #         ]
-#         response = litellm.completion(model="ollama/mistral",
+#         response = token_iq.completion(model="ollama/mistral",
 #                                              messages=messages,
 #                                              functions=functions,
 #                                              stream=True)

@@ -307,14 +307,14 @@ class TestRouterWithEnforceModelRateLimits:
             optional_pre_call_checks=["enforce_model_rate_limits"],
         )
 
-        # Find the ModelRateLimitingCheck in litellm.callbacks
+        # Find the ModelRateLimitingCheck in token_iq.callbacks
         found = False
         for callback in gateway.callbacks:
             if isinstance(callback, ModelRateLimitingCheck):
                 found = True
                 break
 
-        assert found, "ModelRateLimitingCheck should be in litellm.callbacks"
+        assert found, "ModelRateLimitingCheck should be in token_iq.callbacks"
 
 
 class TestModelRateLimitConcurrency:

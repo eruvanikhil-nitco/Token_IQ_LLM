@@ -226,9 +226,9 @@ def test_chat_completion_malformed_messages_returns_400(client_no_auth):
 
 def test_get_settings_request_timeout(client_no_auth):
     """
-    When no timeout is set, it should use the litellm.request_timeout value
+    When no timeout is set, it should use the token_iq.request_timeout value
     """
-    # Set a known value for litellm.request_timeout
+    # Set a known value for token_iq.request_timeout
     from token_iq import gateway
 
     # Make a GET request to /settings
@@ -241,7 +241,7 @@ def test_get_settings_request_timeout(client_no_auth):
     settings = response.json()
     print("settings", settings)
 
-    assert settings["litellm.request_timeout"] == gateway.request_timeout
+    assert settings["token_iq.request_timeout"] == gateway.request_timeout
 
 
 @pytest.mark.parametrize(

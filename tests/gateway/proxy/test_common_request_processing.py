@@ -389,7 +389,7 @@ class TestProxyBaseLLMRequestProcessing:
 
         DDSpanTagger.tag_call_id("test-call-id")
 
-        mock_set_active_span_tag.assert_called_once_with("litellm.call_id", "test-call-id")
+        mock_set_active_span_tag.assert_called_once_with("token_iq.call_id", "test-call-id")
 
     @pytest.mark.asyncio
     async def test_should_apply_hierarchical_router_settings_as_override(self, monkeypatch):
@@ -2875,9 +2875,9 @@ class TestDDSpanTaggerTagRequest:
                 requested_model="gpt-4o",
             )
 
-        mock_set_tag.assert_any_call("litellm.key_alias", "my-prod-key")
-        mock_set_tag.assert_any_call("litellm.key_hash", "hashed123")
-        mock_set_tag.assert_any_call("litellm.requested_model", "gpt-4o")
+        mock_set_tag.assert_any_call("token_iq.key_alias", "my-prod-key")
+        mock_set_tag.assert_any_call("token_iq.key_hash", "hashed123")
+        mock_set_tag.assert_any_call("token_iq.requested_model", "gpt-4o")
 
     def test_no_tags_when_key_absent(self):
         """No key tags are set when key_alias and token are None (e.g. 401 path)."""
@@ -2901,7 +2901,7 @@ class TestDDSpanTaggerTagRequest:
                 requested_model="claude-3-5-sonnet",
             )
 
-        mock_set_tag.assert_called_once_with("litellm.requested_model", "claude-3-5-sonnet")
+        mock_set_tag.assert_called_once_with("token_iq.requested_model", "claude-3-5-sonnet")
 
 
 class TestHasAttributeErrorInChain:
@@ -7694,7 +7694,7 @@ def test_log_llm_api_exception_traceback_only_for_unexpected_errors(exc, expect_
 
     verbose_proxy_logger.propagate = True
     try:
-        with caplog.at_level("ERROR", logger="LiteLLM Proxy"):
+        with caplog.at_level("ERROR", logger="Token IQ Proxy"):
             try:
                 raise exc
             except Exception as raised:

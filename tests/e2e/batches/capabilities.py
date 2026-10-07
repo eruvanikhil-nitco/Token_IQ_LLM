@@ -218,11 +218,16 @@ def is_managed_id(id_str: str) -> bool:
     return _b64_decode(id_str).startswith("litellm_proxy")
 
 
+# Both spellings, because the proxy issues `token_iq:` now and an id issued before the rename still
+# decodes, so a harness pointed at either release has to read either.
+_ID_PREFIXES = ("token_iq:", "litellm:")
+
+
 def is_model_encoded_id(id_str: str) -> bool:
     for prefix in ("file-", "batch_"):
         if id_str.startswith(prefix):
             decoded = _b64_decode(id_str[len(prefix) :])
-            return decoded.startswith("litellm:") and ";model," in decoded
+            return decoded.startswith(_ID_PREFIXES) and ";model," in decoded
     return False
 
 
@@ -231,7 +236,7 @@ def decoded_model_from_id(id_str: str) -> str | None:
     for prefix in ("file-", "batch_"):
         if id_str.startswith(prefix):
             decoded = _b64_decode(id_str[len(prefix) :])
-            if decoded.startswith("litellm:") and ";model," in decoded:
+            if decoded.startswith(_ID_PREFIXES) and ";model," in decoded:
                 return decoded.split(";model,", 1)[1].split(";")[0]
     return None
 

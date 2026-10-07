@@ -3902,7 +3902,7 @@ async def _build_seeded_limiter():
 
 @contextmanager
 def _override_gateway_callbacks(new_callbacks):
-    """Swap litellm.callbacks so _callback_capabilities recomputes deterministically."""
+    """Swap token_iq.callbacks so _callback_capabilities recomputes deterministically."""
     saved = gateway.callbacks
     gateway.callbacks = new_callbacks
     try:
@@ -5619,7 +5619,7 @@ async def test_declared_estimate_over_the_tpm_budget_is_honored_and_explained(mo
         metadata={"default_estimated_output_tokens": declared},
     )
 
-    with caplog.at_level(logging.DEBUG, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.DEBUG, logger="Token IQ Proxy"):
         with pytest.raises(HTTPException) as exc_info:
             await handler.async_pre_call_hook(
                 user_api_key_dict=user_api_key_dict,
@@ -5655,7 +5655,7 @@ async def test_a_key_that_declared_nothing_is_never_blamed_for_a_declaration(mon
         internal_usage_cache=InternalUsageCache(local_cache)
     )
 
-    with caplog.at_level(logging.DEBUG, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.DEBUG, logger="Token IQ Proxy"):
         with pytest.raises(HTTPException) as exc_info:
             await handler.async_pre_call_hook(
                 user_api_key_dict=UserAPIKeyAuth(
@@ -5685,7 +5685,7 @@ async def test_declared_estimate_inside_the_tpm_budget_is_not_explained(monkeypa
         internal_usage_cache=InternalUsageCache(local_cache)
     )
 
-    with caplog.at_level(logging.DEBUG, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.DEBUG, logger="Token IQ Proxy"):
         await handler.async_pre_call_hook(
             user_api_key_dict=UserAPIKeyAuth(
                 api_key=hash_token("sk-estimate-within-budget"),

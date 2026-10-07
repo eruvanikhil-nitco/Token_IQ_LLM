@@ -1260,7 +1260,7 @@ def test_streaming_surfaces_fireworks_response_fields():
     chunk, so per-chunk _hidden_params does not survive): per-choice
     token_ids/raw_output on the content chunk, response-level
     perf_metrics/prompt_token_ids on the final usage chunk. Driving the real
-    litellm.completion(stream=True) path also covers the get_model_response_iterator
+    token_iq.completion(stream=True) path also covers the get_model_response_iterator
     wiring; dropping the Fireworks iterator would leave these fields unset.
     """
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler

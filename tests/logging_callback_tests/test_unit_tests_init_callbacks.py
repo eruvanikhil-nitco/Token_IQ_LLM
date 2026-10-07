@@ -184,8 +184,8 @@ async def use_callback_in_llm_call(
             assert len(gateway.failure_callback) == 1
             assert len(gateway.callbacks) == 1
         elif used_in == "success_callback":
-            print(f"litellm.success_callback: {gateway.success_callback}")
-            print(f"litellm._async_success_callback: {gateway._async_success_callback}")
+            print(f"token_iq.success_callback: {gateway.success_callback}")
+            print(f"token_iq._async_success_callback: {gateway._async_success_callback}")
             assert isinstance(gateway.success_callback[0], expected_class)
             assert len(gateway.success_callback) == 1  # ["lago", LagoLogger]
             assert isinstance(gateway._async_success_callback[0], expected_class)

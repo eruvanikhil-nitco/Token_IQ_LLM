@@ -1,13 +1,13 @@
 """Regression tests for the responses -> completion fallback bridge guard.
 
 When the Responses API falls back to chat completions (no native responses
-config), it must tag the forwarded ``litellm.completion`` / ``litellm.acompletion``
+config), it must tag the forwarded ``token_iq.completion`` / ``litellm.acompletion``
 call with ``_skip_responses_api_bridge=True`` so ``completion()`` does not bridge
 the request straight back to the Responses API and mutually recurse forever.
 
 Both fallback paths are covered: the sync ``response_api_handler`` (``_is_async``
 False) and the async ``async_response_api_handler`` (``_is_async`` True). The
-module-level ``litellm.completion`` / ``litellm.acompletion`` are patched to
+module-level ``token_iq.completion`` / ``litellm.acompletion`` are patched to
 capture the forwarded kwargs; if the flag-setting line is removed the captured
 kwargs lack the flag and these tests fail.
 """

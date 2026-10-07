@@ -122,7 +122,7 @@ class TestCacheCodecDeserialize:
         assert CacheCodec.deserialize("not-a-dict", _SampleModel) is None
 
     def test_invalid_dict_returns_none_and_logs_warning(self, caplog):
-        with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+        with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
             out = CacheCodec.deserialize({"count": 1}, _SampleModel)
         assert out is None
         assert any(

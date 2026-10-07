@@ -2102,7 +2102,7 @@ def test_provider_specific_header_multi_provider():
 #     client = HTTPHandler()
 #     with patch.object(client, "post", return_value=MagicMock()) as mock_post:
 #         try:
-#             litellm.completion(
+#             token_iq.completion(
 #                 model="anthropic/claude-3-5-sonnet-v2@20241022",
 #                 messages=[{"role": "user", "content": "Hello world"}],
 #                 provider_specific_header=ProviderSpecificHeader(

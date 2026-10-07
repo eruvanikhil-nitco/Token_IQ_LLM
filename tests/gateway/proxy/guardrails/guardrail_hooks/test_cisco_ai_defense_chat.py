@@ -95,11 +95,11 @@ def test_init_registers_on_both_callbacks_and_success_callback(monkeypatch):
         )
 
     assert _has_our_guardrail(gateway.callbacks), (
-        "Cisco guardrail missing from litellm.callbacks — proxy's "
+        "Cisco guardrail missing from token_iq.callbacks — proxy's "
         "pre_call/during_call/post_call dispatch will skip it."
     )
     assert _has_our_guardrail(gateway.success_callback), (
-        "Cisco guardrail missing from litellm.success_callback — "
+        "Cisco guardrail missing from token_iq.success_callback — "
         "litellm_logging.async_post_mcp_tool_call_hook will skip it, "
         "so MCP responses will never be scanned."
     )

@@ -2166,14 +2166,14 @@ def _ptu_warnings(caplog):
     return tuple(
         record.getMessage()
         for record in caplog.records
-        if record.name == "LiteLLM Router" and record.levelno == logging.WARNING and "PTU" in record.getMessage()
+        if record.name == "Token IQ Router" and record.levelno == logging.WARNING and "PTU" in record.getMessage()
     )
 
 
 def test_a_reservation_declared_while_the_feature_is_off_is_warned_about(caplog):
     """The deployment serves and bills per token, so without this the operator believes they
     reserved capacity and sees no signal anywhere that nothing accrues."""
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Router"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Router"):
         _ptu_router(ptu_enabled=False)
 
     warnings = _ptu_warnings(caplog)
@@ -2184,7 +2184,7 @@ def test_a_reservation_declared_while_the_feature_is_off_is_warned_about(caplog)
 
 
 def test_a_reservation_is_not_warned_about_while_the_feature_is_on(caplog):
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Router"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Router"):
         _ptu_router()
 
     assert _ptu_warnings(caplog) == ()
@@ -2192,7 +2192,7 @@ def test_a_reservation_is_not_warned_about_while_the_feature_is_on(caplog):
 
 def test_a_deployment_carrying_no_ptu_field_is_not_warned_about(caplog):
     """Most of every config.yaml, so warning here would fire on proxies that never asked."""
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Router"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Router"):
         _ptu_router(model_info={"team_id": "team-alpha"}, ptu_enabled=False)
 
     assert _ptu_warnings(caplog) == ()
@@ -2203,7 +2203,7 @@ def test_a_half_written_reservation_is_warned_about(caplog):
     declare one, so what they wrote is what decides whether they hear about it."""
     half_written = {k: v for k, v in _PTU_MODEL_INFO.items() if k != "cost_per_ptu_per_hour"}
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Router"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Router"):
         _ptu_router(model_info=half_written, ptu_enabled=False)
 
     assert len(_ptu_warnings(caplog)) == 1
@@ -2226,7 +2226,7 @@ def test_a_reservation_dropped_by_a_typo_is_warned_about(caplog, typo):
     ``ignore_invalid_deployments`` does and config.yaml is loaded with it on.
     """
     with patch.dict(os.environ, {"LITELLM_ENABLE_PTU_COST_ATTRIBUTION": ""}, clear=False):
-        with caplog.at_level(logging.WARNING, logger="LiteLLM Router"):
+        with caplog.at_level(logging.WARNING, logger="Token IQ Router"):
             router = Router(
                 ignore_invalid_deployments=True,
                 model_list=[
@@ -2245,7 +2245,7 @@ def test_a_reservation_dropped_by_a_typo_is_warned_about(caplog, typo):
 def test_a_db_backed_reservation_is_not_warned_about(caplog):
     """/model/new already answered the caller with a 400, so repeating it on every reload
     would report the operator's own rejected write back to them as a standing problem."""
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Router"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Router"):
         _ptu_router(model_info={**_PTU_MODEL_INFO, "db_model": True}, ptu_enabled=False)
 
     assert _ptu_warnings(caplog) == ()
@@ -2254,7 +2254,7 @@ def test_a_db_backed_reservation_is_not_warned_about(caplog):
 def test_every_declaring_deployment_is_named(caplog):
     """One line naming all of them, so a reload does not bury the config in repeats."""
     with patch.dict(os.environ, {"LITELLM_ENABLE_PTU_COST_ATTRIBUTION": ""}, clear=False):
-        with caplog.at_level(logging.WARNING, logger="LiteLLM Router"):
+        with caplog.at_level(logging.WARNING, logger="Token IQ Router"):
             Router(
                 model_list=[
                     {

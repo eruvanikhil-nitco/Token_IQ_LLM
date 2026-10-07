@@ -1991,7 +1991,7 @@ async def test_add_custom_logger_callback_to_specific_event_with_duplicates_call
     initial_async_success_callback_len = len(gateway._async_success_callback)
     initial_success_callback_len = len(gateway.success_callback)
     print(
-        f"Num callbacks before: litellm.callbacks: {len(gateway.callbacks)}, litellm._async_success_callback: {len(gateway._async_success_callback)}, litellm.success_callback: {len(gateway.success_callback)}"
+        f"Num callbacks before: token_iq.callbacks: {len(gateway.callbacks)}, token_iq._async_success_callback: {len(gateway._async_success_callback)}, token_iq.success_callback: {len(gateway.success_callback)}"
     )
 
     for _ in range(10):
@@ -2006,7 +2006,7 @@ async def test_add_custom_logger_callback_to_specific_event_with_duplicates_call
     assert len(gateway.success_callback) == initial_success_callback_len
 
     print(
-        f"Num callbacks after 10 mock calls: litellm.callbacks: {len(gateway.callbacks)}, litellm._async_success_callback: {len(gateway._async_success_callback)}, litellm.success_callback: {len(gateway.success_callback)}"
+        f"Num callbacks after 10 mock calls: token_iq.callbacks: {len(gateway.callbacks)}, token_iq._async_success_callback: {len(gateway._async_success_callback)}, token_iq.success_callback: {len(gateway.success_callback)}"
     )
 
 

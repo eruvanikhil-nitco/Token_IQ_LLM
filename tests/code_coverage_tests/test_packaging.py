@@ -44,7 +44,7 @@ class TestTheIncludeList:
 
     def test_the_package_maturin_builds_is_still_the_engine(self, maturin: dict[str, object]) -> None:
         """If this ever changes, which trees need naming in `include` changes with it."""
-        assert str(maturin["module-name"]).startswith("litellm.")
+        assert str(maturin["module-name"]).startswith("token_iq.gateway.")
 
     @pytest.mark.parametrize("tree", MUST_SHIP)
     def test_the_tree_exists_on_disk(self, tree: str) -> None:

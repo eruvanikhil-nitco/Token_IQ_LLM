@@ -183,7 +183,7 @@ def test_add_callbacks_from_db_config():
 
     proxy_config._add_callbacks_from_db_config(config_data)
 
-    # 1 instance of LangfusePromptManagement should exist in litellm.success_callback
+    # 1 instance of LangfusePromptManagement should exist in token_iq.success_callback
     num_langfuse_instances = sum(
         isinstance(callback, LangfusePromptManagement) for callback in gateway.success_callback
     )

@@ -1,5 +1,5 @@
 """
-Ensure litellm.completion() forwards timeout to Azure Anthropic handler (main.py dispatch).
+Ensure token_iq.completion() forwards timeout to Azure Anthropic handler (main.py dispatch).
 """
 
 import os

@@ -157,7 +157,7 @@ _DEFAULT_TIMEOUT: Final = httpx.Timeout(
 
 
 def _default_cached_client_timeout() -> httpx.Timeout:
-    """Timeout for cached default httpx clients; honors an explicit litellm.request_timeout."""
+    """Timeout for cached default httpx clients; honors an explicit token_iq.request_timeout."""
     configured: Final = get_configured_request_timeout()
     if configured is None:
         return _DEFAULT_TIMEOUT

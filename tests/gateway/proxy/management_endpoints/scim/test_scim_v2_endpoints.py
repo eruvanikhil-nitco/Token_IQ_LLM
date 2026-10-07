@@ -4780,7 +4780,7 @@ async def test_resolve_group_member_ids_rejects_a_value_naming_two_accounts(
         AsyncMock(return_value=None),
     )
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         with pytest.raises(HTTPException) as exc_info:
             await _resolve_group_member_ids(
                 members=[SCIMMember(value="duplicate@example.com")],
@@ -5167,7 +5167,7 @@ async def test_resolve_group_member_ids_refuses_a_user_id_that_names_another_acc
         AsyncMock(return_value=None),
     )
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         with pytest.raises(HTTPException) as exc_info:
             await _resolve_group_member_ids(
                 members=[SCIMMember(value="member-id")],
@@ -5265,7 +5265,7 @@ async def test_resolve_group_member_ids_warns_before_creating_unmatched_placehol
         AsyncMock(return_value=NewUserResponse(user_id="placeholder", key="placeholder-key")),
     )
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         result = await _resolve_group_member_ids(
             members=[SCIMMember(value="unmatched-id")],
             created_via="scim_group_membership",

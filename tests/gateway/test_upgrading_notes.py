@@ -205,3 +205,20 @@ def test_the_notes_say_saved_identifiers_stay_valid() -> None:
 
     assert "every one issued before this release still decodes" in flat
     assert "nothing to migrate and nothing to re-upload" in flat
+
+
+def test_the_notes_cover_the_traces_and_logs() -> None:
+    """A trace query or a log filter naming one of these has to be edited, the same as a dashboard panel."""
+    flat = " ".join(CHANGELOG.read_text(encoding="utf-8").split())
+
+    assert "84 dotted names move" in flat
+    assert "`LiteLLM Proxy` becomes `Token IQ Proxy`" in flat
+    assert "Standard `gen_ai.*` attributes keep their names" in flat
+
+
+def test_the_notes_say_the_otel_names_are_overridable() -> None:
+    """Which is the difference between this and the metrics: setting the variable keeps what you have."""
+    flat = " ".join(CHANGELOG.read_text(encoding="utf-8").split())
+
+    assert "OTEL_SERVICE_NAME" in flat
+    assert "keeps whatever your dashboards already expect" in flat

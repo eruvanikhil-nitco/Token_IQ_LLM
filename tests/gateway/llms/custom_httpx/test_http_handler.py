@@ -699,10 +699,10 @@ async def test_async_get_forwards_per_request_timeout():
 
 
 class TestDefaultCachedClientTimeoutHonorsRequestTimeout:
-    """Cached default httpx clients must fall back to an explicit litellm.request_timeout.
+    """Cached default httpx clients must fall back to an explicit token_iq.request_timeout.
 
     Regression for LIT-2369: get_async_httpx_client / _get_httpx_client hardcoded a
-    600s default and never consulted litellm.request_timeout, so provider calls with
+    600s default and never consulted token_iq.request_timeout, so provider calls with
     no per-model timeout (e.g. Bedrock) hung for 600s.
     """
 

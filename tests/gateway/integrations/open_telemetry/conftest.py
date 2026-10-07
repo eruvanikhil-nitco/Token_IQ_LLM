@@ -4,7 +4,7 @@ Shared fixtures for the LIT-3193 OTEL HTTP-attribute matrix.
 The matrix needs every error response — across unified inference, passthrough,
 and admin endpoints — to carry ``http.response.status_code``, ``url.path``,
 ``http.route``, and a non-zero duration on the SERVER (root) span. These
-fixtures hook a real ``OpenTelemetry`` callback into ``litellm.callbacks`` so
+fixtures hook a real ``OpenTelemetry`` callback into ``token_iq.callbacks`` so
 the tests drive the actual handler / wrapper code under test, not the OTEL
 emitter in isolation.
 

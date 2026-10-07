@@ -23,7 +23,7 @@ class TestBedrockConversePromptCaching(BaseAnthropicMessagesPromptCachingTest):
     """
     E2E tests for prompt caching with Bedrock Converse API.
 
-    Uses the bedrock/converse/ prefix which routes through litellm.completion()
+    Uses the bedrock/converse/ prefix which routes through token_iq.completion()
     and the AmazonConverseConfig transformation.
     """
 

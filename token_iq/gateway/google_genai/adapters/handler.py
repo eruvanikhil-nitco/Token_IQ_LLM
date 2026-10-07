@@ -24,7 +24,7 @@ class GenerateContentToCompletionHandler:
         litellm_params: GenericGatewayParams | None = None,
         extra_kwargs: Mapping[str, object] | None = None,
     ) -> GenerateContentCompletionKwargs:
-        """Prepare kwargs for litellm.completion/acompletion"""
+        """Prepare kwargs for token_iq.completion/acompletion"""
 
         # Transform generate_content request to completion format
         completion_request: Final = GOOGLE_GENAI_ADAPTER.translate_generate_content_to_completion(
@@ -160,4 +160,4 @@ class GenerateContentToCompletionHandler:
                 return generate_content_response
 
         except Exception as e:
-            raise ValueError(f"Error calling litellm.completion for generate_content: {e}")
+            raise ValueError(f"Error calling token_iq.completion for generate_content: {e}")

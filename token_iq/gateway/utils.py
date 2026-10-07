@@ -597,9 +597,9 @@ def _custom_logger_class_exists_in_success_callbacks(
     callback_class: CustomLogger,
 ) -> bool:
     """
-    Returns True if an instance of the custom logger exists in litellm.success_callback or litellm._async_success_callback
+    Returns True if an instance of the custom logger exists in token_iq.success_callback or token_iq._async_success_callback
 
-    e.g if `LangfusePromptManagement` is passed in, it will return True if an instance of `LangfusePromptManagement` exists in litellm.success_callback or litellm._async_success_callback
+    e.g if `LangfusePromptManagement` is passed in, it will return True if an instance of `LangfusePromptManagement` exists in token_iq.success_callback or token_iq._async_success_callback
 
     Prevents double adding a custom logger callback to the litellm callbacks
 
@@ -612,9 +612,9 @@ def _custom_logger_class_exists_in_failure_callbacks(
     callback_class: CustomLogger,
 ) -> bool:
     """
-    Returns True if an instance of the custom logger exists in litellm.failure_callback or litellm._async_failure_callback
+    Returns True if an instance of the custom logger exists in token_iq.failure_callback or token_iq._async_failure_callback
 
-    e.g if `LangfusePromptManagement` is passed in, it will return True if an instance of `LangfusePromptManagement` exists in litellm.failure_callback or litellm._async_failure_callback
+    e.g if `LangfusePromptManagement` is passed in, it will return True if an instance of `LangfusePromptManagement` exists in token_iq.failure_callback or token_iq._async_failure_callback
 
     Prevents double adding a custom logger callback to the litellm callbacks
 
@@ -964,7 +964,7 @@ def function_setup(
                 details_to_log.pop("input", None)
                 details_to_log.pop("prompt", None)
             add_breadcrumb(
-                category="litellm.llm_call",
+                category="token_iq.llm_call",
                 message=f"Keyword Args: {details_to_log}",
                 level="info",
             )
@@ -6109,7 +6109,7 @@ def function_to_dict(input_function) -> dict:
     Returns
     -------
     dictionnary
-        A dictionnary to add to the list passed to `functions` parameter of `litellm.completion`
+        A dictionnary to add to the list passed to `functions` parameter of `token_iq.completion`
     """
     # Get function name and docstring
     try:
@@ -6700,7 +6700,7 @@ def valid_model(model):
 
 def check_valid_key(model: str, api_key: str):
     """
-    Checks if a given API key is valid for a specific model by making a litellm.completion call with max_tokens=10
+    Checks if a given API key is valid for a specific model by making a token_iq.completion call with max_tokens=10
 
     Args:
         model (str): The name of the model to check the API key against.
@@ -9464,7 +9464,7 @@ class ProviderConfigManager:
 
             #########################################################
             # If Vertex Partner models like Anthropic, Mistral, etc. are used,
-            # return None as we want this to go through the litellm.completion() adapter
+            # return None as we want this to go through the token_iq.completion() adapter
             # and not the Google Gen AI adapter
             #########################################################
             if VertexAIPartnerModels.is_vertex_partner_model(model):
@@ -9764,7 +9764,7 @@ def return_raw_request(endpoint: CallTypes, kwargs: dict) -> RawRequestTypedDict
     """
     Return the json str of the request
 
-    This is currently in BETA, and tested for `/chat/completions` -> `litellm.completion` calls.
+    This is currently in BETA, and tested for `/chat/completions` -> `token_iq.completion` calls.
     """
     from datetime import datetime
 

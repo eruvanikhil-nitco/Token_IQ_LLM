@@ -9,11 +9,11 @@ def check_for_gateway_module_deletion(base_dir):
 
     Specifically looks for patterns like:
     for module in list(sys.modules.keys()):
-        if module.startswith("litellm"):
+        if module.startswith("token_iq"):
             del sys.modules[module]
     """
     problematic_files = []
-    test_dir = os.path.join(base_dir, "test_litellm")
+    test_dir = os.path.join(base_dir, "gateway")
 
     if not os.path.exists(test_dir):
         print(f"Warning: Directory {test_dir} does not exist.")
@@ -104,7 +104,7 @@ def has_gateway_module_deletion(tree):
             self.generic_visit(node)
 
         def visit_If(self, node):
-            # Check for conditions like module.startswith("litellm")
+            # Check for conditions like module.startswith("token_iq")
             if (
                 isinstance(node.test, ast.Call)
                 and isinstance(node.test.func, ast.Attribute)
@@ -113,7 +113,7 @@ def has_gateway_module_deletion(tree):
                 and node.test.func.attr == "startswith"
                 and len(node.test.args) == 1
                 and isinstance(node.test.args[0], ast.Constant)
-                and node.test.args[0].value == "litellm"
+                and node.test.args[0].value == "token_iq"
             ):
 
                 self.has_gateway_check = True

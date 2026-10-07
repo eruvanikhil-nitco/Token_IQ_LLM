@@ -813,7 +813,7 @@ async def test_test_cache_connection_does_not_log_plaintext_credentials(monkeypa
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
         patch("token_iq.gateway.proxy.proxy_server.proxy_config", proxy_config),
         patch("token_iq.gateway.Cache") as mock_cache_class,
-        caplog.at_level(logging.DEBUG, logger="LiteLLM Proxy"),
+        caplog.at_level(logging.DEBUG, logger="Token IQ Proxy"),
     ):
         mock_cache_class.return_value = cache_instance
         # resubmit the redacted marker; the merge resolves it to the stored secret

@@ -217,8 +217,8 @@ EXPECTED_ERROR_SPAN_ATTRIBUTES: dict[str, str] = {
     "error": "True",
     "error.type": "AuthenticationError",
     "otel.status_code": "ERROR",
-    "litellm.provider.error.code": "401",
-    "litellm.provider.error.llm_provider": "anthropic",
+    "token_iq.provider.error.code": "401",
+    "token_iq.provider.error.llm_provider": "anthropic",
 }
 
 
@@ -270,8 +270,8 @@ def _assert_error_span_contract(span: JaegerSpan) -> None:
     assert _tag(span, "otel.status_description") == message, (
         "the span status description must carry the same untruncated message as error.message"
     )
-    stack = _tag(span, "litellm.provider.error.stack_trace")
-    assert isinstance(stack, str) and stack, "the error span must carry a non-empty litellm.provider.error.stack_trace"
+    stack = _tag(span, "token_iq.provider.error.stack_trace")
+    assert isinstance(stack, str) and stack, "the error span must carry a non-empty token_iq.provider.error.stack_trace"
 
 
 class TestOtelTraceCompleteness:
@@ -398,7 +398,7 @@ class TestOtelTraceCompleteness:
 
         * The response actually streams.
         * Exactly one gen-AI span is created for the request.
-        * The gen-AI span contains `litellm.request.streaming=true`.
+        * The gen-AI span contains `token_iq.request.streaming=true`.
         """
         route = "/chat/completions"
         _assert_otel_destination_configured(client)
@@ -427,8 +427,8 @@ class TestOtelTraceCompleteness:
         _assert_complete_trace(hits, route=route, genai_span=genai_span)
 
         served = one_served_genai_span(hits[0], genai_span)
-        assert _tag(served, "litellm.request.streaming") is True, (
-            "the gen-AI span must record litellm.request.streaming=true; its absence means "
+        assert _tag(served, "token_iq.request.streaming") is True, (
+            "the gen-AI span must record token_iq.request.streaming=true; its absence means "
             "the stream flag was dropped before the model call"
         )
 
@@ -450,7 +450,7 @@ class TestOtelTraceCompleteness:
 
         * The response actually streams.
         * Exactly one gen-AI span is created for the request.
-        * The gen-AI span contains `litellm.request.streaming=true`.
+        * The gen-AI span contains `token_iq.request.streaming=true`.
         """
         route = "/v1/messages"
         _assert_otel_destination_configured(client)
@@ -479,8 +479,8 @@ class TestOtelTraceCompleteness:
         _assert_complete_trace(hits, route=route, genai_span=genai_span)
 
         served = one_served_genai_span(hits[0], genai_span)
-        assert _tag(served, "litellm.request.streaming") is True, (
-            "the gen-AI span must record litellm.request.streaming=true; its absence means "
+        assert _tag(served, "token_iq.request.streaming") is True, (
+            "the gen-AI span must record token_iq.request.streaming=true; its absence means "
             "the stream flag was dropped before the model call"
         )
 
@@ -736,7 +736,7 @@ class TestOtelTraceCompleteness:
         async messages entrypoint used to surface the provider handler's raw
         BaseLLMException to the failure logger, so the model-call span came
         out with error.type=BaseLLMException and no
-        litellm.provider.error.llm_provider attribute.
+        token_iq.provider.error.llm_provider attribute.
 
         Same setup as the chat sibling: a deployment with an invalid upstream
         API key passes proxy auth and fails at the provider with a real 401,

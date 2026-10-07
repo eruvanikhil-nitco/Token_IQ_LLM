@@ -56,7 +56,7 @@ def _responses_mode_is_lost_by_prefix_strip(
 ) -> bool:
     """Whether a Responses-only deployment stops looking like one once its provider prefix is stripped.
 
-    ``litellm.completion`` re-derives the Responses bridge from the stripped id alone, so a
+    ``token_iq.completion`` re-derives the Responses bridge from the stripped id alone, so a
     deployment id such as ``perplexity/perplexity/sonar`` (mode ``responses``) is shadowed by the
     chat entry ``perplexity/sonar`` and would otherwise be sent to chat/completions.
     """

@@ -4792,8 +4792,8 @@ async def test_s3_v2_success_callback_registers_alongside_user_subclass(
 async def test_builtin_string_callback_registers_when_subclass_already_active(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Regression LIT-4392, litellm.callbacks path: the inline dedup in function_setup also
-    matched subclass instances, so a built-in name in litellm.callbacks was dropped whenever a
+    """Regression LIT-4392, token_iq.callbacks path: the inline dedup in function_setup also
+    matched subclass instances, so a built-in name in token_iq.callbacks was dropped whenever a
     user subclass was already promoted into _async_success_callback."""
     from token_iq.gateway.integrations.s3_v2 import S3Logger
 

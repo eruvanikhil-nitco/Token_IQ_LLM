@@ -193,7 +193,7 @@ class OpenTelemetryV2Config(BaseSettings):
         ),
         description=(
             "Identity attribute keys written into Baggage and stamped on every "
-            "child span (e.g. ``litellm.team.id``). Configure via the "
+            "child span (e.g. ``token_iq.team.id``). Configure via the "
             "``TOKEN_IQ_OTEL_BAGGAGE_PROMOTED_KEYS`` env var (comma-separated) or "
             "``callback_settings.otel.baggage_promoted_keys`` in config.yaml (a "
             "YAML list)."
@@ -220,7 +220,7 @@ class OpenTelemetryV2Config(BaseSettings):
         ),
         description=(
             "Sub-keys of the team's free-form metadata promoted under "
-            "``litellm.team.metadata``. Empty by default so none of a team's "
+            "``token_iq.team.metadata``. Empty by default so none of a team's "
             "metadata leaves the process until explicitly allowlisted. Configure "
             "via the ``TOKEN_IQ_OTEL_BAGGAGE_TEAM_METADATA_KEYS`` env var "
             "(comma-separated) or "
@@ -255,7 +255,7 @@ class OpenTelemetryV2Config(BaseSettings):
 
         Env vars are strings, but these fields are lists. Pydantic-settings would
         otherwise require JSON for a list env var; splitting on commas here lets
-        an operator write ``LITELLM_OTEL_BAGGAGE_PROMOTED_KEYS=litellm.team.id,litellm.api_key.hash``.
+        an operator write ``LITELLM_OTEL_BAGGAGE_PROMOTED_KEYS=token_iq.team.id,token_iq.api_key.hash``.
         YAML lists (from ``callback_settings.otel.*``) and real lists pass through
         unchanged.
         """

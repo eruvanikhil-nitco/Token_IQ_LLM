@@ -111,6 +111,26 @@ new names.
 
 {table(metrics, "Before", "Now")}
 
+#### Traces and logs
+
+The same kind of break as the metrics, and for the same reason: a trace query or a log filter naming one of
+these has to be edited.
+
+84 dotted names move, which are the OpenTelemetry span attributes the engine sets, the Datadog span names it
+opens and the Datadog metrics it sends. `litellm.team.metadata` becomes `token_iq.team.metadata` and so on
+throughout. Standard `gen_ai.*` attributes keep their names; they belong to a convention rather than to us.
+
+The OpenTelemetry service name, tracer, meter and logger all defaulted to `litellm` and now default to
+`token_iq`. Each was already overridable, by `OTEL_SERVICE_NAME`, `OTEL_TRACER_NAME`, `TOKEN_IQ_METER_NAME`
+and `TOKEN_IQ_LOGGER_NAME`, so setting the one you want keeps whatever your dashboards already expect. The
+value under `gen_ai.framework` moves too, since it names the framework.
+
+Two Python logger names move: `LiteLLM Proxy` becomes `Token IQ Proxy` and `LiteLLM Router` becomes
+`Token IQ Router`. If you filter logs by logger name, or route them by it in Datadog, that is the edit.
+
+An A2A agent card served by the proxy now says `Token IQ Proxy` as its organization rather than
+`LiteLLM Proxy`.
+
 #### Redis and cache keys
 
 Three cache key prefixes move: the batch read-through cache, the temporary MCP server registry and the

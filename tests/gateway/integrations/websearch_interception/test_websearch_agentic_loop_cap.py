@@ -40,7 +40,7 @@ INTERNAL_TOOL_NAME = "litellm_web_search"
 def only_the_callbacks_these_tests_register(monkeypatch):
     """
     These tests drive the hooks with a callback of their own on the logging
-    object, so a logger another test left on litellm.callbacks would join the
+    object, so a logger another test left on token_iq.callbacks would join the
     run and change what the hooks do.
     """
     monkeypatch.setattr(gateway, "callbacks", [])

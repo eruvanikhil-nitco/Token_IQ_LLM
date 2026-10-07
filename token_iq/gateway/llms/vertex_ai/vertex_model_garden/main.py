@@ -5,7 +5,7 @@ Most Vertex Model Garden Models are OpenAI compatible - so this handler calls `o
 
 Usage:
 
-response = litellm.completion(
+response = token_iq.completion(
     model="vertex_ai/openai/5464397967697903616",
     messages=[{"role": "user", "content": "Hello, how are you?"}],
 )

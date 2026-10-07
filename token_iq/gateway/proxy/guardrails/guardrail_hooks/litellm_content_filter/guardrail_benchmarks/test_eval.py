@@ -512,7 +512,7 @@ Respond with EXACTLY one word: BLOCK or ALLOW. Nothing else."""
 
 
 class _LlmJudgeChecker:
-    """Uses an LLM via litellm.completion() to classify messages."""
+    """Uses an LLM via token_iq.completion() to classify messages."""
 
     def __init__(self, model: str):
         self.model = model
@@ -548,7 +548,7 @@ class _LlmJudgeChecker:
 
 
 def _llm_judge(model: str = "gpt-4o-mini"):
-    """LLM-as-judge using litellm.completion(). Requires API key env var."""
+    """LLM-as-judge using token_iq.completion(). Requires API key env var."""
     return _LlmJudgeChecker(model=model)
 
 

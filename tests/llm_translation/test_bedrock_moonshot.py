@@ -86,7 +86,7 @@ class TestBedrockMoonshotInvoke(BaseLLMChatTest):
         extra_kwargs: Optional[dict] = None,
         response_content: str = "Hi!",
     ) -> "tuple[Mock, object]":
-        """Run a sync litellm.completion() with HTTPHandler.post patched to
+        """Run a sync token_iq.completion() with HTTPHandler.post patched to
         return a canned moonshot response. Returns (mock_post, response)."""
         client = HTTPHandler()
         mock_resp = self._make_moonshot_response(content=response_content)

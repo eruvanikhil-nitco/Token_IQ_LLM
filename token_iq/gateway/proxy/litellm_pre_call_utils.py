@@ -310,7 +310,7 @@ _ALLOW_CLIENT_MOCK_RESPONSE_METADATA_KEY: Final = "allow_client_mock_response"
 _ALLOW_CLIENT_MESSAGE_REDACTION_OPT_OUT_METADATA_KEY: Final = "allow_client_message_redaction_opt_out"
 
 # Per-request pricing parameters mutate cost-tracking output and (via
-# ``litellm.completion`` → ``register_model``) the process-wide
+# ``token_iq.completion`` → ``register_model``) the process-wide
 # ``litellm.model_cost`` map. Both effects belong to deployment configuration,
 # not to user-supplied request bodies, so the proxy strips them before they
 # reach the call path. Built from the Pydantic model so newly-added pricing
@@ -828,7 +828,7 @@ def convert_key_logging_metadata_to_callback(
             team_callback_settings_obj.failure_callback.append(data.callback_name)
     elif (
         not data.callback_type or data.callback_type == "success_and_failure"
-    ):  # assume 'success_and_failure' = litellm.callbacks
+    ):  # assume 'success_and_failure' = token_iq.callbacks
         if team_callback_settings_obj.success_callback is None:
             team_callback_settings_obj.success_callback = []
         if team_callback_settings_obj.failure_callback is None:

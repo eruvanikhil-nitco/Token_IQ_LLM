@@ -104,7 +104,7 @@
 #                 print(f"Complete Streaming Response: {kwargs['complete_streaming_response']}")
 
 #         # Assign the custom callback function
-#         litellm.success_callback = [custom_callback]
+#         token_iq.success_callback = [custom_callback]
 
 #         # Redirect stdout
 #         old_stdout = sys.stdout
@@ -148,7 +148,7 @@
 #                 print(f"Complete Streaming Response: {kwargs['complete_streaming_response']}")
 
 #         # Assign the custom callback function
-#         litellm.success_callback = [custom_callback]
+#         token_iq.success_callback = [custom_callback]
 
 #         # Redirect stdout
 #         old_stdout = sys.stdout

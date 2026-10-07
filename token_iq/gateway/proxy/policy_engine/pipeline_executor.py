@@ -236,7 +236,7 @@ class PipelineExecutor:
 
     @staticmethod
     def find_guardrail_callback(guardrail_name: str) -> CustomGuardrail | None:
-        """Look up an initialized guardrail callback by name from litellm.callbacks."""
+        """Look up an initialized guardrail callback by name from token_iq.callbacks."""
         for callback in gateway.callbacks:
             if isinstance(callback, CustomGuardrail):
                 if callback.guardrail_name == guardrail_name:

@@ -109,7 +109,7 @@ def test_a_snake_case_name_written_as_a_string_is_left_alone() -> None:
         'params = {"litellm_params": {}}',
         'key = os.getenv("LITELLM_MASTER_KEY")',
         "class LiteLLM_TeamTable(BaseModel): ...",
-        'span.set_attribute("litellm.trace_id", trace_id)',
+        'span.set_attribute("token_iq.trace_id", trace_id)',
         # Prose.
         "# LiteLLMRoutes is the route table",
         '"""See LiteLLMRoutes for the list."""',

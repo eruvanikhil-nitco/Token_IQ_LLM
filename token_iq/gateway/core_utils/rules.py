@@ -14,7 +14,7 @@ class Rules:
 
     litellm.post_call_rules = [my_custom_rule] # have these be functions that can be called to fail a call
 
-    response = litellm.completion(model="gpt-3.5-turbo", messages=[{"role": "user",
+    response = token_iq.completion(model="gpt-3.5-turbo", messages=[{"role": "user",
         "content": "Hey, how's it going?"}], fallbacks=["openrouter/mythomax"])
     """
 

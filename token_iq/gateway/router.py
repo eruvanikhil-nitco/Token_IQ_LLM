@@ -2279,7 +2279,7 @@ class Router:
                 **kwargs,
             }
             response: Final = gateway.completion(**input_kwargs)
-            verbose_router_logger.info("litellm.completion(model=%s)\x1b[32m 200 OK\x1b[0m", model_name)
+            verbose_router_logger.info("token_iq.completion(model=%s)\x1b[32m 200 OK\x1b[0m", model_name)
 
             ## CHECK CONTENT FILTER ERROR ##
             if isinstance(response, ModelResponse):
@@ -2309,7 +2309,7 @@ class Router:
 
             return response
         except Exception as e:
-            verbose_router_logger.info("litellm.completion(model=%s)\x1b[31m Exception %s\x1b[0m", model_name, e)
+            verbose_router_logger.info("token_iq.completion(model=%s)\x1b[31m Exception %s\x1b[0m", model_name, e)
             # Set per-deployment num_retries on exception for retry logic
             if deployment is not None:
                 self._set_deployment_num_retries_on_exception(e, deployment)
@@ -4577,7 +4577,7 @@ class Router:
                 elif k == "metadata":
                     kwargs[k].update(v)
 
-            # call via litellm.completion()
+            # call via token_iq.completion()
             return gateway.text_completion(**{**data, "prompt": prompt, "caching": self.cache_responses, **kwargs})
         except Exception as e:
             raise e
@@ -5459,7 +5459,7 @@ class Router:
         Make a generic LLM API call through the router, this allows you to use retries/fallbacks with litellm router
         Args:
             model: The model to use
-            original_function: The handler function to call (e.g., litellm.completion)
+            original_function: The handler function to call (e.g., token_iq.completion)
             **kwargs: Additional arguments to pass to the handler function
         Returns:
             The response from the handler function
@@ -8040,7 +8040,7 @@ class Router:
         """
         deployment_name: Final = kwargs["litellm_params"]["metadata"].get(
             "deployment", None
-        )  # handles wildcard routes - by giving the original name sent to `litellm.completion`
+        )  # handles wildcard routes - by giving the original name sent to `token_iq.completion`
         model_group: Final = kwargs["litellm_params"]["metadata"].get("model_group", None)
         model_info: Final = kwargs["litellm_params"].get("model_info", {}) or {}
         id = model_info.get("id", None)
@@ -9822,7 +9822,7 @@ class Router:
         Return the router's deployment-budget callback.
 
         Uses exact-type matching so proxy subclasses (e.g. virtual-key model budgets)
-        registered on litellm.callbacks are not mistaken for router deployment budgets.
+        registered on token_iq.callbacks are not mistaken for router deployment budgets.
         """
         if self.router_budget_logger is not None:
             return self.router_budget_logger
@@ -10605,7 +10605,7 @@ class Router:
             id: str | None = model.get("model_info", {}).get("id")
             litellm_model: str | None = model["litellm_params"].get(
                 "model"
-            )  # USE THE MODEL SENT TO litellm.completion() - consistent with how global_router cache is written.
+            )  # USE THE MODEL SENT TO token_iq.completion() - consistent with how global_router cache is written.
             if id is None or litellm_model is None:
                 continue
             tpm_keys.append(

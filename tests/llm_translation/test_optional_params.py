@@ -31,7 +31,7 @@ from token_iq.gateway.utils import (
 
 def test_supports_system_message():
     """
-    Check if litellm.completion(...,supports_system_message=False)
+    Check if token_iq.completion(...,supports_system_message=False)
     """
     messages = [
         ChatCompletionSystemMessageParam(role="system", content="Listen here!"),

@@ -114,7 +114,7 @@ async def test_insert_data_debug_log_hashes_token(
     token = "sk-short-secret"
     expected_hash = hashlib.sha256(token.encode()).hexdigest()
     prisma_client.db.verificationtoken.upsert = AsyncMock(return_value=SimpleNamespace(token=expected_hash))
-    with caplog.at_level(logging.DEBUG, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.DEBUG, logger="Token IQ Proxy"):
         await prisma_client.insert_data(data={"token": token, "key_alias": "redaction-repro"}, table_name="key")
     log_text = "\n".join(record.getMessage() for record in caplog.records)
     assert token not in log_text
@@ -127,7 +127,7 @@ async def test_insert_data_debug_log_tolerates_none_token(
 ) -> None:
     """A None token must not crash the redacting debug log added for LIT-4356."""
     prisma_client.db.usertable.upsert = AsyncMock(return_value=SimpleNamespace(user_id="u1"))
-    with caplog.at_level(logging.DEBUG, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.DEBUG, logger="Token IQ Proxy"):
         result = await prisma_client.insert_data(data={"user_id": "u1", "token": None}, table_name="user")
     assert result.user_id == "u1"
     assert any("insert_data" in record.getMessage() for record in caplog.records)

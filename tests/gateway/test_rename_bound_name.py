@@ -3,7 +3,7 @@
 The pass renames the name every module binds the engine to. It touches 1,624 files, and the thing that
 makes it dangerous is that `litellm` is a substring of names that are not it: `litellm_params` is a
 config key, `LITELLM_MASTER_KEY` an environment variable, `LiteLLM_TeamTable` a database model, and
-`"litellm.trace_id"` an OpenTelemetry attribute. Each belongs to a later phase, so each is written out
+`"token_iq.trace_id"` an OpenTelemetry attribute. Each belongs to a later phase, so each is written out
 below as text the pass must leave exactly as it is.
 """
 
@@ -110,8 +110,8 @@ def test_a_name_the_module_does_not_bind_to_the_engine_is_left_alone() -> None:
         # A database model, phase 8's.
         "class LiteLLM_TeamTable(BaseModel):",
         # A metric and a span attribute, phase 9's.
-        'span.set_attribute("litellm.trace_id", trace_id)',
-        '{"metric": "litellm.llm_api.latency"}',
+        'span.set_attribute("token_iq.trace_id", trace_id)',
+        '{"metric": "token_iq.llm_api.latency"}',
         # A patch target, which names the module by its absolute path and not by what anything binds.
         'patch("token_iq.gateway.proxy.proxy_server.prisma_client")',
         # Prose.

@@ -1323,7 +1323,7 @@ def test_lm_studio_completion(monkeypatch):
 # ################### Hugging Face Conversational models ########################
 # def hf_test_completion_conv():
 #     try:
-#         response = litellm.completion(
+#         response = token_iq.completion(
 #             model="huggingface/facebook/blenderbot-3B",
 #             messages=[{ "content": "Hello, how are you?","role": "user"}],
 #         )
@@ -1686,7 +1686,7 @@ def test_completion_openai_with_optional_params():
 
 def test_completion_logprobs():
     """
-    This function is used to test the litellm.completion logprobs functionality.
+    This function is used to test the token_iq.completion logprobs functionality.
 
     Parameters:
         None
@@ -1724,7 +1724,7 @@ def test_completion_logprobs():
 
 def test_completion_logprobs_stream():
     """
-    This function is used to test the litellm.completion logprobs functionality.
+    This function is used to test the token_iq.completion logprobs functionality.
 
     Parameters:
         None

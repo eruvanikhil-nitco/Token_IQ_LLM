@@ -30,7 +30,7 @@ asks for a *model group* (e.g. ``gpt-4o``) that routes to a concrete deployment
   model (populated only on some call paths, e.g. files).
 
 So ``gen_ai.request.model`` is the *group* (falling back to the call model on the
-SDK path, which has no group), and ``litellm.provider.model`` is the *dispatched*
+SDK path, which has no group), and ``token_iq.provider.model`` is the *dispatched*
 model. They coincide on the SDK path, which is correct.
 """
 

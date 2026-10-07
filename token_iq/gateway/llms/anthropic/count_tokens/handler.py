@@ -42,7 +42,7 @@ class AnthropicCountTokensHandler(AnthropicCountTokensConfig):
             messages: The messages to count tokens for
             api_key: The Anthropic API key
             api_base: Optional custom API base URL
-            timeout: Optional timeout for the request (defaults to litellm.request_timeout)
+            timeout: Optional timeout for the request (defaults to token_iq.request_timeout)
 
         Returns:
             Dictionary containing token count response
@@ -77,7 +77,7 @@ class AnthropicCountTokensHandler(AnthropicCountTokensConfig):
             # Use LiteLLM's async httpx client
             async_client: Final = get_async_httpx_client(llm_provider=gateway.LlmProviders.ANTHROPIC)
 
-            # Use provided timeout or fall back to litellm.request_timeout
+            # Use provided timeout or fall back to token_iq.request_timeout
             request_timeout: Final = timeout if timeout is not None else gateway.request_timeout
 
             response: Final = await async_client.post(

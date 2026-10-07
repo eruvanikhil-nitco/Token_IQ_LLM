@@ -576,7 +576,7 @@ async def test_generate_key_debug_log_never_contains_raw_token(monkeypatch, capl
     )
 
     raw_key = "sk-short-secret-a1b2"
-    with caplog.at_level(logging.DEBUG, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.DEBUG, logger="Token IQ Proxy"):
         await generate_key_fn(
             data=GenerateKeyRequest(key=raw_key),
             user_api_key_dict=UserAPIKeyAuth(
@@ -13164,7 +13164,7 @@ async def test_bulk_update_team_keys_does_not_log_raw_sk_token_on_failure(
         hash_identity=False,
     )
 
-    with caplog.at_level(logging.ERROR, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.ERROR, logger="Token IQ Proxy"):
         response = await _call_as_admin(
             BulkUpdateTeamKeysRequest(
                 team_id="team-abc",

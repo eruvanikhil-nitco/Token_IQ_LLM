@@ -250,7 +250,7 @@ def resolve_mcp_span_context(
 
     Only trace context (``traceparent``/``tracestate``) is extracted, never the
     client's W3C Baggage: ``params._meta`` is caller-controlled, and the otel
-    baggage processor stamps allowlisted baggage keys (``litellm.team.id``,
+    baggage processor stamps allowlisted baggage keys (``token_iq.team.id``,
     ``litellm.metadata.*``, ...) onto the span as attributes, so honoring remote
     baggage would let a client spoof a span's identity attribution. The base context
     for extraction is explicitly empty so an absent or malformed ``traceparent`` can

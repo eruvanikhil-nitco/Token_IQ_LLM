@@ -42,7 +42,7 @@ def check_for_callback_modifications(file_path):
     forbidden_operations = ["append", "extend", "insert"]
 
     for node in ast.walk(tree):
-        # Check for attribute calls like litellm.callbacks.append()
+        # Check for attribute calls like token_iq.callbacks.append()
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
             # Get the full attribute chain
             attr_chain = []

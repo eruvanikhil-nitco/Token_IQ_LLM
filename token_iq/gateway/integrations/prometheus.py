@@ -205,7 +205,7 @@ class PrometheusLogger(CustomLogger):
 
     @staticmethod
     def get_instance() -> PrometheusLogger | None:
-        """Find the PrometheusLogger instance from litellm.callbacks, if registered."""
+        """Find the PrometheusLogger instance from token_iq.callbacks, if registered."""
         from token_iq import gateway
 
         for cb in gateway.callbacks:

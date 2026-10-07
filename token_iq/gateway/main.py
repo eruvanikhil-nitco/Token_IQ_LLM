@@ -433,7 +433,7 @@ async def acompletion(
     **kwargs,
 ) -> ModelResponse | CustomStreamWrapper:
     """
-    Asynchronously executes a litellm.completion() call for any of litellm supported llms (example gpt-4, gpt-3.5-turbo, claude-2, command-nightly)
+    Asynchronously executes a token_iq.completion() call for any of litellm supported llms (example gpt-4, gpt-3.5-turbo, claude-2, command-nightly)
 
     Parameters:
         model (str): The name of the language model to use for text completion. see all supported LLMs
@@ -5839,7 +5839,7 @@ def completion(
 
 def completion_with_retries(*args, **kwargs):
     """
-    Executes a litellm.completion() with 3 retries
+    Executes a token_iq.completion() with 3 retries
     """
     try:
         import tenacity
@@ -5868,7 +5868,7 @@ def completion_with_retries(*args, **kwargs):
 async def acompletion_with_retries(*args, **kwargs):
     """
     [DEPRECATED]. Use 'acompletion' or router.acompletion instead!
-    Executes a litellm.completion() with 3 retries
+    Executes a token_iq.completion() with 3 retries
     """
     try:
         import tenacity

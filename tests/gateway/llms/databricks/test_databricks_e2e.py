@@ -18,10 +18,10 @@ Purpose:
 LiteLLM Integration Tests:
     This test file includes tests for different ways of calling Databricks via LiteLLM:
     
-    1. LiteLLM SDK Direct - Using litellm.completion() with user_agent parameter
+    1. LiteLLM SDK Direct - Using token_iq.completion() with user_agent parameter
     2. LangChain + LiteLLM - Using ChatLiteLLM wrapper (requires langchain-community)
     3. LiteLLM Async - Using litellm.acompletion() async API
-    4. LiteLLM Streaming - Using litellm.completion() with stream=True
+    4. LiteLLM Streaming - Using token_iq.completion() with stream=True
     5. LiteLLM Embedding - Using litellm.embedding() with user_agent parameter
     
     All tests use the CUSTOM_USER_AGENT value from the config file and call

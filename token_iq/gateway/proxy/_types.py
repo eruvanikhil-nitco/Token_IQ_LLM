@@ -2171,7 +2171,7 @@ class TeamDefaultSettings(GatewayPydanticObjectBase):
 
     model_config = ConfigDict(
         extra="allow"
-    )  # allow params not defined here, these fall in litellm.completion(**kwargs)
+    )  # allow params not defined here, these fall in token_iq.completion(**kwargs)
 
 
 class DynamoDBArgs(GatewayPydanticObjectBase):

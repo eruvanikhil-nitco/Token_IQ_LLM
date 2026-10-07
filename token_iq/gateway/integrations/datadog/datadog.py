@@ -731,7 +731,7 @@ class DataDogLogger(
         metadata: Final = litellm_params.get("metadata", {}) or {}  # if litellm_params['metadata'] == None
         messages: Final = kwargs.get("messages")
         optional_params: Final = kwargs.get("optional_params", {})
-        call_type: Final = kwargs.get("call_type", "litellm.completion")
+        call_type: Final = kwargs.get("call_type", "token_iq.completion")
         cache_hit: Final = kwargs.get("cache_hit", False)
         usage = response_obj["usage"]
         id: Final = response_obj.get("id", str(uuid.uuid4()))

@@ -81,7 +81,7 @@ def test_normalize_checks_keeps_empty_known_check_config():
 
 
 def test_normalize_checks_warns_on_unknown_keys(caplog):
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         result = BedrockGuardrail._normalize_checks({"contentFilter": {}, "typo_key": True})
     assert result == {"contentFilter": {}}
     assert any("typo_key" in m for m in caplog.messages)

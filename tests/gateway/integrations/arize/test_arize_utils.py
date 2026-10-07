@@ -907,15 +907,15 @@ def test_arize_emits_session_and_user_attrs_from_metadata():
     attrs = _collect_calls(span)
     assert attrs[SpanAttributes.SESSION_ID] == "session_99"
     assert attrs[SpanAttributes.USER_ID] == "user_42"
-    assert attrs["litellm.team_id"] == "team_7"
-    assert attrs["litellm.team_alias"] == "alpha"
-    assert attrs["litellm.key_alias"] == "key_alpha"
+    assert attrs["token_iq.team_id"] == "team_7"
+    assert attrs["token_iq.team_alias"] == "alpha"
+    assert attrs["token_iq.key_alias"] == "key_alpha"
 
 
 def test_arize_does_not_use_trace_id_as_session_id_fallback():
     """SESSION_ID must NOT fall back to trace_id (one session-per-request
     would distort Arize Session analytics). trace_id is emitted under its
-    own `litellm.trace_id` key instead.
+    own `token_iq.trace_id` key instead.
     """
     from unittest.mock import MagicMock
 
@@ -946,7 +946,7 @@ def test_arize_does_not_use_trace_id_as_session_id_fallback():
     # SESSION_ID must NOT be derived from trace_id.
     assert SpanAttributes.SESSION_ID not in attrs
     # trace_id surfaces under its own key.
-    assert attrs["litellm.trace_id"] == "trace-xyz-123"
+    assert attrs["token_iq.trace_id"] == "trace-xyz-123"
 
 
 def test_arize_does_not_overwrite_user_id_from_optional_params():

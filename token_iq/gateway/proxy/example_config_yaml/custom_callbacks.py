@@ -64,6 +64,6 @@ class MyCustomHandler(CustomLogger):
 proxy_handler_instance: Final = MyCustomHandler()
 
 
-# need to set litellm.callbacks = [customHandler] # on the proxy
+# need to set token_iq.callbacks = [customHandler] # on the proxy
 
-# litellm.success_callback = [async_on_succes_logger]
+# token_iq.success_callback = [async_on_succes_logger]

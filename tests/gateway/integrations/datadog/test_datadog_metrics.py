@@ -132,17 +132,17 @@ async def test_add_metrics_from_log(clean_env):
     metrics = {s["metric"]: s for s in logger.log_queue}
 
     # Total latency ~2s
-    total = metrics["litellm.request.total_latency"]
+    total = metrics["token_iq.request.total_latency"]
     assert total["type"] == 3  # gauge
     assert abs(total["points"][0]["value"] - 2.0) < 0.1
 
     # LLM API latency ~1s
-    llm = metrics["litellm.llm_api.latency"]
+    llm = metrics["token_iq.llm_api.latency"]
     assert llm["type"] == 3  # gauge
     assert abs(llm["points"][0]["value"] - 1.0) < 0.1
 
     # Request count
-    count = metrics["litellm.llm_api.request_count"]
+    count = metrics["token_iq.llm_api.request_count"]
     assert count["type"] == 1  # count
     assert count["points"][0]["value"] == 1.0
     assert "status_code:200" in count["tags"]
@@ -150,7 +150,7 @@ async def test_add_metrics_from_log(clean_env):
 
 @pytest.mark.asyncio
 async def test_overhead_latency_metric_emitted(clean_env):
-    """Test that litellm.overhead.latency is emitted when hidden_params contains litellm_overhead_time_ms."""
+    """Test that token_iq.overhead.latency is emitted when hidden_params contains litellm_overhead_time_ms."""
     logger = DatadogMetricsLogger(batch_size=100, start_periodic_flush=False)
 
     now = datetime.now()
@@ -177,9 +177,9 @@ async def test_overhead_latency_metric_emitted(clean_env):
 
     # Overhead metric must be present
     assert (
-        "litellm.overhead.latency" in metrics
-    ), f"Expected 'litellm.overhead.latency' in emitted metrics, got: {list(metrics.keys())}"
-    overhead = metrics["litellm.overhead.latency"]
+        "token_iq.overhead.latency" in metrics
+    ), f"Expected 'token_iq.overhead.latency' in emitted metrics, got: {list(metrics.keys())}"
+    overhead = metrics["token_iq.overhead.latency"]
     assert overhead["type"] == 3  # gauge
     # 250 ms → 0.25 s
     assert abs(overhead["points"][0]["value"] - 0.25) < 1e-6
@@ -189,7 +189,7 @@ async def test_overhead_latency_metric_emitted(clean_env):
 
 @pytest.mark.asyncio
 async def test_overhead_latency_metric_absent_when_no_hidden_params(clean_env):
-    """Test that litellm.overhead.latency is NOT emitted when hidden_params has no overhead value."""
+    """Test that token_iq.overhead.latency is NOT emitted when hidden_params has no overhead value."""
     logger = DatadogMetricsLogger(batch_size=100, start_periodic_flush=False)
 
     now = datetime.now()
@@ -211,7 +211,7 @@ async def test_overhead_latency_metric_absent_when_no_hidden_params(clean_env):
     logger._add_metrics_from_log(log=payload, kwargs=kwargs, status_code="200")
 
     metrics = {s["metric"]: s for s in logger.log_queue}
-    assert "litellm.overhead.latency" not in metrics
+    assert "token_iq.overhead.latency" not in metrics
 
 
 @pytest.mark.asyncio
@@ -279,7 +279,7 @@ async def test_async_log_failure_event_extracts_status_code(clean_env):
     )
 
     count_series = next(
-        (s for s in logger.log_queue if s["metric"] == "litellm.llm_api.request_count"),
+        (s for s in logger.log_queue if s["metric"] == "token_iq.llm_api.request_count"),
         None,
     )
     assert count_series is not None
@@ -308,7 +308,7 @@ async def test_async_log_failure_event_default_status_code(clean_env):
     )
 
     count_series = next(
-        (s for s in logger.log_queue if s["metric"] == "litellm.llm_api.request_count"),
+        (s for s in logger.log_queue if s["metric"] == "token_iq.llm_api.request_count"),
         None,
     )
     assert count_series is not None
@@ -328,7 +328,7 @@ async def test_async_send_batch(clean_env):
     # Manually add a metric series to the queue
     logger.log_queue = [
         {
-            "metric": "litellm.request.total_latency",
+            "metric": "token_iq.request.total_latency",
             "type": 3,
             "points": [{"timestamp": int(time.time()), "value": 1.5}],
             "tags": ["env:test"],
@@ -348,7 +348,7 @@ async def test_async_send_batch(clean_env):
     compressed = call_args[1]["content"]
     payload = json.loads(gzip.decompress(compressed).decode("utf-8"))
     assert len(payload["series"]) == 1
-    assert payload["series"][0]["metric"] == "litellm.request.total_latency"
+    assert payload["series"][0]["metric"] == "token_iq.request.total_latency"
 
 
 @pytest.mark.asyncio

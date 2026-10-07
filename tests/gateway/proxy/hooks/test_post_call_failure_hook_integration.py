@@ -45,7 +45,7 @@ async def test_failure_hook_transforms_error_response():
     """
     transformer = ErrorTransformerLogger()
 
-    # Mock litellm.callbacks to include our transformer
+    # Mock token_iq.callbacks to include our transformer
     with patch("token_iq.gateway.callbacks", [transformer]):
         from token_iq.gateway.proxy.utils import ProxyLogging
         from token_iq.gateway.caching.caching import DualCache

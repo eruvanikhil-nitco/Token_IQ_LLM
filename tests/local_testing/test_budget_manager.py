@@ -93,7 +93,7 @@
 #             "messages": [{"role": "user", "content": "Hello!"}]
 #         }
 #         if budget_manager.get_current_cost(user=user) <= budget_manager.get_total_budget(user=user):
-#             response = litellm.completion(**data)
+#             response = token_iq.completion(**data)
 #             print(budget_manager.update_cost(completion_obj=response, user=user))
 
 #         assert budget_manager.get_current_cost(user) > 0, f"Test setup failed: Budget did not decrease after completion"

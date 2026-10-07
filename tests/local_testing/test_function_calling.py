@@ -15,7 +15,7 @@ gateway.cache = None
 # litellm.set_verbose=True
 import json
 
-# litellm.success_callback = ["langfuse"]
+# token_iq.success_callback = ["langfuse"]
 
 
 def get_current_weather(location, unit="fahrenheit"):

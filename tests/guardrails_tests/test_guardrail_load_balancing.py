@@ -72,7 +72,7 @@ async def test_proxy_logging_pre_call_hook_load_balancing():
     # Create ProxyLogging instance
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
-    # Add guardrail to litellm.callbacks so it gets picked up
+    # Add guardrail to token_iq.callbacks so it gets picked up
     original_callbacks = gateway.callbacks.copy()
     gateway.callbacks = [guardrail_1]
 

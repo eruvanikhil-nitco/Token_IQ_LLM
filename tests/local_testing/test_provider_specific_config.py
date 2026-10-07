@@ -18,7 +18,7 @@ from token_iq.gateway import RateLimitError, completion
 #     litellm.set_verbose=True
 #     try:
 #         # OVERRIDE WITH DYNAMIC MAX TOKENS
-#         response_1 = litellm.completion(
+#         response_1 = token_iq.completion(
 #             model="huggingface/mistralai/Mistral-7B-Instruct-v0.1",
 #             messages=[{ "content": "Hello, how are you?","role": "user"}],
 #             api_base="https://n9ox93a8sv5ihsow.us-east-1.aws.endpoints.huggingface.cloud",
@@ -29,7 +29,7 @@ from token_iq.gateway import RateLimitError, completion
 #         response_1_text = response_1.choices[0].message.content
 
 #         # USE CONFIG TOKENS
-#         response_2 = litellm.completion(
+#         response_2 = token_iq.completion(
 #             model="huggingface/mistralai/Mistral-7B-Instruct-v0.1",
 #             messages=[{ "content": "Hello, how are you?","role": "user"}],
 #             api_base="https://n9ox93a8sv5ihsow.us-east-1.aws.endpoints.huggingface.cloud",
@@ -328,7 +328,7 @@ def aleph_alpha_test_completion():
 #     # litellm.set_verbose=True
 #     try:
 #         # OVERRIDE WITH DYNAMIC MAX TOKENS
-#         response_1 = litellm.completion(
+#         response_1 = token_iq.completion(
 #             model="petals/petals-team/StableBeluga2",
 #             messages=[{ "content": "Hello, how are you? Be as verbose as possible","role": "user"}],
 #             api_base="https://chat.petals.dev/api/v1/generate",
@@ -338,7 +338,7 @@ def aleph_alpha_test_completion():
 #         print(f"response_1_text: {response_1_text}")
 
 #         # USE CONFIG TOKENS
-#         response_2 = litellm.completion(
+#         response_2 = token_iq.completion(
 #             model="petals/petals-team/StableBeluga2",
 #             api_base="https://chat.petals.dev/api/v1/generate",
 #             messages=[{ "content": "Hello, how are you? Be as verbose as possible","role": "user"}],
@@ -359,7 +359,7 @@ def aleph_alpha_test_completion():
 #     # litellm.set_verbose=True
 #     try:
 #         # OVERRIDE WITH DYNAMIC MAX TOKENS
-#         response_1 = litellm.completion(
+#         response_1 = token_iq.completion(
 #             model="chat-bison",
 #             messages=[{ "content": "Hello, how are you? Be as verbose as possible","role": "user"}],
 #             max_tokens=100
@@ -368,7 +368,7 @@ def aleph_alpha_test_completion():
 #         print(f"response_1_text: {response_1_text}")
 
 #         # USE CONFIG TOKENS
-#         response_2 = litellm.completion(
+#         response_2 = token_iq.completion(
 #             model="chat-bison",
 #             messages=[{ "content": "Hello, how are you? Be as verbose as possible","role": "user"}],
 #         )

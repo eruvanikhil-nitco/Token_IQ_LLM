@@ -182,7 +182,7 @@ def test_falls_back_to_gateway_provider_when_upstream_lacks_one():
     sparse = {"name": "x", "description": "y", "version": "1"}
     merged = merge_agent_card(sparse, proxy_url=PROXY_URL, proxy_base_url=PROXY_BASE)
     assert merged["provider"] == {
-        "organization": "LiteLLM Proxy",
+        "organization": "Token IQ Proxy",
         "url": PROXY_BASE,
     }
 

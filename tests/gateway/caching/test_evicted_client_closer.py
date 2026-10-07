@@ -288,7 +288,7 @@ async def test_a_client_evicted_on_another_event_loop_is_left_alone():
 async def test_a_client_serving_a_request_is_not_closed_when_its_grace_window_ends():
     """The grace window on its own cannot promise that a request has finished.
 
-    ``litellm.request_timeout`` defaults to 6000 seconds and a streaming response
+    ``token_iq.request_timeout`` defaults to 6000 seconds and a streaming response
     is bounded only by how long the upstream keeps sending, so a client past its
     deadline is closed only once its own pool reports nothing in flight.
     """

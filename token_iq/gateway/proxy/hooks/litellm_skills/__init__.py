@@ -8,7 +8,7 @@ Usage:
     from token_iq.gateway.proxy.hooks.litellm_skills import SkillsInjectionHook
 
     # Register hook in proxy
-    litellm.callbacks.append(SkillsInjectionHook())
+    token_iq.callbacks.append(SkillsInjectionHook())
 """
 
 # Re-export from the SDK location for convenience

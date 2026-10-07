@@ -661,7 +661,7 @@ class TestModelRateLimitingCheckIOTokens:
             "litellm_params": {"model": "openai/gpt-4o-mini", "itpm": 100, "tpm": 1000},
             "model_info": {},
         }
-        with caplog.at_level(logging.WARNING, logger="LiteLLM Router"):
+        with caplog.at_level(logging.WARNING, logger="Token IQ Router"):
             check._warn_io_token_and_tpm_rpm_coexist_once(deployment)
             check._warn_io_token_and_tpm_rpm_coexist_once(deployment)
 
@@ -855,7 +855,7 @@ class TestModelRateLimitingCheckIOTokens:
         }
         set_io_token_rate_limit_request_kwargs(request_kwargs)
 
-        with caplog.at_level(logging.WARNING, logger="LiteLLM Router"):
+        with caplog.at_level(logging.WARNING, logger="Token IQ Router"):
             with pytest.raises(gateway.RateLimitError):
                 await check.async_pre_call_check(deployment)
 

@@ -96,18 +96,18 @@ _MAX_DYNAMIC_TRACER_PROVIDERS: Final = 256
 # Dedicated so a slow exporter shutdown cannot starve the shared logging executor.
 _PROVIDER_SHUTDOWN_EXECUTOR: Final = ThreadPoolExecutor(max_workers=4, thread_name_prefix="OtelProviderShutdown")
 
-LITELLM_TRACER_NAME: Final = os.getenv("OTEL_TRACER_NAME", "litellm")
-LITELLM_METER_NAME: Final = compat.env("TOKEN_IQ_METER_NAME", "litellm")
-LITELLM_LOGGER_NAME: Final = compat.env("TOKEN_IQ_LOGGER_NAME", "litellm")
+LITELLM_TRACER_NAME: Final = os.getenv("OTEL_TRACER_NAME", "token_iq")
+LITELLM_METER_NAME: Final = compat.env("TOKEN_IQ_METER_NAME", "token_iq")
+LITELLM_LOGGER_NAME: Final = compat.env("TOKEN_IQ_LOGGER_NAME", "token_iq")
 LITELLM_PROXY_REQUEST_SPAN_NAME: Final = "Received Proxy Server Request"
 # OTel-standard names. status is also kept under error.code for back compat.
 HTTP_RESPONSE_STATUS_CODE_ATTRIBUTE: Final = "http.response.status_code"
 HTTP_ROUTE_ATTRIBUTE: Final = "http.route"
 URL_PATH_ATTRIBUTE: Final = "url.path"
-PREPROCESSING_DURATION_MS_ATTRIBUTE: Final = "litellm.preprocessing.duration_ms"
-TEAM_METADATA_ATTRIBUTE: Final = "litellm.team.metadata"
-MODEL_GROUP_ATTRIBUTE: Final = "litellm.model_group"
-PROVIDER_MODEL_ATTRIBUTE: Final = "litellm.provider.model"
+PREPROCESSING_DURATION_MS_ATTRIBUTE: Final = "token_iq.preprocessing.duration_ms"
+TEAM_METADATA_ATTRIBUTE: Final = "token_iq.team.metadata"
+MODEL_GROUP_ATTRIBUTE: Final = "token_iq.model_group"
+PROVIDER_MODEL_ATTRIBUTE: Final = "token_iq.provider.model"
 # semconv names the service tier attributes under the openai namespace, but every
 # provider that reports a tier (OpenAI, Anthropic, Bedrock, Groq, Vertex) uses the
 # same request param and response field, so both keys carry all of them.
@@ -286,7 +286,7 @@ class OpenTelemetryConfig:
     capture_message_content: str | None = None
     semconv_stability_opt_in: set[OTELSemconvCategory] = field(default_factory=set)
     # Sub-keys of the team's free-form metadata stamped onto the inference span
-    # under ``litellm.team.metadata``. Empty by default so none of a team's
+    # under ``token_iq.team.metadata``. Empty by default so none of a team's
     # metadata leaves the process until explicitly allowlisted.
     baggage_team_metadata_keys: list[str] = field(default_factory=list)
     # Prometheus-style include/exclude control over which attributes are stamped
@@ -302,7 +302,7 @@ class OpenTelemetryConfig:
             self.exporter = "otlp_http"
 
         if not self.service_name:
-            self.service_name = os.getenv("OTEL_SERVICE_NAME", "litellm")
+            self.service_name = os.getenv("OTEL_SERVICE_NAME", "token_iq")
         if not self.deployment_environment:
             self.deployment_environment = os.getenv("OTEL_ENVIRONMENT_NAME", "production")
         if not self.model_id:
@@ -336,7 +336,7 @@ class OpenTelemetryConfig:
         )  # example: OTEL_HEADERS=x-honeycomb-team=B85YgLm96***"
         enable_metrics: Final[bool] = compat.env("TOKEN_IQ_OTEL_INTEGRATION_ENABLE_METRICS", "false").lower() == "true"
         enable_events: Final[bool] = compat.env("TOKEN_IQ_OTEL_INTEGRATION_ENABLE_EVENTS", "false").lower() == "true"
-        service_name: Final = os.getenv("OTEL_SERVICE_NAME", "litellm")
+        service_name: Final = os.getenv("OTEL_SERVICE_NAME", "token_iq")
         deployment_environment: Final = os.getenv("OTEL_ENVIRONMENT_NAME", "production")
         model_id: Final = os.getenv("OTEL_MODEL_ID", service_name)
 
@@ -1622,7 +1622,7 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
             ),
             "gen_ai.system": provider,
             "gen_ai.request.model": kwargs.get("model"),
-            "gen_ai.framework": "litellm",
+            "gen_ai.framework": "token_iq",
         }
 
         std_log: Final = kwargs.get("standard_logging_object")
@@ -2486,7 +2486,7 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
             if litellm_call_id:
                 self.safe_set_attribute(
                     span=span,
-                    key="litellm.call_id",
+                    key="token_iq.call_id",
                     value=litellm_call_id,
                 )
 
@@ -3527,7 +3527,7 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
 
     def set_preprocessing_duration_attribute(self, span: Span | None, container: Any) -> None:
         """
-        Set ``litellm.preprocessing.duration_ms`` (proxy-receive -> first
+        Set ``token_iq.preprocessing.duration_ms`` (proxy-receive -> first
         provider handoff) on the proxy SERVER span. ``litellm_received_at``
         rides request metadata; ``first_api_call_start_time`` is the
         set-once first-handoff instant (retries/backoff excluded). Works

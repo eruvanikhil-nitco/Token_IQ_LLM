@@ -362,7 +362,7 @@ class GatewayCompletionResponsesConfig:
             gateway_completion_request.pop("tool_choice", None)
             gateway_completion_request.pop("tools", None)
 
-        # Responses API `Completed` events require usage, we pass `stream_options` to litellm.completion to include usage
+        # Responses API `Completed` events require usage, we pass `stream_options` to token_iq.completion to include usage
         if stream is True:
             stream_options: Final = {
                 "include_usage": True,

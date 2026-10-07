@@ -843,7 +843,7 @@ async def test_abort_upstream_logs_warning_when_aclose_raises(caplog):
         async def aclose(self):
             raise RuntimeError("aclose exploded")
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         await BaseAnthropicMessagesStreamingIterator._abort_upstream(_ExplodingStream())
 
     assert any("abort" in r.message and "RuntimeError" in r.message for r in caplog.records)

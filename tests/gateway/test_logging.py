@@ -170,7 +170,7 @@ def test_json_formatter_parses_embedded_python_dict_repr():
         "for model: text-embedding-3-large"
     )
     record = logging.LogRecord(
-        name="LiteLLM Router",
+        name="Token IQ Router",
         level=logging.INFO,
         pathname="",
         lineno=0,
@@ -231,10 +231,10 @@ def test_json_formatter_output_stays_parseable_when_a_secret_is_redacted():
 def test_json_formatter_includes_component_field():
     """
     Test that JsonFormatter always emits a 'component' field equal to the logger name.
-    This allows filtering by component (e.g. "LiteLLM Proxy") in Datadog / third-party log services.
+    This allows filtering by component (e.g. "Token IQ Proxy") in Datadog / third-party log services.
     """
     formatter = JsonFormatter()
-    for logger_name in ("LiteLLM Proxy", "LiteLLM Router", "Gateway"):
+    for logger_name in ("Token IQ Proxy", "Token IQ Router", "Gateway"):
         record = logging.LogRecord(
             name=logger_name,
             level=logging.ERROR,
@@ -256,7 +256,7 @@ def test_json_formatter_includes_logger_field():
     """
     formatter = JsonFormatter()
     record = logging.LogRecord(
-        name="LiteLLM Proxy",
+        name="Token IQ Proxy",
         level=logging.INFO,
         pathname="/app/litellm/proxy/proxy_server.py",
         lineno=123,
@@ -275,7 +275,7 @@ def test_json_formatter_extra_component_not_overwritten():
     """
     formatter = JsonFormatter()
     record = logging.LogRecord(
-        name="LiteLLM Proxy",
+        name="Token IQ Proxy",
         level=logging.INFO,
         pathname="proxy_server.py",
         lineno=1,
@@ -675,7 +675,7 @@ def _extract_marker(text: str) -> "re.Match[str] | None":
 
 def _make_record(level: int, msg: str, args=(), exc_info=None) -> logging.LogRecord:
     return logging.LogRecord(
-        name="LiteLLM Router",
+        name="Token IQ Router",
         level=level,
         pathname="",
         lineno=0,
@@ -823,7 +823,7 @@ def test_oversized_error_is_truncated_end_to_end(monkeypatch, caplog):
     """The router's own exception log line must come out bounded, not just the filter in isolation."""
     monkeypatch.setenv("MAX_STRING_LENGTH_STDOUT_LOG", "500")
 
-    with caplog.at_level(logging.INFO, logger="LiteLLM Router"):
+    with caplog.at_level(logging.INFO, logger="Token IQ Router"):
         verbose_router_logger.info("litellm.acompletion(model=%s) Exception %s", "gpt-4", "p" * 100_000)
 
     emitted = "".join(record.getMessage() for record in caplog.records)

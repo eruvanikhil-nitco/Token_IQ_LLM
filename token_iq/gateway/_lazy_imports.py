@@ -82,7 +82,7 @@ def _get_utils_globals() -> dict[str, object]:
 
 
 def _get_module_level_client_timeout(gateway_globals: Mapping[str, Any]) -> "float | httpx.Timeout | None":
-    """Read the configured `litellm.request_timeout` used for the module level http clients."""
+    """Read the configured `token_iq.request_timeout` used for the module level http clients."""
     return gateway_globals.get("request_timeout")
 
 

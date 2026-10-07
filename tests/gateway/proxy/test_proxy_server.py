@@ -11473,7 +11473,7 @@ def test_startup_warns_when_mock_testing_params_enabled(caplog):
         MOCK_TESTING_CONFIG_KEY,
     )
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         ProxyStartupEvent._warn_if_mock_testing_params_enabled(general_settings={MOCK_TESTING_CONFIG_KEY: True})
 
     assert MOCK_TESTING_CONFIG_KEY in caplog.text
@@ -11488,7 +11488,7 @@ def test_startup_is_silent_when_mock_testing_params_disabled(caplog):
     from token_iq.gateway.proxy.proxy_server import ProxyStartupEvent
     from token_iq.gateway.proxy.route_llm_request import MOCK_TESTING_CONFIG_KEY
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         ProxyStartupEvent._warn_if_mock_testing_params_enabled(general_settings={})
 
     assert MOCK_TESTING_CONFIG_KEY not in caplog.text

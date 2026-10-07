@@ -4,7 +4,7 @@ Tests for model cost map resilience.
 Simulates:
 - A bad (invalid JSON) model cost map upstream
 - A bad (empty/missing) backup model cost map
-- Verifies litellm.completion() still works even with a broken cost map
+- Verifies token_iq.completion() still works even with a broken cost map
 - Verifies litellm.get_model_info() raises the expected error for unmapped models
 - Verifies the integrity validation helper catches corrupted maps
 """
@@ -240,7 +240,7 @@ class TestBadHostedModelCostMap:
     When the hosted map is bad, get_model_cost_map() falls back to the local
     backup. These tests verify that after fallback:
     - get_model_info() still works for models in the backup
-    - litellm.completion() still works
+    - token_iq.completion() still works
     """
 
     def test_should_model_info_pass_after_bad_hosted_map(self):
@@ -267,7 +267,7 @@ class TestBadHostedModelCostMap:
 
     def test_should_completion_pass_after_bad_hosted_map(self):
         """
-        If the hosted map is bad, litellm.completion() should still work.
+        If the hosted map is bad, token_iq.completion() should still work.
 
         Uses litellm's built-in mock_response param so the real completion
         path is exercised (routing, cost calculator, logging) without

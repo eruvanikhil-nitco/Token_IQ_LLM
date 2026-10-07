@@ -37,9 +37,9 @@ class AgentOps(OpenTelemetry):
         ```python
         from token_iq import gateway
 
-        litellm.success_callback = ["agentops"]
+        token_iq.success_callback = ["agentops"]
 
-        response = litellm.completion(
+        response = token_iq.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hello, how are you?"}],
         )

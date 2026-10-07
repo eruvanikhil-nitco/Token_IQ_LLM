@@ -1,6 +1,6 @@
 """Proxy strips client-supplied pricing parameters from request bodies.
 
-`litellm.completion` accepts pricing fields (`input_cost_per_token`,
+`token_iq.completion` accepts pricing fields (`input_cost_per_token`,
 `output_cost_per_token`, the rest of `CustomPricingLiteLLMParams`,
 `metadata.model_info`) as part of its kwarg surface. On direct SDK use that
 is intentional. On the proxy, those same fields would let any caller rewrite
@@ -336,7 +336,7 @@ async def test_add_gateway_data_to_request_skips_strip_with_team_opt_in():
 async def test_global_model_cost_unmutated_after_stripped_request(monkeypatch):
     """After a stripped request, ``litellm.model_cost`` must not carry the
     caller's submitted pricing for the model. The mutation only happens when
-    the pricing fields reach ``litellm.completion``; the strip prevents that."""
+    the pricing fields reach ``token_iq.completion``; the strip prevents that."""
     snapshot = dict(gateway.model_cost)
     data = {
         "model": "test-pricing-canary-model",

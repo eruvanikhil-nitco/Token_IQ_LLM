@@ -42,7 +42,7 @@ def test_active_callbacks(client):
 
     json_response = response.json()
     print(f"json_response={json_response}")
-    _active_callbacks = json_response["litellm.callbacks"]
+    _active_callbacks = json_response["token_iq.callbacks"]
 
     expected_callback_names = [
         "lakeraAI_Moderation",

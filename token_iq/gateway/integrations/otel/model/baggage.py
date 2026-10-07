@@ -59,7 +59,7 @@ DEFAULT_BAGGAGE_METADATA_KEYS: Final[tuple[str, ...]] = (
 )
 
 # Sub-keys of the team's free-form metadata eligible for promotion under
-# ``litellm.team.metadata``. Empty by default: a team's metadata can hold
+# ``token_iq.team.metadata``. Empty by default: a team's metadata can hold
 # arbitrary operator data, so none of it is promoted until each key is
 # explicitly allowlisted via ``config.baggage_team_metadata_keys``.
 DEFAULT_BAGGAGE_TEAM_METADATA_KEYS: Final[tuple[str, ...]] = ()
@@ -77,7 +77,7 @@ def promoted_baggage(
     ``promoted_keys`` selects from ``_PROMOTABLE``; ``metadata_keys`` selects
     sub-keys of ``identity.metadata`` to promote under ``litellm.metadata.*``;
     ``team_metadata_keys`` selects sub-keys of the team's metadata to promote
-    under ``litellm.team.metadata``. Empty values are dropped.
+    under ``token_iq.team.metadata``. Empty values are dropped.
     """
     out: Final[dict[str, str]] = {}
     for key, extract in _PROMOTABLE.items():

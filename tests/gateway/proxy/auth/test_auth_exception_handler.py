@@ -596,7 +596,7 @@ async def test_auth_failure_without_resolved_identity_still_logs():
 
     logged = mock_hook.call_args[1]["user_api_key_dict"]
     # Raw key must NOT land on the object — it would be promoted into telemetry
-    # as litellm.api_key.hash and leak a real sk-... to anyone reading the trace.
+    # as token_iq.api_key.hash and leak a real sk-... to anyone reading the trace.
     assert logged.api_key != "sk-unknown"
     assert logged.api_key == UserAPIKeyAuth(api_key="sk-unknown").api_key
     assert logged.request_route == "/v1/chat/completions"
@@ -853,7 +853,7 @@ async def test_handle_authentication_error_traceback_only_for_unexpected_errors(
             try:
                 raise auth_error
             except (ProxyException, ValueError, HTTPException) as caught:
-                with caplog.at_level(expect_level, logger="LiteLLM Proxy"), pytest.raises((ProxyException, HTTPException)):
+                with caplog.at_level(expect_level, logger="Token IQ Proxy"), pytest.raises((ProxyException, HTTPException)):
                     await handler._handle_authentication_error(
                         caught,
                         MagicMock(),
@@ -869,5 +869,5 @@ async def test_handle_authentication_error_traceback_only_for_unexpected_errors(
     assert len(records) == 1
     assert (records[0].exc_info is not None) is expect_traceback
     assert records[0].levelname == expect_level
-    expected_logger_name = "LiteLLM Proxy.stdout" if expect_level == "WARNING" else "LiteLLM Proxy"
+    expected_logger_name = "LiteLLM Proxy.stdout" if expect_level == "WARNING" else "Token IQ Proxy"
     assert records[0].name == expected_logger_name

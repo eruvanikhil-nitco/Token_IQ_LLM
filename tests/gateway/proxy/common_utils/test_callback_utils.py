@@ -549,7 +549,7 @@ def probe_config_path(tmp_path):
     branch expects, and restore every global the load + dispatch path touches.
 
     ``ProxyLogging._callback_capabilities_cache`` is keyed on the id()s of the
-    litellm.callbacks members, so an entry left behind here can be read back by an
+    token_iq.callbacks members, so an entry left behind here can be read back by an
     unrelated test whose (len, ids) signature happens to collide.
     """
     (tmp_path / f"{_PROBE_MODULE_NAME}.py").write_text(_PROBE_MODULE_SOURCE)
@@ -650,14 +650,14 @@ async def test_initialize_callbacks_on_proxy_instance_entry_runs_pre_call_hook(p
 
 def test_initialize_callbacks_on_proxy_keeps_known_string_callback(probe_config_path):
     """Non-narrowing control: a known callback name never reaches get_instance_fn and
-    stays a plain string in litellm.callbacks."""
+    stays a plain string in token_iq.callbacks."""
     _load_callbacks(["langfuse"], probe_config_path)
 
     assert gateway.callbacks == ["langfuse"]
 
 
 def test_initialize_callbacks_on_proxy_accepts_plain_function_callback(probe_config_path):
-    """Non-narrowing control: litellm.callbacks is typed
+    """Non-narrowing control: token_iq.callbacks is typed
     `Callable | <known name> | CustomLogger`, so a dotted path resolving to a plain
     function is a supported shape and must keep loading."""
     _load_callbacks([f"{_PROBE_MODULE_NAME}.log_event_fn"], probe_config_path)

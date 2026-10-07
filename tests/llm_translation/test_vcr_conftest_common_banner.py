@@ -233,7 +233,7 @@ def test_banner_silent_on_xdist_worker(
 
 
 # ---------------------------------------------------------------------------
-# Telemetry-leak suppression. Several modules set ``litellm.success_callback``
+# Telemetry-leak suppression. Several modules set ``token_iq.success_callback``
 # at import time, so observability logging is globally enabled and an async
 # flush can land in an unrelated test's VCR window and be saved as a spurious
 # MISS:RECORDED episode. ``_should_drop_telemetry_record`` refuses to record a

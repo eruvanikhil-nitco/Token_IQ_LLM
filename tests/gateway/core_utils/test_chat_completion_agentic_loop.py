@@ -61,7 +61,7 @@ _INTERNAL_CONTROL_FIELDS = (
 
 @pytest.fixture
 def restore_callbacks():
-    """Save/restore litellm.callbacks so a registered fake logger never pollutes
+    """Save/restore token_iq.callbacks so a registered fake logger never pollutes
     other tests in the suite."""
     saved = list(gateway.callbacks)
     try:

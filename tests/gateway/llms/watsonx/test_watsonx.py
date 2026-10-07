@@ -212,7 +212,7 @@ def test_watsonx_gpt_oss_prompt_transformation(monkeypatch):
     """
     Test that gpt-oss-120b model transforms messages to proper format instead of simple concatenation.
 
-    This test calls litellm.completion (sync) and verifies what gets sent in the final POST request body.
+    This test calls token_iq.completion (sync) and verifies what gets sent in the final POST request body.
     Input messages should be transformed using the HuggingFace chat template from openai/gpt-oss-120b,
     not just concatenated as "You are chatgpt Hi there".
     """
@@ -376,7 +376,7 @@ def test_watsonx_chat_completion_with_reasoning_effort(monkeypatch):
     }
     mock_token_response.raise_for_status = Mock()
 
-    # Call litellm.completion with the new parameter
+    # Call token_iq.completion with the new parameter
     with (
         patch.object(client, "post") as mock_post,
         patch.object(

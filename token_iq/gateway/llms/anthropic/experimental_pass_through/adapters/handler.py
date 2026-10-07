@@ -437,7 +437,7 @@ class GatewayMessagesToCompletionTransformationHandler:
         output_format: dict[str, object] | None = None,
         extra_kwargs: Mapping[str, object] | None = None,
     ) -> tuple[_CompletionKwargs, dict[str, str]]:
-        """Prepare kwargs for litellm.completion/acompletion.
+        """Prepare kwargs for token_iq.completion/acompletion.
 
         Returns:
             Tuple of (completion_kwargs, tool_name_mapping)

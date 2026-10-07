@@ -25,7 +25,7 @@ gateway.vertex_project = "litellm-ci-cd"
 gateway.vertex_location = "us-central1"
 gateway.num_retries = 0
 
-# litellm.failure_callback = ["sentry"]
+# token_iq.failure_callback = ["sentry"]
 #### What this tests ####
 #    This tests exception mapping -> trigger an exception from an llm provider -> assert if output is of the expected type
 

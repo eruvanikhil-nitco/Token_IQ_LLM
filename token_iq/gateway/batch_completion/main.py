@@ -32,7 +32,7 @@ def batch_completion(
     **kwargs,
 ):
     """
-    Batch litellm.completion function for a given model.
+    Batch token_iq.completion function for a given model.
 
     Args:
         model (str): The model to use for generating completions.

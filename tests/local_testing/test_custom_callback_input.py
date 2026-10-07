@@ -32,7 +32,7 @@ from tests._wait_helpers import await_until, wait_until
 ## 3. Non-OpenAI/Azure - e.g. Bedrock
 
 # Test interfaces
-## 1. litellm.completion() + litellm.embeddings()
+## 1. token_iq.completion() + litellm.embeddings()
 ## refer to test_custom_callback_input_router.py for the router +  proxy tests
 
 

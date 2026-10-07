@@ -603,7 +603,7 @@ def _failure_fields_to_lift(request_data: Mapping[str, object]) -> Mapping[str, 
 
 @dataclass(frozen=True)
 class _CallbackCapabilities:
-    """Cached per-hook capability flags derived from ``litellm.callbacks``.
+    """Cached per-hook capability flags derived from ``token_iq.callbacks``.
 
     Recomputing this per request walked the callback list and resolved every
     string entry via ``get_custom_logger_compatible_class`` — a measurable
@@ -617,12 +617,12 @@ class _CallbackCapabilities:
     has_pre_call_override: bool = False
     has_content_enforcer: bool = False
     # Tuple[(resolved_callback, "override" | "apply_guardrail"), ...]
-    # Ordered the same as ``litellm.callbacks``; used to build the streaming
+    # Ordered the same as ``token_iq.callbacks``; used to build the streaming
     # iterator chain without re-scanning per request.
     iterator_overrides: tuple[tuple[Any, str], ...] = field(default_factory=tuple)
     # Resolved CustomLogger callbacks in original order. Pre-resolving once
     # avoids the per-request ``get_custom_logger_compatible_class`` walk for
-    # every string entry in ``litellm.callbacks``.
+    # every string entry in ``token_iq.callbacks``.
     resolved_callbacks: tuple[object, ...] = field(default_factory=tuple)
 
 
@@ -795,7 +795,7 @@ class ProxyLogging:
 
     def _add_proxy_hooks(self, llm_router: Router | None = None):
         """
-        Add proxy hooks to litellm.callbacks
+        Add proxy hooks to token_iq.callbacks
         """
         from token_iq.gateway.proxy.proxy_server import prisma_client
 
@@ -829,7 +829,7 @@ class ProxyLogging:
 
         # Track string callbacks and their initialized instances so we can
         # replace them in-place, preventing duplicates (string + instance) in
-        # litellm.callbacks which caused double-counting of metrics.
+        # token_iq.callbacks which caused double-counting of metrics.
         string_callbacks_to_replace: Final[dict[int, CustomLogger]] = {}
 
         for idx, callback in enumerate(gateway.callbacks):
@@ -843,15 +843,15 @@ class ProxyLogging:
                 if initialized_callback is not None:
                     string_callbacks_to_replace[idx] = initialized_callback
 
-        # Replace string entries in litellm.callbacks with initialized instances
+        # Replace string entries in token_iq.callbacks with initialized instances
         for idx, initialized_callback in string_callbacks_to_replace.items():
             gateway.callbacks[idx] = initialized_callback
 
-        # Fan ``litellm.callbacks`` (the "all events" registry) out into the
+        # Fan ``token_iq.callbacks`` (the "all events" registry) out into the
         # success/failure event lists eagerly, at startup. ``completion()`` does
         # this lazily in ``function_setup`` on the first call, but request paths
         # that build their own logging object and never run ``function_setup`` —
-        # notably pass-through endpoints — read ``litellm._async_success_callback``
+        # notably pass-through endpoints — read ``token_iq._async_success_callback``
         # directly. Without this, a config-registered logger (e.g. ``otel``) is
         # invisible to pass-through traffic until some other request warms the
         # global lists. The manager dedupes, so this is idempotent with
@@ -1807,7 +1807,7 @@ class ProxyLogging:
 
             caps: Final = ProxyLogging._callback_capabilities()
             # Skip the per-request callback walk entirely when nothing in
-            # ``litellm.callbacks`` overrides ``async_pre_call_hook`` and no
+            # ``token_iq.callbacks`` overrides ``async_pre_call_hook`` and no
             # CustomGuardrail is configured. Saves the loop overhead +
             # ``time.time()`` x2 per registered callback for the common
             # "callbacks=[]" case on small / dev deployments.
@@ -2099,16 +2099,16 @@ class ProxyLogging:
             raise
 
     # Cache for callback-capability detection. Keyed on a signature of
-    # litellm.callbacks (length + each item's id) so we recompute when the
+    # token_iq.callbacks (length + each item's id) so we recompute when the
     # callback list mutates (add/remove) without iterating every request.
     _callback_capabilities_cache: ClassVar[dict[tuple[int, tuple[int, ...]], "_CallbackCapabilities"]] = {}
 
     @staticmethod
     def _callback_capabilities() -> "_CallbackCapabilities":
         """
-        Inspect ``litellm.callbacks`` once and answer the per-hook capability
+        Inspect ``token_iq.callbacks`` once and answer the per-hook capability
         questions used to short-circuit no-op work on the chat-completions hot
-        path. Per-request callers iterated ``litellm.callbacks`` and called
+        path. Per-request callers iterated ``token_iq.callbacks`` and called
         ``get_custom_logger_compatible_class`` for every string entry — that
         scanning cost dominated the proxy overhead on low-config deployments.
 
@@ -2259,7 +2259,7 @@ class ProxyLogging:
         """
         # Fast path: skip the entire guardrail scan when no CustomGuardrail
         # callbacks are registered. Saves per-request iteration over
-        # ``litellm.callbacks`` plus an ``asyncio.gather([])`` round trip on
+        # ``token_iq.callbacks`` plus an ``asyncio.gather([])`` round trip on
         # deployments with no guardrails configured.
         if not ProxyLogging._callback_capabilities().has_guardrail:
             return data

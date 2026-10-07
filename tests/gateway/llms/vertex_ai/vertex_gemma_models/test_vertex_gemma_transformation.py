@@ -571,7 +571,7 @@ class TestVertexGemmaCompletion:
         so every sync Vertex Gemma call raised
         `NameError: name 'response' is not defined` before any response
         handling could run. This drives the real sync code path through
-        litellm.completion() and asserts a fully parsed response comes back,
+        token_iq.completion() and asserts a fully parsed response comes back,
         which only happens if the HTTP call is actually issued.
         """
         vertex_response = _make_gemma_vertex_response(

@@ -32,7 +32,7 @@ class DotpromptManager(CustomPromptManagement):
         litellm.prompt_directory = "path/to/prompts"
 
         # Use with completion
-        response = litellm.completion(
+        response = token_iq.completion(
             model="dotprompt/gpt-4",
             prompt_id="my_prompt",
             prompt_variables={"variable": "value"},

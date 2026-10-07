@@ -1,5 +1,5 @@
 """
-Handler for transforming responses api requests to litellm.completion requests
+Handler for transforming responses api requests to token_iq.completion requests
 """
 
 from collections.abc import Coroutine, Mapping

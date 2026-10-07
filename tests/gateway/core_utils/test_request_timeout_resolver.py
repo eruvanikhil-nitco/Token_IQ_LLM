@@ -1,6 +1,6 @@
 """Unit tests for litellm.core_utils.request_timeout_resolver.
 
-The resolver decides whether ``litellm.request_timeout`` was *explicitly configured*
+The resolver decides whether ``token_iq.request_timeout`` was *explicitly configured*
 (env REQUEST_TIMEOUT / litellm_settings, or a non-default runtime value) versus left
 at the package default. This is what lets request_timeout act as an independent
 per-attempt timeout instead of being indistinguishable from "nobody set it".
@@ -52,7 +52,7 @@ def test_explicit_flag_preserves_value_equal_to_default(restore_request_timeout)
 
 
 def test_non_default_runtime_value_treated_as_explicit(restore_request_timeout):
-    # SDK users assigning litellm.request_timeout directly (no flag) must keep working.
+    # SDK users assigning token_iq.request_timeout directly (no flag) must keep working.
     gateway.request_timeout = 300
     gateway.request_timeout_explicitly_set = False
     assert get_configured_request_timeout() == 300.0

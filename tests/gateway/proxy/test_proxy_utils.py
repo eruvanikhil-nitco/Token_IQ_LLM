@@ -1364,7 +1364,7 @@ class _NativeMCPGuardrail(CustomGuardrail):
 def restore_callbacks():
     """Restore the process-wide callback state post_mcp_call_hook reads.
 
-    ProxyLogging caches callback capabilities keyed on id()s of litellm.callbacks,
+    ProxyLogging caches callback capabilities keyed on id()s of token_iq.callbacks,
     so a restored-but-different list can collide with a stale entry after GC and
     leak a has_guardrail verdict into unrelated tests in the same worker.
     """
@@ -1480,7 +1480,7 @@ async def test_prisma_health_check_failure_names_itself_at_operator_visible_leve
     client._run_health_probe = partial(PrismaClient._run_health_probe, client)
     client._report_health_check_failure = AsyncMock()
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         with pytest.raises(Exception, match="connection refused"):
             await PrismaClient.health_check(client)
 
@@ -1504,7 +1504,7 @@ async def test_prisma_connect_failure_is_reported_at_operator_visible_level(capl
     client.db.connect = AsyncMock(side_effect=Exception("could not reach database"))
     client.proxy_logging_obj.failure_handler = AsyncMock()
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         with pytest.raises(Exception, match="could not reach database"):
             await PrismaClient.connect(client)
 
@@ -1532,11 +1532,11 @@ async def test_prisma_health_check_failure_redacts_database_credentials(caplog):
     client._run_health_probe = partial(PrismaClient._run_health_probe, client)
     client._report_health_check_failure = AsyncMock()
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+    with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
         with pytest.raises(Exception, match="could not connect to"):
             await PrismaClient.health_check(client)
 
-    emitted = [record.getMessage() for record in caplog.records if record.name == "LiteLLM Proxy"]
+    emitted = [record.getMessage() for record in caplog.records if record.name == "Token IQ Proxy"]
 
     assert emitted
     assert all("hunter2" not in message for message in emitted)

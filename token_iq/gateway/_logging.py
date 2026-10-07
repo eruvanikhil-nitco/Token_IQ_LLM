@@ -591,11 +591,11 @@ else:
 
     handler.setFormatter(formatter)
 
-verbose_proxy_logger = logging.getLogger("LiteLLM Proxy")
+verbose_proxy_logger = logging.getLogger("Token IQ Proxy")
 # Malformed virtual key rejections log through this child; LevelRoutingStreamHandler
 # writes its WARNING records to stdout. It has no handler or level of its own.
 verbose_proxy_stdout_logger: Final = verbose_proxy_logger.getChild("stdout")
-verbose_router_logger = logging.getLogger("LiteLLM Router")
+verbose_router_logger = logging.getLogger("Token IQ Router")
 verbose_logger = logging.getLogger("Gateway")
 
 # Add the handler to the loggers

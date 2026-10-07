@@ -64,7 +64,7 @@ def test_embedding(client):
         # import the initialized custom logger
         print(gateway.callbacks)
 
-        # assert len(litellm.callbacks) == 1 # assert litellm is initialized with 1 callback
+        # assert len(token_iq.callbacks) == 1 # assert litellm is initialized with 1 callback
         print("my_custom_logger", my_custom_logger)
         assert my_custom_logger.async_success_embedding is False
 
@@ -145,7 +145,7 @@ def test_chat_completion(client):
         # import the initialized custom logger
         print(gateway.callbacks)
 
-        # assert len(litellm.callbacks) == 1 # assert litellm is initialized with 1 callback
+        # assert len(token_iq.callbacks) == 1 # assert litellm is initialized with 1 callback
 
         print("LiteLLM Callbacks", gateway.callbacks)
         print("my_custom_logger", my_custom_logger)

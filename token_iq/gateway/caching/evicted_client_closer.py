@@ -15,7 +15,7 @@ So an evicted client is closed once two conditions hold. A grace window must
 have passed since its eviction, which covers a request that holds the client
 but is momentarily not on the wire, and the client must report no connection in
 flight. The second condition is what keeps the first honest: a request may run
-for ``litellm.request_timeout`` seconds, 6000 by default, and a streaming
+for ``token_iq.request_timeout`` seconds, 6000 by default, and a streaming
 response is bounded only by how long the upstream keeps sending, so no deadline
 on its own can promise that a request has finished.
 

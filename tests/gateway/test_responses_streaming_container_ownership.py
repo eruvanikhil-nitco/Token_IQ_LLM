@@ -244,7 +244,7 @@ class TestSilentSkipNowLogged:
                 async for _ in wrapped:
                     pass
 
-        with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
+        with caplog.at_level(logging.WARNING, logger="Token IQ Proxy"):
             asyncio.run(driver())
 
         assert any(

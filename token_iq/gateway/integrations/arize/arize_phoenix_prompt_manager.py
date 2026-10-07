@@ -233,7 +233,7 @@ class ArizePhoenixPromptManager(CustomPromptManagement):
         }
 
         # Use with completion
-        response = litellm.completion(
+        response = token_iq.completion(
             model="arize/gpt-4o",
             prompt_id="UHJvbXB0VmVyc2lvbjox",
             prompt_variables={"question": "What is AI?"},

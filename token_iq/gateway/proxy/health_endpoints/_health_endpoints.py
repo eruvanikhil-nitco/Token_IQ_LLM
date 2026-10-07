@@ -1438,17 +1438,17 @@ async def active_callbacks():
 
     return {
         "alerting": _alerting,
-        "litellm.callbacks": gateway_callbacks,
-        "litellm.input_callback": gateway_input_callbacks,
-        "litellm.failure_callback": gateway_failure_callbacks,
-        "litellm.success_callback": gateway_success_callbacks,
-        "litellm._async_success_callback": gateway_async_success_callbacks,
-        "litellm._async_failure_callback": gateway_async_failure_callbacks,
-        "litellm._async_input_callback": gateway_async_input_callbacks,
+        "token_iq.callbacks": gateway_callbacks,
+        "token_iq.input_callback": gateway_input_callbacks,
+        "token_iq.failure_callback": gateway_failure_callbacks,
+        "token_iq.success_callback": gateway_success_callbacks,
+        "token_iq._async_success_callback": gateway_async_success_callbacks,
+        "token_iq._async_failure_callback": gateway_async_failure_callbacks,
+        "token_iq._async_input_callback": gateway_async_input_callbacks,
         "all_litellm_callbacks": all_litellm_callbacks,
         "num_callbacks": len(all_litellm_callbacks),
         "num_alerting": _num_alerting,
-        "litellm.request_timeout": gateway.request_timeout,
+        "token_iq.request_timeout": gateway.request_timeout,
     }
 
 
@@ -1513,7 +1513,7 @@ async def _get_health_readiness_details(
             # all we need is the callback name, hence we do str(callback)
             success_callback_names = [callback_name(x) for x in gateway.success_callback]
         except AttributeError:
-            # don't let this block the /health/readiness response, if we can't convert to str -> return litellm.success_callback
+            # don't let this block the /health/readiness response, if we can't convert to str -> return token_iq.success_callback
             success_callback_names = gateway.success_callback
 
         # check Cache

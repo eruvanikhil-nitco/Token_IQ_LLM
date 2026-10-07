@@ -427,7 +427,7 @@ def mock_router() -> MagicMock:
 
 @pytest.fixture(autouse=True)
 def mock_callbacks_disabled(monkeypatch) -> None:
-    """Wipe ``litellm.callbacks`` and friends so tests don't leak side effects."""
+    """Wipe ``token_iq.callbacks`` and friends so tests don't leak side effects."""
     from token_iq import gateway
 
     for attr in (

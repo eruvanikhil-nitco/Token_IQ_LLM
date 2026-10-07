@@ -241,20 +241,20 @@ def test_a_registry_file_has_every_dotted_path_rewritten() -> None:
     "left_alone",
     [
         # Every one of these resolves to something real, which is why resolving cannot be the test.
-        'safe_set_attribute(span, "litellm.trace_id", str(trace_id))',
-        'metrics = [{"metric": "litellm.llm_api.latency"}]',
-        'with tracer.trace("litellm.proxy.auth.budget_checks"):',
-        'call_type = kwargs.get("call_type", "litellm.completion")',
+        'safe_set_attribute(span, "token_iq.trace_id", str(trace_id))',
+        'metrics = [{"metric": "token_iq.llm_api.latency"}]',
+        'with tracer.trace("token_iq.proxy.auth.budget_checks"):',
+        'call_type = kwargs.get("call_type", "token_iq.completion")',
         # A sentinel a caller passes as mock_response to force an error. Renaming it breaks a
         # documented way of calling the engine, which is phase 7's problem and not this pass's.
         'if mock_response == "litellm.RateLimitError":',
         # A forward reference, which still resolves here because the old name stays bound.
         'def _config() -> "litellm.DashScopeChatConfig":',
-        # A health endpoint's own response fields. `litellm.request_timeout` is a real setting on the
+        # A health endpoint's own response fields. `token_iq.request_timeout` is a real setting on the
         # package, so asking whether it resolves says yes. Two segments is what saves it.
-        'settings = {"litellm.request_timeout": timeout}',
-        'assert settings["litellm.request_timeout"] == timeout',
-        'CALL_ID_TAG = "litellm.call_id"',
+        'settings = {"token_iq.request_timeout": timeout}',
+        'assert settings["token_iq.request_timeout"] == timeout',
+        'CALL_ID_TAG = "token_iq.call_id"',
         'assert "litellm.ai" not in got',
     ],
 )
