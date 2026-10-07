@@ -44,7 +44,7 @@ output "gcs_bucket" {
 }
 
 output "master_key_secret_id" {
-  description = "Secret Manager resource ID holding LITELLM_MASTER_KEY. Fetch with `gcloud secrets versions access latest --secret=<id>`."
+  description = "Secret Manager resource ID holding TOKEN_IQ_MASTER_KEY. Fetch with `gcloud secrets versions access latest --secret=<id>`."
   value       = google_secret_manager_secret.master_key.secret_id
 }
 

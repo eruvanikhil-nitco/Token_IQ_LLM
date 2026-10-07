@@ -44,7 +44,7 @@ output "gcs_bucket" {
 }
 
 output "master_key_secret_id" {
-  description = "Secret Manager resource ID holding LITELLM_MASTER_KEY."
+  description = "Secret Manager resource ID holding TOKEN_IQ_MASTER_KEY."
   value       = module.litellm.master_key_secret_id
 }
 

@@ -42,7 +42,7 @@ resource "aws_ecs_task_definition" "installation" {
           valueFrom = var.database_url_secret_arn
         },
         {
-          name      = "LITELLM_MASTER_KEY"
+          name      = "TOKEN_IQ_MASTER_KEY"
           valueFrom = var.master_key_secret_arn
         },
       ]

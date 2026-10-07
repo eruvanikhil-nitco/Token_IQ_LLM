@@ -24,7 +24,7 @@ services:
     volumes:
       - ./proxy_server_config.yaml:/app/config.yaml:ro
     environment:
-      LITELLM_NON_ROOT: "true"
+      TOKEN_IQ_NON_ROOT: "true"
       PRISMA_BINARY_CACHE_DIR: "/app/cache/prisma-python/binaries"
       XDG_CACHE_HOME: "/app/cache"
       LITELLM_MIGRATION_DIR: "/app/migrations"

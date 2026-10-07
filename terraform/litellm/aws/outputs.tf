@@ -44,7 +44,7 @@ output "s3_bucket" {
 }
 
 output "master_key_secret_arn" {
-  description = "Secrets Manager ARN holding LITELLM_MASTER_KEY. Fetch with `aws secretsmanager get-secret-value --secret-id <arn>`."
+  description = "Secrets Manager ARN holding TOKEN_IQ_MASTER_KEY. Fetch with `aws secretsmanager get-secret-value --secret-id <arn>`."
   value       = aws_secretsmanager_secret.master_key.arn
 }
 

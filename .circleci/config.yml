@@ -948,7 +948,7 @@ jobs:
           name: Run tests
           command: |
             mkdir -p test-results
-            export LITELLM_LOG=WARNING
+            export TOKEN_IQ_LOG=WARNING
             TEST_FILES=$(circleci tests glob "tests/guardrails_tests/**/test_*.py")
             echo "$TEST_FILES" | circleci tests run \
               --verbose \
@@ -1341,7 +1341,7 @@ jobs:
           name: Run tests
           command: |
             mkdir -p test-results
-            export LITELLM_LOG=WARNING
+            export TOKEN_IQ_LOG=WARNING
             TEST_FILES=$(circleci tests glob "tests/logging_callback_tests/**/test_*.py")
             echo "$TEST_FILES" | circleci tests run \
               --verbose \
@@ -1649,7 +1649,7 @@ jobs:
             docker run -d \
               -p 4001:4000 \
               -e DATABASE_URL="postgresql://postgres:postgres@host.docker.internal:5432/litellm_test" \
-              -e LITELLM_MASTER_KEY="sk-1234" \
+              -e TOKEN_IQ_MASTER_KEY="sk-1234" \
               --name schema-seed \
               --add-host=host.docker.internal:host-gateway \
               -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/simple_config.yaml:/app/config.yaml \
@@ -1769,7 +1769,7 @@ jobs:
               -e LANGFUSE_PROJECT1_SECRET=$LANGFUSE_PROJECT1_SECRET \
               -e LANGFUSE_PROJECT2_SECRET=$LANGFUSE_PROJECT2_SECRET \
               -e RECORDER_OPENAI_BASE_URL=http://host.docker.internal:8090/v1 \
-              -e LITELLM_LOG=ERROR \
+              -e TOKEN_IQ_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app \
               -v $(pwd)/proxy_server_config.yaml:/app/config.yaml \
@@ -1857,7 +1857,7 @@ jobs:
               -e LANGFUSE_PROJECT2_PUBLIC=$LANGFUSE_PROJECT2_PUBLIC \
               -e LANGFUSE_PROJECT1_SECRET=$LANGFUSE_PROJECT1_SECRET \
               -e LANGFUSE_PROJECT2_SECRET=$LANGFUSE_PROJECT2_SECRET \
-              -e LITELLM_LOG=ERROR \
+              -e TOKEN_IQ_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app \
               -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/oai_misc_config.yaml:/app/config.yaml \
@@ -1923,7 +1923,7 @@ jobs:
               -e REDIS_HOST=$REDIS_HOST \
               -e REDIS_PASSWORD=$REDIS_PASSWORD \
               -e REDIS_PORT=$REDIS_PORT \
-              -e LITELLM_MASTER_KEY="sk-1234" \
+              -e TOKEN_IQ_MASTER_KEY="sk-1234" \
               -e OPENAI_API_KEY=$OPENAI_API_KEY \
               -e FAKE_OPENAI_API_BASE=http://host.docker.internal:8190 \
               -e LITELLM_LICENSE=$LITELLM_LICENSE \
@@ -1938,7 +1938,7 @@ jobs:
               -e COHERE_API_KEY=$COHERE_API_KEY \
               -e RECORDER_COHERE_BASE_URL=http://host.docker.internal:8090/__recorder_upstream/api.cohere.com \
               -e GCS_FLUSH_INTERVAL="1" \
-              -e LITELLM_LOG=ERROR \
+              -e TOKEN_IQ_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app \
               -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/otel_test_config.yaml:/app/config.yaml \
@@ -1983,11 +1983,11 @@ jobs:
               -e REDIS_HOST=$REDIS_HOST \
               -e REDIS_PASSWORD=$REDIS_PASSWORD \
               -e REDIS_PORT=$REDIS_PORT \
-              -e LITELLM_MASTER_KEY="sk-1234" \
+              -e TOKEN_IQ_MASTER_KEY="sk-1234" \
               -e OPENAI_API_KEY=$OPENAI_API_KEY \
               -e FAKE_OPENAI_API_BASE=http://host.docker.internal:8190 \
               -e LITELLM_LICENSE="bad-license" \
-              -e LITELLM_LOG=ERROR \
+              -e TOKEN_IQ_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app-3 \
               -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/enterprise_config.yaml:/app/config.yaml \
@@ -2059,7 +2059,7 @@ jobs:
               -e DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5432/circle_test \
               -e REDIS_HOST=host.docker.internal \
               -e REDIS_PORT=6379 \
-              -e LITELLM_MASTER_KEY="sk-1234" \
+              -e TOKEN_IQ_MASTER_KEY="sk-1234" \
               -e OPENAI_API_KEY=$OPENAI_API_KEY \
               -e FAKE_OPENAI_API_BASE=http://host.docker.internal:8190 \
               -e LITELLM_LICENSE=$LITELLM_LICENSE \
@@ -2070,7 +2070,7 @@ jobs:
               -e DD_SITE=$DD_SITE \
               -e AWS_REGION_NAME=$AWS_REGION_NAME \
               -e PROXY_BATCH_WRITE_AT=2 \
-              -e LITELLM_LOG=ERROR \
+              -e TOKEN_IQ_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app \
               -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/spend_tracking_config.yaml:/app/config.yaml \
@@ -2142,13 +2142,13 @@ jobs:
               -e REDIS_HOST=$REDIS_HOST \
               -e REDIS_PASSWORD=$REDIS_PASSWORD \
               -e REDIS_PORT=$REDIS_PORT \
-              -e LITELLM_MASTER_KEY="sk-1234" \
+              -e TOKEN_IQ_MASTER_KEY="sk-1234" \
               -e FAKE_OPENAI_API_BASE=http://host.docker.internal:8190 \
               -e LITELLM_LICENSE=$LITELLM_LICENSE \
               -e USE_DDTRACE=True \
               -e DD_API_KEY=$DD_API_KEY \
               -e DD_SITE=$DD_SITE \
-              -e LITELLM_LOG=ERROR \
+              -e TOKEN_IQ_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app \
               -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/multi_instance_simple_config.yaml:/app/config.yaml \
@@ -2164,13 +2164,13 @@ jobs:
               -e REDIS_HOST=$REDIS_HOST \
               -e REDIS_PASSWORD=$REDIS_PASSWORD \
               -e REDIS_PORT=$REDIS_PORT \
-              -e LITELLM_MASTER_KEY="sk-1234" \
+              -e TOKEN_IQ_MASTER_KEY="sk-1234" \
               -e FAKE_OPENAI_API_BASE=http://host.docker.internal:8190 \
               -e LITELLM_LICENSE=$LITELLM_LICENSE \
               -e USE_DDTRACE=True \
               -e DD_API_KEY=$DD_API_KEY \
               -e DD_SITE=$DD_SITE \
-              -e LITELLM_LOG=ERROR \
+              -e TOKEN_IQ_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app-2 \
               -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/multi_instance_simple_config.yaml:/app/config.yaml \
@@ -2239,11 +2239,11 @@ jobs:
               -p 4000:4000 \
               -e DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5432/circle_test \
               -e STORE_MODEL_IN_DB="True" \
-              -e LITELLM_MASTER_KEY="sk-1234" \
+              -e TOKEN_IQ_MASTER_KEY="sk-1234" \
               -e FAKE_OPENAI_API_BASE=http://host.docker.internal:8190 \
               -e TEAM_METADATA_VALIDATION_SERVICE_URL=http://host.docker.internal:9414/validate \
               -e LITELLM_LICENSE=$LITELLM_LICENSE \
-              -e LITELLM_LOG=ERROR \
+              -e TOKEN_IQ_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app \
               -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/store_model_db_config.yaml:/app/config.yaml \
@@ -2315,7 +2315,7 @@ jobs:
               -e REDIS_HOST=$REDIS_HOST \
               -e REDIS_PASSWORD=$REDIS_PASSWORD \
               -e REDIS_PORT=$REDIS_PORT \
-              -e LITELLM_MASTER_KEY="sk-1234" \
+              -e TOKEN_IQ_MASTER_KEY="sk-1234" \
               -e OPENAI_API_KEY=$OPENAI_API_KEY \
               -e FAKE_OPENAI_API_BASE=http://host.docker.internal:8190 \
               -e LITELLM_LICENSE=$LITELLM_LICENSE \
@@ -2328,7 +2328,7 @@ jobs:
               -e DD_API_KEY=$DD_API_KEY \
               -e DD_SITE=$DD_SITE \
               -e GCS_FLUSH_INTERVAL="1" \
-              -e LITELLM_LOG=ERROR \
+              -e TOKEN_IQ_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app \
               -v $(pwd)/docker/build_from_pip/litellm_config.yaml:/app/config.yaml \
@@ -2394,7 +2394,7 @@ jobs:
             docker run -d \
               -p 4000:4000 \
               -e DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5432/circle_test \
-              -e LITELLM_MASTER_KEY="sk-1234" \
+              -e TOKEN_IQ_MASTER_KEY="sk-1234" \
               -e OPENAI_API_KEY=$OPENAI_API_KEY \
               -e GEMINI_API_KEY=$GEMINI_API_KEY \
               -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
@@ -2405,8 +2405,8 @@ jobs:
               -e DD_API_KEY=$DD_API_KEY \
               -e DD_SITE=$DD_SITE \
               -e LITELLM_LICENSE=$LITELLM_LICENSE \
-              -e LITELLM_USE_CHAT_COMPLETIONS_URL_FOR_ANTHROPIC_MESSAGES=true \
-              -e LITELLM_LOG=ERROR \
+              -e TOKEN_IQ_USE_CHAT_COMPLETIONS_URL_FOR_ANTHROPIC_MESSAGES=true \
+              -e TOKEN_IQ_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app \
               -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/pass_through_config.yaml:/app/config.yaml \
@@ -2485,14 +2485,14 @@ jobs:
             docker run -d \
               -p 4000:4000 \
               -e DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5432/circle_test \
-              -e LITELLM_MASTER_KEY="sk-1234" \
+              -e TOKEN_IQ_MASTER_KEY="sk-1234" \
               -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
               -e RECORDER_ANTHROPIC_BASE_URL=http://host.docker.internal:8090/__recorder_upstream/api.anthropic.com \
               -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
               -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
               -e AWS_REGION_NAME="us-east-1" \
               -e LITELLM_LOCAL_ANTHROPIC_BETA_HEADERS="True" \
-              -e LITELLM_LOG=ERROR \
+              -e TOKEN_IQ_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app \
               -v $(pwd)/tests/proxy_e2e_anthropic_messages_tests/test_config.yaml:/app/config.yaml \
@@ -2510,7 +2510,7 @@ jobs:
           name: Run Claude Agent SDK E2E Tests
           command: |
             mkdir -p test-results
-            export LITELLM_PROXY_URL="http://localhost:4000"
+            export TOKEN_IQ_PROXY_URL="http://localhost:4000"
             export LITELLM_API_KEY="sk-1234"
             TEST_FILES=$(circleci tests glob "tests/proxy_e2e_anthropic_messages_tests/**/test_*.py")
             echo "$TEST_FILES" | circleci tests run \
@@ -2651,7 +2651,7 @@ jobs:
       - run:
           name: Start LiteLLM proxy
           environment:
-            LITELLM_MASTER_KEY: "sk-1234"
+            TOKEN_IQ_MASTER_KEY: "sk-1234"
             MOCK_LLM_URL: "http://127.0.0.1:8090/v1"
             DISABLE_SCHEMA_UPDATE: "true"
             SERVER_ROOT_PATH: ""
@@ -2781,7 +2781,7 @@ jobs:
       - run:
           name: Start LiteLLM proxy under a server root path
           environment:
-            LITELLM_MASTER_KEY: "sk-1234"
+            TOKEN_IQ_MASTER_KEY: "sk-1234"
             MOCK_LLM_URL: "http://127.0.0.1:8090/v1"
             DISABLE_SCHEMA_UPDATE: "true"
           # Output flows to this step's own log, so a boot crash is visible here

@@ -28,12 +28,12 @@ locals {
 
   # OTel v2 is opt-in and gated on otel_endpoint, matching the AWS stack —
   # nothing OTel-related is added to the container env until an endpoint is
-  # set. LITELLM_OTEL_V2 flips on alongside the OTEL_* block so the proxy
+  # set. TOKEN_IQ_OTEL_V2 flips on alongside the OTEL_* block so the proxy
   # never boots the instrumentation with no exporter wired in.
   otel_enabled          = var.otel_endpoint != ""
   otel_environment_name = var.otel_environment_name != "" ? var.otel_environment_name : var.env
   otel_shared_endpoint_kv = local.otel_enabled ? [
-    { name = "LITELLM_OTEL_V2", value = "true" },
+    { name = "TOKEN_IQ_OTEL_V2", value = "true" },
     { name = "OTEL_EXPORTER", value = var.otel_exporter },
     { name = "OTEL_ENDPOINT", value = var.otel_endpoint },
     { name = "OTEL_ENVIRONMENT_NAME", value = local.otel_environment_name },
@@ -91,7 +91,7 @@ locals {
   # job has its own narrower env list — see migrations_env_secrets below).
   shared_env_secrets = concat(
     [
-      { name = "LITELLM_MASTER_KEY", secret = google_secret_manager_secret.master_key.id, version = "latest" },
+      { name = "TOKEN_IQ_MASTER_KEY", secret = google_secret_manager_secret.master_key.id, version = "latest" },
       { name = "DATABASE_PASSWORD", secret = google_secret_manager_secret.db_password.id, version = "latest" },
     ],
     var.litellm_license == "" ? [] : [
@@ -488,7 +488,7 @@ resource "google_cloud_run_v2_service" "ui" {
 
 # Allow the LB (any unauthenticated traffic from the configured serverless
 # NEG) to invoke the Cloud Run services. The actual auth is in the proxy
-# (LITELLM_MASTER_KEY); these IAM bindings just open up Cloud Run's invoker
+# (TOKEN_IQ_MASTER_KEY); these IAM bindings just open up Cloud Run's invoker
 # gate so the LB request makes it to the container.
 resource "google_cloud_run_v2_service_iam_member" "gateway_allusers" {
   project  = var.project_id

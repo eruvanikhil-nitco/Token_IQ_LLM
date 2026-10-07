@@ -46,7 +46,7 @@ If the repo already exists, this command exits with a clear error and you can mo
 
 ## (Optional) Set tenant secrets
 
-The stack auto-generates a `LITELLM_MASTER_KEY` if you don't supply one. If you have an enterprise license or want a pre-chosen master key, export them as `TF_VAR_*` env vars before running the installer so they end up in Secret Manager but not in `terraform.tfvars`.
+The stack auto-generates a `TOKEN_IQ_MASTER_KEY` if you don't supply one. If you have an enterprise license or want a pre-chosen master key, export them as `TF_VAR_*` env vars before running the installer so they end up in Secret Manager but not in `terraform.tfvars`.
 
 ```bash
 export TF_VAR_litellm_master_key="sk-..."   # optional; auto-generated if omitted

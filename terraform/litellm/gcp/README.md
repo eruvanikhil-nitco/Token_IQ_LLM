@@ -12,7 +12,7 @@ Deploys the componentized LiteLLM proxy on GCP:
   password auth via Secret Manager
 - **Memorystore (Redis)** for caching + rate limiting, private IP only
 - **GCS bucket** — private, versioned, uniform IAM; exposed as `GCS_BUCKET_NAME`
-- **Secret Manager** entries for `LITELLM_MASTER_KEY` and `DATABASE_PASSWORD`
+- **Secret Manager** entries for `TOKEN_IQ_MASTER_KEY` and `DATABASE_PASSWORD`
 - **Cloud Run v2** services for `gateway` (port 4000), `backend` (port 4001),
   and `ui` (port 3000), all using a shared runtime service account
 - **Cloud Run Job** (`litellm-migrations`) that runs `prisma migrate deploy` from the dedicated `ghcr.io/berriai/litellm-migrations` image
@@ -130,7 +130,7 @@ proxy_config = {
     },
   ]
   general_settings = {
-    master_key   = "os.environ/LITELLM_MASTER_KEY"
+    master_key   = "os.environ/TOKEN_IQ_MASTER_KEY"
     database_url = "os.environ/DATABASE_URL"
   }
 }
@@ -177,7 +177,7 @@ you need a pinned version, edit `local.gateway_extra_secret_kv` in
 OTel v2 (https://docs.litellm.ai/docs/observability/opentelemetry_v2) is
 opt-in and gated entirely on `otel_endpoint`. Empty (default) and nothing
 OTel-related lands in the container env. Set it and both gateway and
-backend gain `LITELLM_OTEL_V2=true` plus the `OTEL_*` block, with
+backend gain `TOKEN_IQ_OTEL_V2=true` plus the `OTEL_*` block, with
 `OTEL_SERVICE_NAME` stamped per component (`${tenant}-litellm-${env}-gateway`
 and `-backend`) so spans land tagged with the right hop. Any `OTEL_*` key
 set in `gateway_extra_env` / `backend_extra_env` overrides the default for

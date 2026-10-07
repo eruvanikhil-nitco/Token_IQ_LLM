@@ -18,10 +18,10 @@ resource "random_password" "db_master_password" {
   min_numeric = 4
 }
 
-# LITELLM_MASTER_KEY — must begin with `sk-` per the proxy's validator.
+# TOKEN_IQ_MASTER_KEY — must begin with `sk-` per the proxy's validator.
 resource "aws_secretsmanager_secret" "master_key" {
   name                    = "${local.name}-master-key"
-  description             = "LITELLM_MASTER_KEY for gateway + backend."
+  description             = "TOKEN_IQ_MASTER_KEY for gateway + backend."
   recovery_window_in_days = 0
 
   tags = local.tags

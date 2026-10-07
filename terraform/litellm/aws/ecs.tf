@@ -48,7 +48,7 @@ resource "aws_cloudwatch_log_group" "migrations" {
 # take as-is.
 locals {
   # OTel v2 is opt-in and gated on otel_endpoint, matching the GCP stack.
-  # When set, LITELLM_OTEL_V2 flips on alongside the OTEL_* block, with
+  # When set, TOKEN_IQ_OTEL_V2 flips on alongside the OTEL_* block, with
   # OTEL_SERVICE_NAME stamped per component so spans land tagged with the
   # right hop. Any OTEL_* key set in *_extra_env wins over the default for
   # that service (ECS allows duplicates but last-wins is undefined, so we
@@ -57,7 +57,7 @@ locals {
   otel_enabled          = var.otel_endpoint != ""
   otel_environment_name = var.otel_environment_name != "" ? var.otel_environment_name : var.env
   otel_shared_env = local.otel_enabled ? [
-    { name = "LITELLM_OTEL_V2", value = "true" },
+    { name = "TOKEN_IQ_OTEL_V2", value = "true" },
     { name = "OTEL_EXPORTER", value = var.otel_exporter },
     { name = "OTEL_ENDPOINT", value = var.otel_endpoint },
     { name = "OTEL_ENVIRONMENT_NAME", value = local.otel_environment_name },
@@ -153,7 +153,7 @@ locals {
 
   shared_secrets = concat(
     [
-      { name = "LITELLM_MASTER_KEY", valueFrom = aws_secretsmanager_secret.master_key.arn },
+      { name = "TOKEN_IQ_MASTER_KEY", valueFrom = aws_secretsmanager_secret.master_key.arn },
     ],
     var.litellm_license == "" ? [] : [
       { name = "LITELLM_LICENSE", valueFrom = aws_secretsmanager_secret.license[0].arn },

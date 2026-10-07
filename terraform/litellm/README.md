@@ -80,7 +80,7 @@ everything else to the backend.
               │                                  │  (versioned)   │   │
               │   ┌────────────────────────┐    └────────────────┘   │
               │   │  Secrets Manager       │                         │
-              │   │  • LITELLM_MASTER_KEY  │    ┌────────────────┐   │
+              │   │  • TOKEN_IQ_MASTER_KEY  │    ┌────────────────┐   │
               │   │  • DB master password  │    │ One-off ECS    │   │
               │   │  • user-supplied API   │    │ task: prisma   │   │
               │   │    keys (referenced)   │    │ migrate deploy │   │
@@ -124,7 +124,7 @@ everything else to the backend.
               │                                  │  GCS bucket      │    │
               │   ┌────────────────────────┐    │  (versioned)     │    │
               │   │  Secret Manager        │    └──────────────────┘    │
-              │   │  • LITELLM_MASTER_KEY  │                            │
+              │   │  • TOKEN_IQ_MASTER_KEY  │                            │
               │   │  • DB password         │    ┌──────────────────┐    │
               │   │  • user-supplied API   │    │ Cloud Run Job:   │    │
               │   │    keys (referenced)   │    │ prisma migrate   │    │
@@ -205,7 +205,7 @@ stack's `examples/default/terraform.tfvars.example`
 
 OTel is opt-in on both clouds: leave `otel_endpoint` empty and nothing
 OTel-related is added to the container env; set it and both gateway and
-backend get `LITELLM_OTEL_V2=true` plus the full `OTEL_*` block, with
+backend get `TOKEN_IQ_OTEL_V2=true` plus the full `OTEL_*` block, with
 `OTEL_SERVICE_NAME` stamped per component
 (`<tenant>-litellm-<env>-gateway` and `-backend`). Any `OTEL_*` key set
 in `gateway_extra_env` / `backend_extra_env` wins for that service.

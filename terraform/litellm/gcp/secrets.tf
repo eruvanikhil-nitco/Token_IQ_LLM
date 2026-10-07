@@ -6,7 +6,7 @@ resource "random_password" "master_key" {
   min_numeric = 4
 }
 
-# LITELLM_MASTER_KEY (sk-…) lives in Secret Manager. The Cloud Run service
+# TOKEN_IQ_MASTER_KEY (sk-…) lives in Secret Manager. The Cloud Run service
 # account gets accessor permission on it (see iam.tf).
 resource "google_secret_manager_secret" "master_key" {
   secret_id = "${local.name}-master-key"

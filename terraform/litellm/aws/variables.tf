@@ -37,7 +37,7 @@ variable "tags" {
 
 variable "litellm_master_key" {
   description = <<-EOT
-    Pre-existing LITELLM_MASTER_KEY (must begin with `sk-`). When set, this
+    Pre-existing TOKEN_IQ_MASTER_KEY (must begin with `sk-`). When set, this
     value is written to the master-key Secrets Manager entry. When empty,
     the stack auto-generates a random `sk-…` key (preserving today's
     trial-deploy behavior).
@@ -66,7 +66,7 @@ variable "ui_password" {
     task-execution role GetSecretValue on it, and exposes its value to the
     backend as `UI_PASSWORD`. Pair with `backend_extra_env.UI_USERNAME` to
     set the matching username. Leave empty to skip — the proxy then falls
-    back to the LITELLM_MASTER_KEY for UI login.
+    back to the TOKEN_IQ_MASTER_KEY for UI login.
   EOT
   type        = string
   default     = ""
@@ -326,7 +326,7 @@ variable "create_database" {
     run without a database at all when `database_url` is also empty. The
     DB-less mode drops key management, spend tracking, and the admin UI's
     persistence: the proxy then serves traffic authenticated by
-    LITELLM_MASTER_KEY only.
+    TOKEN_IQ_MASTER_KEY only.
   EOT
   type        = bool
   default     = true
@@ -532,7 +532,7 @@ variable "proxy_config" {
           },
         ]
         general_settings = {
-          master_key       = "os.environ/LITELLM_MASTER_KEY"
+          master_key       = "os.environ/TOKEN_IQ_MASTER_KEY"
           database_url     = "os.environ/DATABASE_URL"
           ui_username      = "admin"
         }
@@ -558,7 +558,7 @@ variable "log_retention_days" {
 #
 # OTel v2 is opt-in and gated entirely on otel_endpoint, matching the GCP
 # stack. Leave otel_endpoint = "" and nothing OTel-related lands in the
-# container env. Set it and the gateway and backend gain LITELLM_OTEL_V2=true
+# container env. Set it and the gateway and backend gain TOKEN_IQ_OTEL_V2=true
 # plus the OTEL_* block (per-component OTEL_SERVICE_NAME, exporter, endpoint,
 # environment name, capture-content), with OTEL_HEADERS sourced from
 # otel_headers_secret_arn when provided.
@@ -566,7 +566,7 @@ variable "log_retention_days" {
 variable "otel_endpoint" {
   description = <<-EOT
     OTLP collector endpoint (sets OTEL_ENDPOINT). Empty disables OTel
-    entirely (no LITELLM_OTEL_V2, no OTEL_* env). Point at any
+    entirely (no TOKEN_IQ_OTEL_V2, no OTEL_* env). Point at any
     OTLP-compatible backend (self-hosted collector, Grafana Tempo,
     Honeycomb, Datadog). Example: "http://otel-collector.internal:4318"
     for OTLP/HTTP.

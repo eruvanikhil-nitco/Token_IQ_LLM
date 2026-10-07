@@ -6,7 +6,7 @@ Deploys the componentized LiteLLM proxy on AWS:
 - **Aurora Postgres** cluster — one writer instance + one reader instance, **IAM database authentication enabled** (skipped when `create_database = false`)
 - **ElastiCache Redis** (private, replication group with multi-AZ failover and at-rest + in-transit encryption) for caching + rate limiting (skipped when `create_redis = false`)
 - **S3 bucket** (private, versioned, SSE-S3) — exposed to gateway + backend as `S3_BUCKET_NAME` / `S3_REGION_NAME` for cache backend, request log archival, and `/v1/files` storage
-- **Secrets Manager** entries for `LITELLM_MASTER_KEY` (auto-generated, `sk-…`) and the Aurora master password (bootstrap-only)
+- **Secrets Manager** entries for `TOKEN_IQ_MASTER_KEY` (auto-generated, `sk-…`) and the Aurora master password (bootstrap-only)
 - **ECS Fargate cluster** running three services — `gateway`, `backend`, `ui`
 - **Application Load Balancer** (public, HTTP/80) with path-based routing:
   - LLM data-plane prefixes (`/v1/chat/*`, `/v1/embeddings`, …) → `gateway`
@@ -62,7 +62,7 @@ Leaving the URL empty runs without the component entirely:
 
 - No database: no virtual keys, teams, spend tracking, or UI persistence, and
   `STORE_MODEL_IN_DB` is not set, so models come from `proxy_config`. Requests
-  authenticate with `LITELLM_MASTER_KEY` only.
+  authenticate with `TOKEN_IQ_MASTER_KEY` only.
 - No Redis: rate limits, budgets, and router cooldowns are per-task rather
   than cluster-wide, which is only sane at one task per service.
 
@@ -115,7 +115,7 @@ proxy_config = {
     },
   ]
   general_settings = {
-    master_key   = "os.environ/LITELLM_MASTER_KEY"
+    master_key   = "os.environ/TOKEN_IQ_MASTER_KEY"
     database_url = "os.environ/DATABASE_URL"
   }
 }
@@ -179,7 +179,7 @@ aws secretsmanager create-secret \
 OTel v2 (https://docs.litellm.ai/docs/observability/opentelemetry_v2) is
 opt-in and gated entirely on `otel_endpoint`. Empty (default) and nothing
 OTel-related is added to the container env. Set it and both gateway and
-backend gain `LITELLM_OTEL_V2=true` plus the `OTEL_*` block, with
+backend gain `TOKEN_IQ_OTEL_V2=true` plus the `OTEL_*` block, with
 `OTEL_SERVICE_NAME` stamped per component (`${tenant}-litellm-${env}-gateway`
 and `-backend`) so spans land tagged with the right hop. Any `OTEL_*` key
 set in `gateway_extra_env` / `backend_extra_env` overrides the default for

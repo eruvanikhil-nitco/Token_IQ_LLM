@@ -29,7 +29,7 @@ variable "env" {
 # Sensitive — prefer TF_VAR_litellm_master_key / TF_VAR_litellm_license /
 # TF_VAR_ui_password so values stay out of any committed tfvars file.
 variable "litellm_master_key" {
-  description = "Pre-existing LITELLM_MASTER_KEY (sk-…). Empty → auto-generated."
+  description = "Pre-existing TOKEN_IQ_MASTER_KEY (sk-…). Empty → auto-generated."
   type        = string
   default     = ""
   sensitive   = true
@@ -43,7 +43,7 @@ variable "litellm_license" {
 }
 
 variable "ui_password" {
-  description = "UI admin password. Empty → falls back to LITELLM_MASTER_KEY."
+  description = "UI admin password. Empty → falls back to TOKEN_IQ_MASTER_KEY."
   type        = string
   default     = ""
   sensitive   = true

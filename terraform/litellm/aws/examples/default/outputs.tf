@@ -44,7 +44,7 @@ output "s3_bucket" {
 }
 
 output "master_key_secret_arn" {
-  description = "Secrets Manager ARN holding LITELLM_MASTER_KEY."
+  description = "Secrets Manager ARN holding TOKEN_IQ_MASTER_KEY."
   value       = module.litellm.master_key_secret_arn
 }
 

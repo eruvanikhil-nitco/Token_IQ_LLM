@@ -42,7 +42,7 @@ jobs:
           --health-retries 10
     env:
       DATABASE_URL: postgresql://llmproxy:dbpassword9090@localhost:5432/litellm
-      LITELLM_MASTER_KEY: sk-e2e-record-replay
+      TOKEN_IQ_MASTER_KEY: sk-e2e-record-replay
       LITELLM_LOCAL_MODEL_COST_MAP: "True"
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -139,7 +139,7 @@ jobs:
           --health-retries 10
     env:
       DATABASE_URL: postgresql://llmproxy:dbpassword9090@localhost:5432/litellm
-      LITELLM_MASTER_KEY: sk-e2e-record-replay
+      TOKEN_IQ_MASTER_KEY: sk-e2e-record-replay
       LITELLM_LOCAL_MODEL_COST_MAP: "True"
       GH_TOKEN: ${{ github.token }}
       OPENAI_API_KEY: sk-replay-must-never-reach-a-provider

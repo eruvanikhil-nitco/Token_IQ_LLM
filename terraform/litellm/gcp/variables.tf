@@ -43,7 +43,7 @@ variable "labels" {
 
 variable "litellm_master_key" {
   description = <<-EOT
-    Pre-existing LITELLM_MASTER_KEY (must begin with `sk-`). When set, this
+    Pre-existing TOKEN_IQ_MASTER_KEY (must begin with `sk-`). When set, this
     value is written to the master-key Secret Manager entry. When empty,
     the stack auto-generates a random `sk-…` key (preserving today's
     trial-deploy behavior).
@@ -72,7 +72,7 @@ variable "ui_password" {
     runtime SA accessor on it, and exposes its value to the backend as
     `UI_PASSWORD`. Pair with `backend_extra_env.UI_USERNAME` to set the
     matching username. Leave empty to skip — the proxy then falls back to
-    the LITELLM_MASTER_KEY for UI login.
+    the TOKEN_IQ_MASTER_KEY for UI login.
   EOT
   type        = string
   default     = ""
@@ -422,7 +422,7 @@ variable "proxy_config" {
 #
 # OTel v2 is opt-in and gated entirely on otel_endpoint, matching the AWS
 # stack. Leave otel_endpoint = "" and nothing OTel-related is added to the
-# container env. Set it and the gateway/backend gain LITELLM_OTEL_V2=true
+# container env. Set it and the gateway/backend gain TOKEN_IQ_OTEL_V2=true
 # plus the OTEL_* block (per-component OTEL_SERVICE_NAME, exporter, endpoint,
 # environment name, capture-content), with OTEL_HEADERS sourced from
 # otel_headers_secret when provided.
@@ -431,7 +431,7 @@ variable "otel_endpoint" {
   description = <<-EOT
     OTLP collector URL (e.g. https://otel.example.com:4318 for HTTP, or
     your collector's :4317 for gRPC). Empty disables OTel entirely (no
-    LITELLM_OTEL_V2, no OTEL_* env). When set, LITELLM_OTEL_V2=true plus
+    TOKEN_IQ_OTEL_V2, no OTEL_* env). When set, TOKEN_IQ_OTEL_V2=true plus
     OTEL_EXPORTER / OTEL_ENDPOINT are injected and spans ship to the
     collector.
   EOT
