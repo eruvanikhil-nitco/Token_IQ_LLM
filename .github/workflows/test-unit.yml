@@ -234,7 +234,7 @@ jobs:
 
           - shard: proxy-extras
             artifact-name: proxy-extras
-            test-path: "tests/litellm-proxy-extras"
+            test-path: "tests/token-iq-migrations"
             workers: 2
             reruns: 2
             timeout-minutes: 20

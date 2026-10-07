@@ -24,7 +24,7 @@ Two things do not move. `model: litellm_proxy/gpt-4o` still names the provider t
 a value a customer writes rather than a setting. And the names kept for legal and historical reasons stay
 put: `LICENSE`, `NOTICE`, this file, and the decision records and plans under `docs/`.
 
-#### Environment variables, 100 of them
+#### Environment variables, 101 of them
 
 The rule is the prefix and nothing else: `LITELLM_` becomes `TOKEN_IQ_`. The new name wins when both are
 set, so an operator who has migrated is not overridden by a variable they forgot to delete.
@@ -96,6 +96,7 @@ set, so an operator who has migrated is not overridden by a variable they forgot
 | `LITELLM_MCP_STDIO_EXTRA_COMMANDS` | `TOKEN_IQ_MCP_STDIO_EXTRA_COMMANDS` |
 | `LITELLM_MCP_TOOL_LISTING_TIMEOUT` | `TOKEN_IQ_MCP_TOOL_LISTING_TIMEOUT` |
 | `LITELLM_METER_NAME` | `TOKEN_IQ_METER_NAME` |
+| `LITELLM_MIGRATION_DIR` | `TOKEN_IQ_MIGRATION_DIR` |
 | `LITELLM_MODE` | `TOKEN_IQ_MODE` |
 | `LITELLM_MODIFY_PARAMS` | `TOKEN_IQ_MODIFY_PARAMS` |
 | `LITELLM_NON_ROOT` | `TOKEN_IQ_NON_ROOT` |
@@ -132,8 +133,8 @@ set, so an operator who has migrated is not overridden by a variable they forgot
 | `LITELLM_USE_SHORT_MCP_TOOL_PREFIX` | `TOKEN_IQ_USE_SHORT_MCP_TOOL_PREFIX` |
 | `LITELLM_WORKER_STARTUP_HOOKS` | `TOKEN_IQ_WORKER_STARTUP_HOOKS` |
 
-Variables the engine does not read are not renamed, including `LITELLM_LICENSE`, which the enterprise
-package reads, and `LITELLM_MIGRATION_DIR`, which the migrations package reads.
+Variables nothing in this repository reads are not renamed, `LITELLM_LICENSE` among them: the enterprise
+package reads that one.
 
 #### Config keys, 2 of them
 

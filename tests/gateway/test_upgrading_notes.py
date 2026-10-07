@@ -69,11 +69,15 @@ def test_every_renamed_name_is_in_the_notes() -> None:
 
 def test_a_name_that_was_not_renamed_is_not_in_the_notes() -> None:
     """`LITELLM_LICENSE` is read by a package that is not in this repository, so telling a customer to
-    rename it would send them to turn a working knob off."""
+    rename it would send them to turn a working knob off.
+
+    `LITELLM_MIGRATION_DIR` used to belong here for the same reason. Phase 8 renamed the migrations package
+    and taught it to read both names itself, so it is in the notes now.
+    """
     text = CHANGELOG.read_text(encoding="utf-8")
 
     assert "| `LITELLM_LICENSE` |" not in text
-    assert "| `LITELLM_MIGRATION_DIR` |" not in text
+    assert "| `LITELLM_MIGRATION_DIR` | `TOKEN_IQ_MIGRATION_DIR` |" in text
 
 
 def test_the_bare_prefix_is_not_listed_as_a_variable() -> None:

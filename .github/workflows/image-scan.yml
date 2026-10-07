@@ -19,7 +19,7 @@ on:
       - docker/component_entrypoint.sh
       - docker/entrypoint.sh
       - token_iq/gateway/proxy/prisma_migration.py
-      - litellm-proxy-extras/**
+      - token-iq-migrations/**
       - tests/proxy_migration_tests/**
       - uv.lock
       - ui/litellm-dashboard/package-lock.json

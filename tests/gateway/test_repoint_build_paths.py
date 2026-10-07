@@ -60,7 +60,7 @@ def test_a_path_that_moved_is_repointed(before: str, after: str) -> None:
         # Three different things, each renamed by a different phase: the dashboard is phase 9's, the
         # migrations package is phase 8's, and the crate keeps its name.
         "COPY ui/litellm-dashboard/package.json ./",
-        "COPY litellm-proxy-extras/pyproject.toml litellm-proxy-extras/",
+        "COPY token-iq-migrations/pyproject.toml token-iq-migrations/",
         'manifest-path = "litellm-rust/crates/python-bridge/Cargo.toml"',
         # Not a path into the engine at all.
         "image: ghcr.io/berriai/litellm:main-stable",

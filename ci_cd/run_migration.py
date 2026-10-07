@@ -227,7 +227,7 @@ def create_migration(
 
     try:
         migrations_dir = (
-            root_dir / "litellm-proxy-extras" / "litellm_proxy_extras" / "migrations"
+            root_dir / "token-iq-migrations" / "token_iq_migrations" / "migrations"
         )
         schema_path = root_dir / "schema.prisma"
 

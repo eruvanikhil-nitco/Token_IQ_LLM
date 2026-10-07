@@ -64,7 +64,7 @@ SKIP: Final[tuple[str, ...]] = (
     "scripts/inventory/",
     # Installed as its own distribution, so importing the engine from it would be a dependency that does
     # not hold where it runs.
-    "litellm-proxy-extras/",
+    "token-iq-migrations/",
 )
 
 ITS_OWN_FILES: Final[frozenset[str]] = frozenset(

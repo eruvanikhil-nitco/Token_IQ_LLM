@@ -72,7 +72,7 @@ This setup:
 - Builds from `docker/Dockerfile.non_root` with Prisma engines and Node toolchain baked into the image.
 - Runs the proxy as a non-root user with a read-only rootfs and only writable tmpfs mounts:
   - `/app/cache` (Prisma/NPM cache; backing `PRISMA_BINARY_CACHE_DIR`, `NPM_CONFIG_CACHE`, `XDG_CACHE_HOME`)
-  - `/app/migrations` (Prisma migration workspace; backing `LITELLM_MIGRATION_DIR`)
+  - `/app/migrations` (Prisma migration workspace; backing `TOKEN_IQ_MIGRATION_DIR`)
 - Pre-builds and serves the admin UI from read-only paths:
   - `/var/lib/litellm/ui` (pre-restructured Next.js UI with `.litellm_ui_ready` marker)
   - `/var/lib/litellm/assets` (UI logos and assets)

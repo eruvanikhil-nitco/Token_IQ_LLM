@@ -8,11 +8,11 @@ import pytest
 sys.path.insert(
     0,
     os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "../../litellm-proxy-extras")
+        os.path.join(os.path.dirname(__file__), "../../token-iq-migrations")
     ),
 )
 
-from litellm_proxy_extras.utils import (
+from token_iq_migrations.utils import (
     PARTITIONED_SPEND_LOGS_PUSH_ERROR,
     ProxyExtrasDBManager,
     filter_partitioned_spend_logs_diff,
@@ -22,7 +22,7 @@ from litellm_proxy_extras.utils import (
 _MIGRATIONS_DIR = os.path.abspath(
     os.path.join(
         os.path.dirname(__file__),
-        "../../litellm-proxy-extras/litellm_proxy_extras/migrations",
+        "../../token-iq-migrations/token_iq_migrations/migrations",
     )
 )
 
@@ -540,7 +540,7 @@ class TestResolveAllMigrationsLedger:
     def _run(self, monkeypatch, tmp_path, partitioned, execute_fails):
         import subprocess as subprocess_module
 
-        import litellm_proxy_extras.utils as utils_module
+        import token_iq_migrations.utils as utils_module
 
         monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@localhost:5432/db")
         monkeypatch.delenv("DIRECT_URL", raising=False)
@@ -601,7 +601,7 @@ class TestResolveAllMigrationsLedger:
 
 class TestPartitionedSpendLogsPushGuard:
     def _forbid_subprocess(self, monkeypatch):
-        import litellm_proxy_extras.utils as utils_module
+        import token_iq_migrations.utils as utils_module
 
         def fail_run(cmd, **kwargs):
             raise AssertionError(f"subprocess.run should not be called, got: {cmd}")
@@ -698,7 +698,7 @@ class TestSpendLogsPartitionDetectionMissingPsycopg:
     def test_missing_psycopg_logs_a_warning(self, monkeypatch, caplog):
         monkeypatch.setitem(sys.modules, "psycopg", None)
         monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@localhost:5432/db")
-        with caplog.at_level("WARNING", logger="litellm_proxy_extras"):
+        with caplog.at_level("WARNING", logger="token_iq_migrations"):
             ProxyExtrasDBManager.spend_logs_is_partitioned()
         assert any(
             "psycopg is not installed" in record.message for record in caplog.records

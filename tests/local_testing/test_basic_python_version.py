@@ -132,7 +132,7 @@ def test_cli_extra_is_a_thin_client_install():
         "apscheduler",
         "rq",
         "litellm-enterprise",
-        "litellm-proxy-extras",
+        "token-iq-migrations",
     }
     leaked = cli_names & server_only
     assert not leaked, f"`cli` extra leaks proxy-server deps onto laptops: {leaked}"

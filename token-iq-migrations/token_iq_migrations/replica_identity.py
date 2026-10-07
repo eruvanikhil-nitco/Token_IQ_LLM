@@ -7,7 +7,7 @@ re-applied by hand after each migration run. Setting
 ``LITELLM_SET_REPLICA_IDENTITY_FULL`` makes every migration run re-assert it.
 
 The statement goes through the Prisma CLI rather than a Postgres driver because
-``litellm-proxy-extras`` has no runtime dependencies, while the CLI is already
+``token-iq-migrations`` has no runtime dependencies, while the CLI is already
 required for the migrations themselves.
 """
 
@@ -15,8 +15,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from litellm_proxy_extras._logging import logger
-from litellm_proxy_extras.prisma_toolchain import prisma_command_timeout
+from token_iq_migrations._logging import logger
+from token_iq_migrations.prisma_toolchain import prisma_command_timeout
 
 REPLICA_IDENTITY_FULL_ENV_VAR = "LITELLM_SET_REPLICA_IDENTITY_FULL"
 

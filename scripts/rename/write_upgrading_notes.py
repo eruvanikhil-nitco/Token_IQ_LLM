@@ -74,8 +74,8 @@ set, so an operator who has migrated is not overridden by a variable they forgot
 
 {table(variables, "Before", "Now")}
 
-Variables the engine does not read are not renamed, including `LITELLM_LICENSE`, which the enterprise
-package reads, and `LITELLM_MIGRATION_DIR`, which the migrations package reads.
+Variables nothing in this repository reads are not renamed, `LITELLM_LICENSE` among them: the enterprise
+package reads that one.
 
 #### Config keys, {len(keys)} of them
 

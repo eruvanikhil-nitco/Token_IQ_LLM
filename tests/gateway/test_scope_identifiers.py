@@ -175,7 +175,7 @@ def test_the_names_this_phase_must_not_touch_are_deferred() -> None:
     with (_REPO_ROOT / "docs" / "plans" / "phase-6-identifier-scope.csv").open(encoding="utf-8") as handle:
         verdicts = {row["old"]: row["verdict"] for row in csv.DictReader(handle)}
 
-    for name in ("litellm_provider", "litellm_logging_obj", "litellm_credential_name", "litellm_proxy_extras"):
+    for name in ("litellm_provider", "litellm_logging_obj", "litellm_credential_name", "token_iq_migrations"):
         assert verdicts.get(name) == "deferred", f"{name} would be renamed, and something outside reads it"
 
 

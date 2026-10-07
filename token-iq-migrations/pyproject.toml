@@ -1,5 +1,5 @@
 [project]
-name = "litellm-proxy-extras"
+name = "token-iq-migrations"
 version = "0.4.92"
 description = "Database migrations for Token IQ, kept out of the main package to keep it small."
 readme = "README.md"
@@ -24,5 +24,5 @@ module-root = ""
 version = "0.4.92"
 version_files = [
     "pyproject.toml:^version",
-    "../pyproject.toml:litellm-proxy-extras==",
+    "../pyproject.toml:token-iq-migrations==",
 ]

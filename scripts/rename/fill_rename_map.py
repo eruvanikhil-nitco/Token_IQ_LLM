@@ -56,8 +56,18 @@ class Options(BaseModel):
 
 
 def engine_files() -> tuple[pathlib.Path, ...]:
+    """The engine, and the migrations package beside it.
+
+    That package installs as its own distribution and so cannot import the compatibility helper, but it
+    reads both names itself, and a variable a customer sets belongs in the upgrade notes wherever the code
+    that reads it happens to live.
+    """
     listed: Final = subprocess.run(
-        ("git", "ls-files", "token_iq/*.py"), cwd=REPO, capture_output=True, text=True, check=True
+        ("git", "ls-files", "token_iq/*.py", "token-iq-migrations/token_iq_migrations/*.py"),
+        cwd=REPO,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout.splitlines()
     return tuple(REPO / name for name in listed if name)
 

@@ -53,7 +53,7 @@ SKIP: Final[tuple[str, ...]] = (
     "token_iq/gateway/compat.py",
     # Installed as its own distribution, so importing the engine from it would be a dependency
     # that does not hold where it runs. Phase 8 renames that package and its variables together.
-    "litellm-proxy-extras/",
+    "token-iq-migrations/",
 )
 """Tests set the environment themselves and say which spelling they mean. The compat module is the one
 place the old name belongs."""

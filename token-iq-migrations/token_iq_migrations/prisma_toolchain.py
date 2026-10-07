@@ -40,7 +40,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-from litellm_proxy_extras._logging import logger
+from token_iq_migrations._logging import logger
 
 try:
     from prisma import config as prisma_config

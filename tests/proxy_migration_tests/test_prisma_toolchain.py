@@ -25,7 +25,7 @@ from pathlib import Path
 
 import pytest
 
-from litellm_proxy_extras.prisma_toolchain import (
+from token_iq_migrations.prisma_toolchain import (
     DEFAULT_PRISMA_COMMAND_TIMEOUT,
     DEFAULT_PRISMA_MIGRATE_DEPLOY_TIMEOUT,
     PRISMA_BOOTSTRAP_TIMEOUT_ENV_VAR,
@@ -38,10 +38,10 @@ from litellm_proxy_extras.prisma_toolchain import (
     prisma_command_timeout,
     prisma_migrate_deploy_timeout,
 )
-from litellm_proxy_extras.utils import ProxyExtrasDBManager
+from token_iq_migrations.utils import ProxyExtrasDBManager
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-PROXY_EXTRAS = REPO_ROOT / "litellm-proxy-extras" / "litellm_proxy_extras"
+PROXY_EXTRAS = REPO_ROOT / "token-iq-migrations" / "token_iq_migrations"
 
 FAKE_PRISMA = """#!{python}
 import json
@@ -281,7 +281,7 @@ def test_db_push_timeout_hint_names_the_per_command_budget(
     monkeypatch.setenv(PRISMA_COMMAND_TIMEOUT_ENV_VAR, "1")
     monkeypatch.setenv("FAKE_PRISMA_FIRST_PUSH_SLEEP", "3")
 
-    with caplog.at_level(logging.WARNING, logger="litellm_proxy_extras"):
+    with caplog.at_level(logging.WARNING, logger="token_iq_migrations"):
         assert ProxyExtrasDBManager.setup_database(use_migrate=False, use_v2_resolver=False) is True
 
     assert [call["args"][:2] for call in _fake_prisma_calls(log_path)].count(["db", "push"]) == 2

@@ -101,9 +101,9 @@ PACKAGE_MOVES: Final[tuple[Move, ...]] = (
     ),
     Move(
         "package",
-        "litellm_proxy_extras",
         "token_iq_migrations",
-        "litellm-proxy-extras/litellm_proxy_extras",
+        "token_iq_migrations",
+        "token-iq-migrations/token_iq_migrations",
         "phase 8 renames the migrations package",
     ),
     Move("test tree", "tests/gateway", "tests/gateway", "tests/gateway", "mirrors token_iq/gateway/"),

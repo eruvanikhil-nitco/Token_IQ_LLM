@@ -1,12 +1,12 @@
-# Build & Publish `litellm-proxy-extras`
+# Build & Publish `token-iq-migrations`
 
-This runbook covers building and publishing a new version of the `litellm-proxy-extras` PyPI package. For use by litellm engineers only.
+This runbook covers building and publishing a new version of the `token-iq-migrations` PyPI package. For use by litellm engineers only.
 
 ## Prerequisites
 
 - All `schema.prisma` files are in sync (see [migration_runbook.md](./migration_runbook.md) Step 0)
 - Migration has been generated and committed
-- You are in the `litellm-proxy-extras/` directory
+- You are in the `token-iq-migrations/` directory
 
 ## Step 1: Bump the Version
 
@@ -15,7 +15,7 @@ This runbook covers building and publishing a new version of the `litellm-proxy-
 Use commitizen to automatically bump the version across all files:
 
 ```bash
-cd litellm-proxy-extras
+cd token-iq-migrations
 cz bump --increment patch
 ```
 
@@ -31,7 +31,7 @@ Then skip to Step 3 (Clean Old Artifacts).
 Update the version in `pyproject.toml`:
 
 ```bash
-cd litellm-proxy-extras
+cd token-iq-migrations
 
 # Check current version
 grep 'version' pyproject.toml
@@ -41,15 +41,15 @@ Edit `pyproject.toml` and bump the version (both `[project].version` and `[tool.
 
 #### Step 2: Update Version in the Root Package Metadata (Manual Only)
 
-After bumping the version in `litellm-proxy-extras/pyproject.toml`, you **must** also update the version reference in the root `pyproject.toml`:
+After bumping the version in `token-iq-migrations/pyproject.toml`, you **must** also update the version reference in the root `pyproject.toml`:
 
 | File | Line to update |
 |------|---------------|
-| `pyproject.toml` (root) | `litellm-proxy-extras==X.Y.Z` in `[project.optional-dependencies].proxy` |
+| `pyproject.toml` (root) | `token-iq-migrations==X.Y.Z` in `[project.optional-dependencies].proxy` |
 
 ```bash
 # From the repo root — replace OLD with NEW version
-sed -i '' 's/litellm-proxy-extras==OLD/litellm-proxy-extras==NEW/' pyproject.toml
+sed -i '' 's/token-iq-migrations==OLD/token-iq-migrations==NEW/' pyproject.toml
 ```
 
 > **Do NOT skip this step.** The main `litellm` package pins the extras version — if you don't update these, users will install the old version.
@@ -91,7 +91,7 @@ Enter your API token: pypi-...
 ## Quick Reference (Copy-Paste)
 
 ```bash
-cd litellm-proxy-extras
+cd token-iq-migrations
 rm -rf dist/ build/ *.egg-info
 uv build
 uv tool run --from 'twine==6.2.0' twine upload dist/*
@@ -99,12 +99,12 @@ uv tool run --from 'twine==6.2.0' twine upload dist/*
 
 ---
 
-## Do you want to build and publish a new `litellm-proxy-extras` package? (y/n)
+## Do you want to build and publish a new `token-iq-migrations` package? (y/n)
 
 If **yes**, run the following commands in order:
 
 ```bash
-cd litellm-proxy-extras
+cd token-iq-migrations
 rm -rf dist/ build/ *.egg-info
 uv build
 uv tool run --from 'twine==6.2.0' twine upload dist/*

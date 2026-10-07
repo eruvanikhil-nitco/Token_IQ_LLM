@@ -74,7 +74,7 @@ def test_nearest_if_controls_version_guard(tmp_path: Path) -> None:
 
 
 def test_scan_directory_includes_proxy_extras(tmp_path: Path) -> None:
-    file_path = tmp_path / "litellm-proxy-extras" / "litellm_proxy_extras" / "m.py"
+    file_path = tmp_path / "token-iq-migrations" / "token_iq_migrations" / "m.py"
     file_path.parent.mkdir(parents=True)
     file_path.write_text("from typing import NotRequired\n", encoding="utf-8")
 

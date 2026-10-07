@@ -5,12 +5,12 @@ Currently, only stores the migration.sql files for litellm-proxy.
 To install, run:
 
 ```bash
-uv add litellm-proxy-extras
+uv add token-iq-migrations
 ```
 OR 
 
 ```bash
-uv tool install 'litellm[proxy]' # installs litellm-proxy-extras and other proxy dependencies
+uv tool install 'litellm[proxy]' # installs token-iq-migrations and other proxy dependencies
 ```
 
 To use the migrations, run:

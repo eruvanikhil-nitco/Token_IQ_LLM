@@ -29,7 +29,7 @@ def _is_json_enabled():
         return os.getenv("JSON_LOGS", "false").lower() == "true"
 
 
-logger = logging.getLogger("litellm_proxy_extras")
+logger = logging.getLogger("token_iq_migrations")
 
 if not logger.handlers:
     handler = logging.StreamHandler()

@@ -1,7 +1,7 @@
 """Entrypoint for the migrations Job container.
 
 Runs `prisma migrate deploy` against the LiteLLM writer database using the
-recovery logic in `litellm_proxy_extras.ProxyExtrasDBManager.setup_database`
+recovery logic in `token_iq_migrations.ProxyExtrasDBManager.setup_database`
 (P3005 baseline + P3009/P3018 idempotent-error handling, retries, etc.).
 
 Env vars:
@@ -24,8 +24,8 @@ import os
 import sys
 
 from token_iq.gateway.proxy.db.db_url_settings import DatabaseURLSettings
-from litellm_proxy_extras._logging import logger
-from litellm_proxy_extras.utils import ProxyExtrasDBManager, str_to_bool
+from token_iq_migrations._logging import logger
+from token_iq_migrations.utils import ProxyExtrasDBManager, str_to_bool
 
 
 def main() -> int:

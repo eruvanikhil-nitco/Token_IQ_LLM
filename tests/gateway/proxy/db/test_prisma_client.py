@@ -194,11 +194,11 @@ async def test_recreate_prisma_client_recovers_from_disconnected_client(
 
 
 def test_db_push_applies_replica_identity_full_when_requested(monkeypatch):
-    """`prisma db push` bypasses litellm-proxy-extras, so it needs its own call
+    """`prisma db push` bypasses token-iq-migrations, so it needs its own call
     into the opt-in REPLICA IDENTITY FULL step."""
     from token_iq.gateway.proxy.db.prisma_client import PrismaManager
-    from litellm_proxy_extras.replica_identity import REPLICA_IDENTITY_FULL_ENV_VAR
-    from litellm_proxy_extras.utils import ProxyExtrasDBManager
+    from token_iq_migrations.replica_identity import REPLICA_IDENTITY_FULL_ENV_VAR
+    from token_iq_migrations.utils import ProxyExtrasDBManager
 
     monkeypatch.setenv(REPLICA_IDENTITY_FULL_ENV_VAR, "true")
     applied = []
@@ -220,7 +220,7 @@ def test_db_push_is_rejected_when_spend_logs_is_partitioned(monkeypatch):
     primary key back to ("request_id"), which Postgres rejects; the guard must
     fail fast with guidance instead of running the push."""
     from token_iq.gateway.proxy.db.prisma_client import PrismaManager
-    from litellm_proxy_extras.utils import (
+    from token_iq_migrations.utils import (
         PARTITIONED_SPEND_LOGS_PUSH_ERROR,
         ProxyExtrasDBManager,
     )
@@ -240,7 +240,7 @@ def test_db_push_is_rejected_when_spend_logs_is_partitioned(monkeypatch):
 
 def test_db_push_proceeds_when_spend_logs_is_not_partitioned(monkeypatch):
     from token_iq.gateway.proxy.db.prisma_client import PrismaManager
-    from litellm_proxy_extras.utils import ProxyExtrasDBManager
+    from token_iq_migrations.utils import ProxyExtrasDBManager
 
     monkeypatch.setattr(
         ProxyExtrasDBManager, "spend_logs_is_partitioned", staticmethod(lambda: False)

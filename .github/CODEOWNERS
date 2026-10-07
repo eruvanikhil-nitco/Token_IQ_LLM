@@ -6,5 +6,5 @@
 /ui/litellm-dashboard/tsconfig.tsbuildinfo
 /model_prices_and_context_window.json @mateo-berri
 /litellm/model_prices_and_context_window_backup.json @mateo-berri
-/litellm-proxy-extras/litellm_proxy_extras/migrations/ @yuneng-berri @ryan-crabbe-berri
+/token-iq-migrations/token_iq_migrations/migrations/ @yuneng-berri @ryan-crabbe-berri
 /.github/CODEOWNERS @yuneng-berri

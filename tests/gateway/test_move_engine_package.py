@@ -116,9 +116,9 @@ def test_an_import_kept_for_its_side_effect_keeps_the_comment_saying_so() -> Non
 
 
 def test_an_import_inside_a_longer_name_is_not_rewritten() -> None:
-    """`import litellm_proxy_extras` starts with the old name and is a different package."""
-    assert rewrite("import litellm_proxy_extras") == "import litellm_proxy_extras"
-    assert rewrite("from litellm_proxy_extras import x") == "from litellm_proxy_extras import x"
+    """`import token_iq_migrations` starts with the old name and is a different package."""
+    assert rewrite("import token_iq_migrations") == "import token_iq_migrations"
+    assert rewrite("from token_iq_migrations import x") == "from token_iq_migrations import x"
 
 
 # --- the inner package -------------------------------------------------------------------------
@@ -300,7 +300,7 @@ def test_a_path_that_merely_ends_in_the_package_name_is_not_rewritten() -> None:
 
 
 def test_a_path_inside_a_longer_folder_name_is_not_rewritten() -> None:
-    assert rewrite('open("litellm-proxy-extras/setup.py")') == 'open("litellm-proxy-extras/setup.py")'
+    assert rewrite('open("token-iq-migrations/setup.py")') == 'open("token-iq-migrations/setup.py")'
 
 
 def test_whether_a_path_is_really_there_is_answered_from_the_tree(tmp_path: Path) -> None:

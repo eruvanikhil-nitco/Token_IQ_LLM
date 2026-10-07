@@ -9,12 +9,12 @@ import time
 from pathlib import Path
 from typing import Optional
 
-from litellm_proxy_extras._logging import logger
-from litellm_proxy_extras.replica_identity import (
+from token_iq_migrations._logging import logger
+from token_iq_migrations.replica_identity import (
     REPLICA_IDENTITY_FULL_ENV_VAR,
     apply_replica_identity_full,
 )
-from litellm_proxy_extras.prisma_toolchain import (
+from token_iq_migrations.prisma_toolchain import (
     PRISMA_COMMAND_TIMEOUT_ENV_VAR,
     PRISMA_MIGRATE_DEPLOY_TIMEOUT_ENV_VAR,
     ensure_prisma_toolchain,
@@ -155,9 +155,13 @@ class ProxyExtrasDBManager:
         """
         Get the path to the migrations directory
 
-        Set os.environ["LITELLM_MIGRATION_DIR"] to a custom migrations directory, to support baselining db in read-only fs.
+        Set os.environ["TOKEN_IQ_MIGRATION_DIR"] to a custom migrations directory, to support baselining db in read-only fs.
+
+        The name this had before the rename is still read, because this package installs as its own
+        distribution and so cannot import the engine's compatibility helper. The new name wins when both
+        are set, matching how the helper behaves everywhere else.
         """
-        custom_migrations_dir = os.getenv("LITELLM_MIGRATION_DIR")
+        custom_migrations_dir = os.getenv("TOKEN_IQ_MIGRATION_DIR") or os.getenv("LITELLM_MIGRATION_DIR")
         pkg_migrations_dir = os.path.dirname(__file__)
         if custom_migrations_dir:
             # If migrations_dir exists, copy contents
@@ -968,7 +972,7 @@ class ProxyExtrasDBManager:
     ) -> bool:
         """
         Set up the database using either prisma migrate or prisma db push
-        Uses migrations from litellm-proxy-extras package
+        Uses migrations from token-iq-migrations package
 
         Args:
             use_migrate: Whether to use prisma migrate instead of db push
@@ -1106,7 +1110,7 @@ class ProxyExtrasDBManager:
                             and "database schema is not empty" in e.stderr
                         ):
                             logger.info(
-                                "Database schema is not empty, creating baseline migration. In read-only file system, please set an environment variable `LITELLM_MIGRATION_DIR` to a writable directory to enable migrations. Learn more - https://docs.litellm.ai/docs/proxy/prod#read-only-file-system"
+                                "Database schema is not empty, creating baseline migration. In read-only file system, please set an environment variable `TOKEN_IQ_MIGRATION_DIR` to a writable directory to enable migrations. Learn more - https://docs.litellm.ai/docs/proxy/prod#read-only-file-system"
                             )
                             ProxyExtrasDBManager._create_baseline_migration(schema_path)
                             logger.info(

@@ -875,14 +875,14 @@ class PrismaManager:
     @staticmethod
     def _apply_replica_identity_full_if_requested() -> None:
         """
-        `prisma db push` bypasses litellm-proxy-extras, so the opt-in
+        `prisma db push` bypasses token-iq-migrations, so the opt-in
         REPLICA IDENTITY FULL step has to be driven from here too.
 
-        litellm-proxy-extras is an optional install, so this is a no-op when it
+        token-iq-migrations is an optional install, so this is a no-op when it
         is absent.
         """
         try:
-            from litellm_proxy_extras.utils import ProxyExtrasDBManager
+            from token_iq_migrations.utils import ProxyExtrasDBManager
         except ImportError:
             return
         ProxyExtrasDBManager.apply_replica_identity_full_if_requested()
@@ -892,9 +892,9 @@ class PrismaManager:
         """`prisma db push` rewrites a doc-partitioned LiteLLM_SpendLogs
         primary key back to ("request_id"), which Postgres rejects. Fail fast
         with guidance instead of retrying into that raw error. No-op when
-        litellm-proxy-extras is absent."""
+        token-iq-migrations is absent."""
         try:
-            from litellm_proxy_extras.utils import (
+            from token_iq_migrations.utils import (
                 PARTITIONED_SPEND_LOGS_PUSH_ERROR,
                 ProxyExtrasDBManager,
             )
@@ -925,7 +925,7 @@ class PrismaManager:
             try:
                 if use_migrate:
                     try:
-                        from litellm_proxy_extras.utils import ProxyExtrasDBManager
+                        from token_iq_migrations.utils import ProxyExtrasDBManager
                     except ImportError as e:
                         verbose_proxy_logger.error("\x1b[1;31mLiteLLM: Failed to import proxy extras. Got %s\x1b[0m", e)
                         return False

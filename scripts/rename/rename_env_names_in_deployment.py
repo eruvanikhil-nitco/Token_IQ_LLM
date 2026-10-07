@@ -17,12 +17,14 @@ Names that stay, and why, as of the run that produced this:
 - `LITELLM_LICENSE` is read by the enterprise package, which is not in this repository
 - `LITELLM_LOCAL_MODEL_COST_MAP` is read by nothing: the price map is always the bundled one since the
   remote fetch was removed, so the variable is dead configuration that CI and the tests still set
-- `LITELLM_MIGRATION_DIR` is read by `litellm-proxy-extras`, which installs as its own distribution and
-  so cannot import the compatibility helper. Phase 8 renames that package and its variables together
-- `LITELLM_IMAGE`, `LITELLM_VERSION`, `LITELLM_BUILD_IMAGE`, `LITELLM_RUNTIME_IMAGE`,
-  `LITELLM_PROXY_EXTRAS_PATH`, `LITELLM_PKG_MIGRATIONS_PATH`, `LITELLM_PYTHON`,
-  `LITELLM_MIGRATION_SCRIPT` and `LITELLM_MIGRATION_INTERPRETER` are build and CI plumbing read by
-  shell and by Docker, not by the engine. Phase 9 covers the Docker and CI names
+- `LITELLM_MIGRATION_DIR` was read by `token-iq-migrations`, which installs as its own distribution and
+  so cannot import the compatibility helper. Phase 8 renamed it there with a fallback of its own, so it is
+  in scope now
+- `LITELLM_IMAGE`, `LITELLM_VERSION`, `LITELLM_BUILD_IMAGE`, `LITELLM_RUNTIME_IMAGE`, `LITELLM_PYTHON`,
+  `LITELLM_MIGRATION_SCRIPT` and `LITELLM_MIGRATION_INTERPRETER` are build and CI plumbing read by shell
+  and by Docker, not by the engine. Phase 9 covers the Docker and CI names. The two that named the
+  migrations package, `LITELLM_PROXY_EXTRAS_PATH` and `LITELLM_PKG_MIGRATIONS_PATH`, moved with it in
+  phase 8: they are shell variables set and read inside one `RUN` step, not anything an operator sets
 - `LITELLM_API_KEY` in CI is a test harness variable. The provider's key is `TOKEN_IQ_PROXY_API_KEY`
 """
 
@@ -68,7 +70,7 @@ SKIP: Final[tuple[str, ...]] = (
     "docs/specs/",
     "docs/status.md",
     # Installed as its own distribution, so it cannot import the compatibility helper.
-    "litellm-proxy-extras/",
+    "token-iq-migrations/",
 )
 
 ITS_OWN_FILES: Final[frozenset[str]] = frozenset(

@@ -217,7 +217,7 @@ def test_what_gets_renamed_comes_from_the_committed_artifact() -> None:
     assert wanted, "the scope artifact named nothing for this phase"
     assert wanted.get("LiteLLMRoutes") == "GatewayRoutes"
     # The four that would each have been a silent change if the scope had got them wrong.
-    for deferred in ("litellm_provider", "litellm_logging_obj", "litellm_credential_name", "litellm_proxy_extras"):
+    for deferred in ("litellm_provider", "litellm_logging_obj", "litellm_credential_name", "token_iq_migrations"):
         assert deferred not in wanted, f"{deferred} is in scope, and something outside this repository reads it"
 
 

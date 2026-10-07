@@ -20,7 +20,7 @@ def test_schema_migration_in_sync():
     """
     db_url = os.environ["DATABASE_URL"]
     source_migrations_dir = Path(
-        "./litellm-proxy-extras/litellm_proxy_extras/migrations"
+        "./token-iq-migrations/token_iq_migrations/migrations"
     )
     source_schema_path = Path("./schema.prisma")
 

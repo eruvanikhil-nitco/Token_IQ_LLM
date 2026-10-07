@@ -42,7 +42,7 @@ REPO: Final = pathlib.Path(__file__).resolve().parents[2]
 SCHEMAS: Final[tuple[str, ...]] = (
     "schema.prisma",
     "token_iq/gateway/proxy/schema.prisma",
-    "litellm-proxy-extras/litellm_proxy_extras/schema.prisma",
+    "token-iq-migrations/token_iq_migrations/schema.prisma",
 )
 
 PREFIX: Final = "LiteLLM_"

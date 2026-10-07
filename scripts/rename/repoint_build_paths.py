@@ -12,7 +12,7 @@ touches the database are broken until this runs.
 A path is rewritten only when it points at something that is really there under the new tree, which is
 the same question the Python pass asked: `litellm/a.py` in a fixture must not move, and
 `litellm/proxy/schema.prisma` must. Three names that merely start with the old one are left alone, and
-each is a different thing: `litellm-dashboard` is the UI and phase 9 renames it, `litellm-proxy-extras`
+each is a different thing: `litellm-dashboard` is the UI and phase 9 renames it, `token-iq-migrations`
 is the migrations package and phase 8 does, and `litellm-rust` is the crate.
 
 The historical record is untouched, for the reason it always is: it says what was true when it was
@@ -48,7 +48,7 @@ HISTORICAL: Final[tuple[str, ...]] = (
 )
 
 # A word character or a hyphen before the name means it is not the engine folder, which keeps
-# litellm-dashboard, litellm-proxy-extras and litellm-rust out: the UI, the migrations package and the
+# litellm-dashboard, token-iq-migrations and litellm-rust out: the UI, the migrations package and the
 # crate, each renamed by a different phase.
 #
 # A slash before it is allowed on purpose. /app/litellm/proxy in the Dockerfile and

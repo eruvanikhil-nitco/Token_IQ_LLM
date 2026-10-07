@@ -1495,10 +1495,10 @@ async def test_backfilled_legacy_stop_never_reads_as_completion(monkeypatch: pyt
 def test_stopped_by_migration_backfills_every_job_that_displayed_stopped():
     """The migration must close the pre-column population: without the backfill, a
     legacy stop whose stray attempts crossed the budget would read completed."""
-    import litellm_proxy_extras
+    import token_iq_migrations
 
     sql = (
-        Path(litellm_proxy_extras.__file__).parent
+        Path(token_iq_migrations.__file__).parent
         / "migrations"
         / "20260818224500_add_shadow_eval_stopped_by"
         / "migration.sql"
@@ -1518,10 +1518,10 @@ def test_a_start_request_still_sending_max_turns_is_rejected_not_silently_defaul
 def test_max_budget_migration_is_additive_and_leaves_legacy_rows_null():
     """max_budget stays NULL on pre-migration rows so they keep the turn budget they were
     configured with, and shadow_cost defaults to 0 so old rows price as judge-only."""
-    import litellm_proxy_extras
+    import token_iq_migrations
 
     sql = (
-        Path(litellm_proxy_extras.__file__).parent
+        Path(token_iq_migrations.__file__).parent
         / "migrations"
         / "20260819000000_shadow_eval_max_budget"
         / "migration.sql"

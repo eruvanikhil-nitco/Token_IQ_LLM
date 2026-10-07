@@ -9,11 +9,11 @@ import uuid
 
 import pytest
 
-from litellm_proxy_extras.replica_identity import (
+from token_iq_migrations.replica_identity import (
     REPLICA_IDENTITY_FULL_ENV_VAR,
     apply_replica_identity_full,
 )
-from litellm_proxy_extras.utils import ProxyExtrasDBManager
+from token_iq_migrations.utils import ProxyExtrasDBManager
 
 psycopg = pytest.importorskip("psycopg")
 

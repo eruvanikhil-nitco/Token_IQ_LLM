@@ -13,11 +13,11 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm_proxy_extras.replica_identity import (
+from token_iq_migrations.replica_identity import (
     REPLICA_IDENTITY_FULL_ENV_VAR,
     apply_replica_identity_full,
 )
-from litellm_proxy_extras.utils import ProxyExtrasDBManager
+from token_iq_migrations.utils import ProxyExtrasDBManager
 
 
 def test_hands_the_alter_statement_to_the_prisma_cli():
@@ -29,7 +29,7 @@ def test_hands_the_alter_statement_to_the_prisma_cli():
         return subprocess.CompletedProcess(cmd, 0)
 
     with patch(
-        "litellm_proxy_extras.replica_identity.subprocess.run", side_effect=capture
+        "token_iq_migrations.replica_identity.subprocess.run", side_effect=capture
     ):
         applied = apply_replica_identity_full(
             schema_path="/somewhere/schema.prisma",
@@ -60,7 +60,7 @@ def test_hands_the_alter_statement_to_the_prisma_cli():
 )
 def test_every_failure_is_reported_instead_of_raised(failure):
     with patch(
-        "litellm_proxy_extras.replica_identity.subprocess.run", side_effect=failure
+        "token_iq_migrations.replica_identity.subprocess.run", side_effect=failure
     ):
         assert (
             apply_replica_identity_full(
@@ -72,14 +72,24 @@ def test_every_failure_is_reported_instead_of_raised(failure):
         )
 
 
+@pytest.mark.parametrize(
+    "variable",
+    ["TOKEN_IQ_MIGRATION_DIR", "LITELLM_MIGRATION_DIR"],
+    ids=["renamed", "the name it had before"],
+)
 def test_an_unusable_migrations_dir_skips_the_step_instead_of_killing_the_run(
-    tmp_path, monkeypatch
+    tmp_path, monkeypatch, variable
 ):
-    """LITELLM_MIGRATION_DIR makes the step copy the migrations tree before it
-    can run, and that copy is filesystem work that can fail on its own."""
+    """TOKEN_IQ_MIGRATION_DIR makes the step copy the migrations tree before it
+    can run, and that copy is filesystem work that can fail on its own.
+
+    Both spellings, because this package installs as its own distribution and so cannot import the
+    engine's compatibility helper. It reads both itself, and that is the only thing saying so.
+    """
     blocker = tmp_path / "blocker"
     blocker.write_text("not a directory")
+    monkeypatch.delenv("TOKEN_IQ_MIGRATION_DIR", raising=False)
     monkeypatch.setenv(REPLICA_IDENTITY_FULL_ENV_VAR, "true")
-    monkeypatch.setenv("LITELLM_MIGRATION_DIR", str(blocker / "migrations"))
+    monkeypatch.setenv(variable, str(blocker / "migrations"))
 
     assert ProxyExtrasDBManager.apply_replica_identity_full_if_requested() is False

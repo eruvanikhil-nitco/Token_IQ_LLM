@@ -120,7 +120,7 @@ def scan_directory(base_dir: str | os.PathLike[str] = ".") -> tuple[TypingImport
         for directory in (
             base_path / "litellm",
             base_path / "enterprise",
-            base_path / "litellm-proxy-extras" / "litellm_proxy_extras",
+            base_path / "token-iq-migrations" / "token_iq_migrations",
         )
         if directory.exists()
         for path in directory.rglob("*.py")

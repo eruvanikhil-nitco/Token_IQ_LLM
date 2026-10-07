@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm_proxy_extras.utils import (
+from token_iq_migrations.utils import (
     ProxyExtrasDBManager,
     _max_migration_timestamp,
     _migration_timestamp,
