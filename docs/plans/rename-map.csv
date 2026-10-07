@@ -7,8 +7,8 @@ census fixture,LiTeLlM,,1,not renamed: these are the spellings a gate greps for
 census fixture,litellm_requests,,1,not renamed: these are the spellings a gate greps for
 census fixture,nLITELLM_LOG,,1,not renamed: these are the spellings a gate greps for
 census fixture,nlitellm_logging,,1,not renamed: these are the spellings a gate greps for
-config key,litellm_params,,1801,phase 7
-config key,litellm_settings,,190,phase 7
+config key,litellm_params,model_params,1801,"phase 7, old name still read"
+config key,litellm_settings,gateway_settings,190,"phase 7, old name still read"
 database model,LiteLLM_TeamTable,,114,phase 8
 database model,LiteLLM_SpendLogs,,96,phase 8
 database model,LiteLLM_UserTable,,96,phase 8
@@ -463,14 +463,14 @@ database model,LiteLLM_WorkflowRun_session_id_idx,,1,phase 8
 database model,LiteLLM_WorkflowRun_session_id_key,,1,phase 8
 database model,LiteLLM_WorkflowRun_workflow_type_status_idx,,1,phase 8
 env var,LITELLM_LOCAL_MODEL_COST_MAP,,105,phase 7
-env var,LITELLM_MASTER_KEY,,78,phase 7
-env var,LITELLM_SALT_KEY,,35,phase 7
-env var,LITELLM_PROXY_URL,,31,phase 7
+env var,LITELLM_MASTER_KEY,TOKEN_IQ_MASTER_KEY,78,"phase 7, old name still read"
+env var,LITELLM_SALT_KEY,TOKEN_IQ_SALT_KEY,35,"phase 7, old name still read"
+env var,LITELLM_PROXY_URL,TOKEN_IQ_PROXY_URL,31,"phase 7, old name still read"
 env var,LITELLM_API_KEY,,26,phase 7
-env var,LITELLM_UI_API_DOC_BASE_URL,,26,phase 7
-env var,LITELLM_OTEL_V2,,25,phase 7
-env var,LITELLM_LOG,,21,phase 7
-env var,LITELLM_PROXY_API_KEY,,21,phase 7
+env var,LITELLM_UI_API_DOC_BASE_URL,TOKEN_IQ_UI_API_DOC_BASE_URL,26,"phase 7, old name still read"
+env var,LITELLM_OTEL_V2,TOKEN_IQ_OTEL_V2,25,"phase 7, old name still read"
+env var,LITELLM_LOG,TOKEN_IQ_LOG,21,"phase 7, old name still read"
+env var,LITELLM_PROXY_API_KEY,TOKEN_IQ_PROXY_API_KEY,21,"phase 7, old name still read"
 env var,LITELLM_LICENSE,,17,phase 7
 env var,LITELLM_METADATA_ROUTES,,12,phase 7
 env var,LITELLM_PROXY,,12,phase 7
@@ -479,69 +479,69 @@ env var,LITELLM_PROXY_REQUEST_SPAN_NAME,,10,phase 7
 env var,LITELLM_EXCEPTION_TYPES,,9,phase 7
 env var,LITELLM_MANAGED_FILE_COMPLETE_STR,,9,phase 7
 env var,LITELLM_PROXY_BASE_URL,,9,phase 7
-env var,LITELLM_RUST,,9,phase 7
-env var,LITELLM_ASYNCIO_QUEUE_MAXSIZE,,8,phase 7
+env var,LITELLM_RUST,TOKEN_IQ_RUST,9,"phase 7, old name still read"
+env var,LITELLM_ASYNCIO_QUEUE_MAXSIZE,TOKEN_IQ_ASYNCIO_QUEUE_MAXSIZE,8,"phase 7, old name still read"
 env var,LITELLM_BASE_URL,,8,phase 7
-env var,LITELLM_CLI_JWT_EXPIRATION_HOURS,,8,phase 7
+env var,LITELLM_CLI_JWT_EXPIRATION_HOURS,TOKEN_IQ_CLI_JWT_EXPIRATION_HOURS,8,"phase 7, old name still read"
 env var,LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL,,8,phase 7
-env var,LITELLM_NON_ROOT,,8,phase 7
+env var,LITELLM_NON_ROOT,TOKEN_IQ_NON_ROOT,8,"phase 7, old name still read"
 env var,LITELLM_PROXY_ADMIN_NAME,,8,phase 7
-env var,LITELLM_PROXY_API_BASE,,8,phase 7
-env var,LITELLM_UI_SESSION_DURATION,,8,phase 7
+env var,LITELLM_PROXY_API_BASE,TOKEN_IQ_PROXY_API_BASE,8,"phase 7, old name still read"
+env var,LITELLM_UI_SESSION_DURATION,TOKEN_IQ_UI_SESSION_DURATION,8,"phase 7, old name still read"
 env var,LITELLM_BILLING_METRICS_CLIENT_CERT,,7,phase 7
-env var,LITELLM_ENABLE_PTU_COST_ATTRIBUTION,,7,phase 7
+env var,LITELLM_ENABLE_PTU_COST_ATTRIBUTION,TOKEN_IQ_ENABLE_PTU_COST_ATTRIBUTION,7,"phase 7, old name still read"
 env var,LITELLM_MODEL,,7,phase 7
 env var,LITELLM_TRUNCATED_PAYLOAD_FIELD,,7,phase 7
-env var,LITELLM_USER_AGENT,,7,phase 7
+env var,LITELLM_USER_AGENT,TOKEN_IQ_USER_AGENT,7,"phase 7, old name still read"
 env var,LITELLM_WEB_SEARCH_TOOL_NAME,,7,phase 7
 env var,LITELLM_BATCH_RATE_LIMIT,,6,phase 7
 env var,LITELLM_BUILD_IMAGE,,6,phase 7
-env var,LITELLM_HIDE_DEFAULT_CREDENTIALS_HINT,,6,phase 7
+env var,LITELLM_HIDE_DEFAULT_CREDENTIALS_HINT,TOKEN_IQ_HIDE_DEFAULT_CREDENTIALS_HINT,6,"phase 7, old name still read"
 env var,LITELLM_INTERNAL_JOBS_SERVICE_ACCOUNT_NAME,,6,phase 7
 env var,LITELLM_PASS_THROUGH_ENDPOINT_MARKER,,6,phase 7
 env var,LITELLM_RATE_LIMIT,,6,phase 7
-env var,LITELLM_REASONING_AUTO_SUMMARY,,6,phase 7
+env var,LITELLM_REASONING_AUTO_SUMMARY,TOKEN_IQ_REASONING_AUTO_SUMMARY,6,"phase 7, old name still read"
 env var,LITELLM_RUNTIME_IMAGE,,6,phase 7
-env var,LITELLM_USE_SHORT_MCP_TOOL_PREFIX,,6,phase 7
+env var,LITELLM_USE_SHORT_MCP_TOOL_PREFIX,TOKEN_IQ_USE_SHORT_MCP_TOOL_PREFIX,6,"phase 7, old name still read"
 env var,LITELLM_BILLING_METRICS_CA_CERT,,5,phase 7
 env var,LITELLM_BILLING_METRICS_CLIENT_KEY,,5,phase 7
 env var,LITELLM_BILLING_METRICS_ENDPOINT,,5,phase 7
 env var,LITELLM_CONFIG_PATH,,5,phase 7
-env var,LITELLM_DD_AGENT_HOST,,5,phase 7
-env var,LITELLM_DETAILED_TIMING,,5,phase 7
-env var,LITELLM_DISABLE_NO_REDIS_WARNING,,5,phase 7
-env var,LITELLM_ENVIRONMENT,,5,phase 7
-env var,LITELLM_FAVICON_URL,,5,phase 7
+env var,LITELLM_DD_AGENT_HOST,TOKEN_IQ_DD_AGENT_HOST,5,"phase 7, old name still read"
+env var,LITELLM_DETAILED_TIMING,TOKEN_IQ_DETAILED_TIMING,5,"phase 7, old name still read"
+env var,LITELLM_DISABLE_NO_REDIS_WARNING,TOKEN_IQ_DISABLE_NO_REDIS_WARNING,5,"phase 7, old name still read"
+env var,LITELLM_ENVIRONMENT,TOKEN_IQ_ENVIRONMENT,5,"phase 7, old name still read"
+env var,LITELLM_FAVICON_URL,TOKEN_IQ_FAVICON_URL,5,"phase 7, old name still read"
 env var,LITELLM_IMAGE,,5,phase 7
-env var,LITELLM_KEY_ROTATION_GRACE_PERIOD,,5,phase 7
+env var,LITELLM_KEY_ROTATION_GRACE_PERIOD,TOKEN_IQ_KEY_ROTATION_GRACE_PERIOD,5,"phase 7, old name still read"
 env var,LITELLM_MANAGED_BATCH_COMPLETE_STR,,5,phase 7
-env var,LITELLM_MAX_STREAMING_DURATION_SECONDS,,5,phase 7
+env var,LITELLM_MAX_STREAMING_DURATION_SECONDS,TOKEN_IQ_MAX_STREAMING_DURATION_SECONDS,5,"phase 7, old name still read"
 env var,LITELLM_MIGRATION_DIR,,5,phase 7
 env var,LITELLM_PASS_THROUGH_CUSTOM_BODY_STATE_KEY,,5,phase 7
 env var,LITELLM_PASS_THROUGH_RAW_BODY_STATE_KEY,,5,phase 7
 env var,LITELLM_REQUEST_SPAN_NAME,,5,phase 7
 env var,LITELLM_SETTINGS_SAFE_DB_OVERRIDES,,5,phase 7
-env var,LITELLM_,,4,phase 7
+env var,LITELLM_,,4,"phase 7, old name still read"
 env var,LITELLM_API_BASE,,4,phase 7
-env var,LITELLM_ASSETS_PATH,,4,phase 7
+env var,LITELLM_ASSETS_PATH,TOKEN_IQ_ASSETS_PATH,4,"phase 7, old name still read"
 env var,LITELLM_CHAT_PROVIDERS,,4,phase 7
-env var,LITELLM_CLI_DISABLE_KEYRING,,4,phase 7
+env var,LITELLM_CLI_DISABLE_KEYRING,TOKEN_IQ_CLI_DISABLE_KEYRING,4,"phase 7, old name still read"
 env var,LITELLM_CLI_SOURCE_IDENTIFIER,,4,phase 7
 env var,LITELLM_CODE_EXECUTION_TOOL,,4,phase 7
 env var,LITELLM_CUSTOM_AUTH_HEADER,,4,phase 7
-env var,LITELLM_DEFAULT_EMBEDDING_ENCODING_FORMAT,,4,phase 7
-env var,LITELLM_DISABLE_REDACT_SECRETS,,4,phase 7
+env var,LITELLM_DEFAULT_EMBEDDING_ENCODING_FORMAT,TOKEN_IQ_DEFAULT_EMBEDDING_ENCODING_FORMAT,4,"phase 7, old name still read"
+env var,LITELLM_DISABLE_REDACT_SECRETS,TOKEN_IQ_DISABLE_REDACT_SECRETS,4,"phase 7, old name still read"
 env var,LITELLM_GATE_SLOTS,,4,phase 7
 env var,LITELLM_GATE_SLOT_HELD,,4,phase 7
 env var,LITELLM_JSON_OUTPUT,,4,phase 7
 env var,LITELLM_JWT_ISSUER_CLAIM,,4,phase 7
-env var,LITELLM_MCP_SERVER_DESCRIPTION,,4,phase 7
-env var,LITELLM_MCP_SERVER_NAME,,4,phase 7
-env var,LITELLM_OTEL_BAGGAGE_TEAM_METADATA_KEYS,,4,phase 7
-env var,LITELLM_OTEL_INTEGRATION_ENABLE_EVENTS,,4,phase 7
-env var,LITELLM_OTEL_INTEGRATION_ENABLE_METRICS,,4,phase 7
+env var,LITELLM_MCP_SERVER_DESCRIPTION,TOKEN_IQ_MCP_SERVER_DESCRIPTION,4,"phase 7, old name still read"
+env var,LITELLM_MCP_SERVER_NAME,TOKEN_IQ_MCP_SERVER_NAME,4,"phase 7, old name still read"
+env var,LITELLM_OTEL_BAGGAGE_TEAM_METADATA_KEYS,TOKEN_IQ_OTEL_BAGGAGE_TEAM_METADATA_KEYS,4,"phase 7, old name still read"
+env var,LITELLM_OTEL_INTEGRATION_ENABLE_EVENTS,TOKEN_IQ_OTEL_INTEGRATION_ENABLE_EVENTS,4,"phase 7, old name still read"
+env var,LITELLM_OTEL_INTEGRATION_ENABLE_METRICS,TOKEN_IQ_OTEL_INTEGRATION_ENABLE_METRICS,4,"phase 7, old name still read"
 env var,LITELLM_PROXY_BUDGET_NAME,,4,phase 7
-env var,LITELLM_RATE_LIMIT_WINDOW_SIZE,,4,phase 7
+env var,LITELLM_RATE_LIMIT_WINDOW_SIZE,TOKEN_IQ_RATE_LIMIT_WINDOW_SIZE,4,"phase 7, old name still read"
 env var,LITELLM_TRACER_NAME,,4,phase 7
 env var,LITELLM_USER_ID_CLAIM,,4,phase 7
 env var,LITELLM_USE_RUST_OCR,,4,phase 7
@@ -551,13 +551,13 @@ env var,LITELLM_A2A_PROTOCOL_VERSION,,3,phase 7
 env var,LITELLM_CLI_SESSION_TOKEN_PREFIX,,3,phase 7
 env var,LITELLM_CODE_EXECUTION_TOOL_NAME,,3,phase 7
 env var,LITELLM_COMPAT_RATE_,,3,phase 7
-env var,LITELLM_CONFIG_BUCKET_NAME,,3,phase 7
-env var,LITELLM_CORS_ALLOW_CREDENTIALS,,3,phase 7
-env var,LITELLM_CORS_ORIGINS,,3,phase 7
-env var,LITELLM_DEV_ENV_HOT_RELOAD,,3,phase 7
-env var,LITELLM_ENABLE_TEAM_STALE_ALIAS_BYPASS,,3,phase 7
+env var,LITELLM_CONFIG_BUCKET_NAME,TOKEN_IQ_CONFIG_BUCKET_NAME,3,"phase 7, old name still read"
+env var,LITELLM_CORS_ALLOW_CREDENTIALS,TOKEN_IQ_CORS_ALLOW_CREDENTIALS,3,"phase 7, old name still read"
+env var,LITELLM_CORS_ORIGINS,TOKEN_IQ_CORS_ORIGINS,3,"phase 7, old name still read"
+env var,LITELLM_DEV_ENV_HOT_RELOAD,TOKEN_IQ_DEV_ENV_HOT_RELOAD,3,"phase 7, old name still read"
+env var,LITELLM_ENABLE_TEAM_STALE_ALIAS_BYPASS,TOKEN_IQ_ENABLE_TEAM_STALE_ALIAS_BYPASS,3,"phase 7, old name still read"
 env var,LITELLM_END_USER_ID_CLAIM,,3,phase 7
-env var,LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_BATCH_SIZE,,3,phase 7
+env var,LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_BATCH_SIZE,TOKEN_IQ_EXPIRED_UI_SESSION_KEY_CLEANUP_BATCH_SIZE,3,"phase 7, old name still read"
 env var,LITELLM_GATE_SLOT_DIR,,3,phase 7
 env var,LITELLM_LOCAL_ANTHROPIC_BETA_HEADERS,,3,phase 7
 env var,LITELLM_LOCAL_AUTOROUTER_PRESETS,,3,phase 7
@@ -567,31 +567,31 @@ env var,LITELLM_LOG_BATCH_SIZE,,3,phase 7
 env var,LITELLM_LOG_CHANNEL_CAPACITY,,3,phase 7
 env var,LITELLM_LOG_FLUSH_INTERVAL_MS,,3,phase 7
 env var,LITELLM_MANAGED_RESPONSE_API_RESPONSE_ID_COMPLETE_STR,,3,phase 7
-env var,LITELLM_MODE,,3,phase 7
-env var,LITELLM_OIDC_ALLOWED_CREDENTIAL_DIRS,,3,phase 7
+env var,LITELLM_MODE,TOKEN_IQ_MODE,3,"phase 7, old name still read"
+env var,LITELLM_OIDC_ALLOWED_CREDENTIAL_DIRS,TOKEN_IQ_OIDC_ALLOWED_CREDENTIAL_DIRS,3,"phase 7, old name still read"
 env var,LITELLM_ORG_ID_CLAIM,,3,phase 7
-env var,LITELLM_OTEL_BAGGAGE_METADATA_KEYS,,3,phase 7
-env var,LITELLM_OTEL_BAGGAGE_PROMOTED_KEYS,,3,phase 7
+env var,LITELLM_OTEL_BAGGAGE_METADATA_KEYS,TOKEN_IQ_OTEL_BAGGAGE_METADATA_KEYS,3,"phase 7, old name still read"
+env var,LITELLM_OTEL_BAGGAGE_PROMOTED_KEYS,TOKEN_IQ_OTEL_BAGGAGE_PROMOTED_KEYS,3,"phase 7, old name still read"
 env var,LITELLM_PYTHON,,3,phase 7
 env var,LITELLM_SECURITY_REQUIREMENTS,,3,phase 7
 env var,LITELLM_SECURITY_SCHEMES,,3,phase 7
 env var,LITELLM_SKILL_ID_PREFIX,,3,phase 7
-env var,LITELLM_STORE_AUDIT_LOGS,,3,phase 7
+env var,LITELLM_STORE_AUDIT_LOGS,TOKEN_IQ_STORE_AUDIT_LOGS,3,"phase 7, old name still read"
 env var,LITELLM_SUPPORT_CONTACT,,3,phase 7
 env var,LITELLM_TEAM_IDS_CLAIM,,3,phase 7
 env var,LITELLM_TEAM_ID_CLAIM,,3,phase 7
-env var,LITELLM_TPM_TOKEN_RESERVATION_ENABLED,,3,phase 7
+env var,LITELLM_TPM_TOKEN_RESERVATION_ENABLED,TOKEN_IQ_TPM_TOKEN_RESERVATION_ENABLED,3,"phase 7, old name still read"
 env var,LITELLM_TRUNCATION_DB_SAFEGUARD_NOTE,,3,phase 7
 env var,LITELLM_UI_ALLOW_HEADERS,,3,phase 7
 env var,LITELLM_USER_EMAIL_CLAIM,,3,phase 7
-env var,LITELLM_ANTHROPIC_DISABLE_URL_SUFFIX,,2,phase 7
-env var,LITELLM_ANTHROPIC_PROMPT_CACHING_TTL,,2,phase 7
+env var,LITELLM_ANTHROPIC_DISABLE_URL_SUFFIX,TOKEN_IQ_ANTHROPIC_DISABLE_URL_SUFFIX,2,"phase 7, old name still read"
+env var,LITELLM_ANTHROPIC_PROMPT_CACHING_TTL,TOKEN_IQ_ANTHROPIC_PROMPT_CACHING_TTL,2,"phase 7, old name still read"
 env var,LITELLM_API_KEY_HEADER_NAME_PRIMARY,,2,phase 7
 env var,LITELLM_API_KEY_HEADER_NAME_SECONDARY,,2,phase 7
 env var,LITELLM_AUTOROUTER_PRESETS_URL,,2,phase 7
-env var,LITELLM_AZURE_REALTIME_PROTOCOL,,2,phase 7
+env var,LITELLM_AZURE_REALTIME_PROTOCOL,TOKEN_IQ_AZURE_REALTIME_PROTOCOL,2,"phase 7, old name still read"
 env var,LITELLM_BILLING_METRICS_EXPORT_INTERVAL_MS,,2,phase 7
-env var,LITELLM_CLI_SSO_CLAIM_MAP,,2,phase 7
+env var,LITELLM_CLI_SSO_CLAIM_MAP,TOKEN_IQ_CLI_SSO_CLAIM_MAP,2,"phase 7, old name still read"
 env var,LITELLM_COMPAT_RATE_ANTHROPIC,,2,phase 7
 env var,LITELLM_COMPAT_RATE_AZURE,,2,phase 7
 env var,LITELLM_COMPAT_RATE_AZURE_OPENAI,,2,phase 7
@@ -605,68 +605,68 @@ env var,LITELLM_COMPAT_RATE_VERTEX_AI,,2,phase 7
 env var,LITELLM_COMPLETION_PROMPT,,2,phase 7
 env var,LITELLM_COMPONENT_PORT,,2,phase 7
 env var,LITELLM_CONTENT_FILTER,,2,phase 7
-env var,LITELLM_CONTENT_FILTER_ALLOW_EXTERNAL_PATHS,,2,phase 7
+env var,LITELLM_CONTENT_FILTER_ALLOW_EXTERNAL_PATHS,TOKEN_IQ_CONTENT_FILTER_ALLOW_EXTERNAL_PATHS,2,"phase 7, old name still read"
 env var,LITELLM_CONTENT_FILTER_CARDS,,2,phase 7
 env var,LITELLM_CONTENT_RETRIEVE_TOOL_NAME,,2,phase 7
-env var,LITELLM_DD_AGENT_PORT,,2,phase 7
-env var,LITELLM_DD_LLM_OBS_PORT,,2,phase 7
-env var,LITELLM_DISABLE_LAZY_LOADING,,2,phase 7
+env var,LITELLM_DD_AGENT_PORT,TOKEN_IQ_DD_AGENT_PORT,2,"phase 7, old name still read"
+env var,LITELLM_DD_LLM_OBS_PORT,TOKEN_IQ_DD_LLM_OBS_PORT,2,"phase 7, old name still read"
+env var,LITELLM_DISABLE_LAZY_LOADING,TOKEN_IQ_DISABLE_LAZY_LOADING,2,"phase 7, old name still read"
 env var,LITELLM_EMBEDDING_PROVIDERS_SUPPORTING_INPUT_ARRAY_OF_TOKENS,,2,phase 7
 env var,LITELLM_EMBEDDING_TEXT,,2,phase 7
-env var,LITELLM_ENABLE_ANTHROPIC_PROMPT_CACHING,,2,phase 7
-env var,LITELLM_ENABLE_HSTS,,2,phase 7
-env var,LITELLM_ENABLE_PYROSCOPE,,2,phase 7
-env var,LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_ENABLED,,2,phase 7
-env var,LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_INTERVAL_SECONDS,,2,phase 7
+env var,LITELLM_ENABLE_ANTHROPIC_PROMPT_CACHING,TOKEN_IQ_ENABLE_ANTHROPIC_PROMPT_CACHING,2,"phase 7, old name still read"
+env var,LITELLM_ENABLE_HSTS,TOKEN_IQ_ENABLE_HSTS,2,"phase 7, old name still read"
+env var,LITELLM_ENABLE_PYROSCOPE,TOKEN_IQ_ENABLE_PYROSCOPE,2,"phase 7, old name still read"
+env var,LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_ENABLED,TOKEN_IQ_EXPIRED_UI_SESSION_KEY_CLEANUP_ENABLED,2,"phase 7, old name still read"
+env var,LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_INTERVAL_SECONDS,TOKEN_IQ_EXPIRED_UI_SESSION_KEY_CLEANUP_INTERVAL_SECONDS,2,"phase 7, old name still read"
 env var,LITELLM_HTTP_STATUS_CLIENT_DISCONNECTED,,2,phase 7
 env var,LITELLM_IMAGE_VARIATION_PROVIDERS,,2,phase 7
 env var,LITELLM_INTERNAL_CLAIMS,,2,phase 7
 env var,LITELLM_KEY,,2,phase 7
-env var,LITELLM_KEY_ROTATION_CHECK_INTERVAL_SECONDS,,2,phase 7
-env var,LITELLM_KEY_ROTATION_ENABLED,,2,phase 7
-env var,LITELLM_KEY_ROTATION_LOCK_TTL_SECONDS,,2,phase 7
+env var,LITELLM_KEY_ROTATION_CHECK_INTERVAL_SECONDS,TOKEN_IQ_KEY_ROTATION_CHECK_INTERVAL_SECONDS,2,"phase 7, old name still read"
+env var,LITELLM_KEY_ROTATION_ENABLED,TOKEN_IQ_KEY_ROTATION_ENABLED,2,"phase 7, old name still read"
+env var,LITELLM_KEY_ROTATION_LOCK_TTL_SECONDS,TOKEN_IQ_KEY_ROTATION_LOCK_TTL_SECONDS,2,"phase 7, old name still read"
 env var,LITELLM_LOCAL_POLICY_TEMPLATES,,2,phase 7
 env var,LITELLM_MANAGED_GENERIC_RESPONSE_COMPLETE_STR,,2,phase 7
 env var,LITELLM_MANAGED_RESPONSE_COMPLETE_STR,,2,phase 7
 env var,LITELLM_MANAGED_VIDEO_COMPLETE_STR,,2,phase 7
 env var,LITELLM_MCP_ACCESS_GROUPS_HEADER_NAME,,2,phase 7
 env var,LITELLM_MCP_AUTH_HEADER_NAME,,2,phase 7
-env var,LITELLM_MCP_CLIENT_SIDE_AUTH_HEADER_NAME,,2,phase 7
-env var,LITELLM_MCP_OAUTH_DISCOVERY_ON_STARTUP,,2,phase 7
+env var,LITELLM_MCP_CLIENT_SIDE_AUTH_HEADER_NAME,TOKEN_IQ_MCP_CLIENT_SIDE_AUTH_HEADER_NAME,2,"phase 7, old name still read"
+env var,LITELLM_MCP_OAUTH_DISCOVERY_ON_STARTUP,TOKEN_IQ_MCP_OAUTH_DISCOVERY_ON_STARTUP,2,"phase 7, old name still read"
 env var,LITELLM_MCP_SERVERS_HEADER_NAME,,2,phase 7
 env var,LITELLM_MCP_SERVER_VERSION,,2,phase 7
-env var,LITELLM_MCP_STDIO_EXTRA_COMMANDS,,2,phase 7
+env var,LITELLM_MCP_STDIO_EXTRA_COMMANDS,TOKEN_IQ_MCP_STDIO_EXTRA_COMMANDS,2,"phase 7, old name still read"
 env var,LITELLM_METADATA_FIELD,,2,phase 7
 env var,LITELLM_MIGRATION_INTERPRETER,,2,phase 7
 env var,LITELLM_MIGRATION_SCRIPT,,2,phase 7
 env var,LITELLM_MODELS_YAML,,2,phase 7
 env var,LITELLM_MODERATION,,2,phase 7
-env var,LITELLM_OTEL_LEGACY_COMPAT,,2,phase 7
+env var,LITELLM_OTEL_LEGACY_COMPAT,TOKEN_IQ_OTEL_LEGACY_COMPAT,2,"phase 7, old name still read"
 env var,LITELLM_PASSTHROUGH_MANAGED_ID_COMPLETE_STR,,2,phase 7
 env var,LITELLM_PREFIX_STORED_VIRTUAL_KEYS,,2,phase 7
 env var,LITELLM_PROXY_MCP_SERVER_URL_PREFIX,,2,phase 7
 env var,LITELLM_RESPONSES_MANAGEMENT,,2,phase 7
 env var,LITELLM_SET_REPLICA_IDENTITY_FULL,,2,phase 7
-env var,LITELLM_STRICT_GUARDRAIL_MODES,,2,phase 7
-env var,LITELLM_SUPPRESS_SPEND_LOG_TRACEBACKS,,2,phase 7
+env var,LITELLM_STRICT_GUARDRAIL_MODES,TOKEN_IQ_STRICT_GUARDRAIL_MODES,2,"phase 7, old name still read"
+env var,LITELLM_SUPPRESS_SPEND_LOG_TRACEBACKS,TOKEN_IQ_SUPPRESS_SPEND_LOG_TRACEBACKS,2,"phase 7, old name still read"
 env var,LITELLM_TELEMETRY,,2,phase 7
 env var,LITELLM_TEST_CURL_IMAGE,,2,phase 7
 env var,LITELLM_TEST_POSTGRES_IMAGE,,2,phase 7
 env var,LITELLM_TIMEOUT,,2,phase 7
 env var,LITELLM_TRUNCATION_STDOUT_SAFEGUARD_NOTE,,2,phase 7
-env var,LITELLM_UI_PATH,,2,phase 7
+env var,LITELLM_UI_PATH,TOKEN_IQ_UI_PATH,2,"phase 7, old name still read"
 env var,LITELLM_USER_ROLE_HIERARCHY,,2,phase 7
-env var,LITELLM_USE_CHAT_COMPLETIONS_URL_FOR_ANTHROPIC_MESSAGES,,2,phase 7
+env var,LITELLM_USE_CHAT_COMPLETIONS_URL_FOR_ANTHROPIC_MESSAGES,TOKEN_IQ_USE_CHAT_COMPLETIONS_URL_FOR_ANTHROPIC_MESSAGES,2,"phase 7, old name still read"
 env var,LITELLM_VCR_DIAG_DIR,,2,phase 7
 env var,LITELLM_VCR_VERBOSE,,2,phase 7
 env var,LITELLM_VECTOR_STORE_FILE_MANAGEMENT,,2,phase 7
 env var,LITELLM_VECTOR_STORE_MANAGEMENT,,2,phase 7
 env var,LITELLM_VERSION,,2,phase 7
-env var,LITELLM_WORKER_STARTUP_HOOKS,,2,phase 7
+env var,LITELLM_WORKER_STARTUP_HOOKS,TOKEN_IQ_WORKER_STARTUP_HOOKS,2,"phase 7, old name still read"
 env var,LITELLM_WORKTREE,,2,phase 7
 env var,LITELLM_AGENT,,1,phase 7
-env var,LITELLM_AGENT_HEALTH_CHECK_GATHER_TIMEOUT,,1,phase 7
-env var,LITELLM_AGENT_HEALTH_CHECK_TIMEOUT,,1,phase 7
+env var,LITELLM_AGENT_HEALTH_CHECK_GATHER_TIMEOUT,TOKEN_IQ_AGENT_HEALTH_CHECK_GATHER_TIMEOUT,1,"phase 7, old name still read"
+env var,LITELLM_AGENT_HEALTH_CHECK_TIMEOUT,TOKEN_IQ_AGENT_HEALTH_CHECK_TIMEOUT,1,"phase 7, old name still read"
 env var,LITELLM_AGENT_PREFIX,,1,phase 7
 env var,LITELLM_ANTHROPIC_BETA_HEADERS_URL,,1,phase 7
 env var,LITELLM_CARDS,,1,phase 7
@@ -678,47 +678,47 @@ env var,LITELLM_COMPAT_RATE_LIMIT_,,1,phase 7
 env var,LITELLM_COMPAT_RATE_LIMIT_BACKOFF_SECONDS,,1,phase 7
 env var,LITELLM_COMPAT_RATE_LIMIT_RETRIES,,1,phase 7
 env var,LITELLM_COMPONENT_STARTUP_TIMEOUT,,1,phase 7
-env var,LITELLM_CONFIG_BUCKET_OBJECT_KEY,,1,phase 7
-env var,LITELLM_CONFIG_BUCKET_TYPE,,1,phase 7
+env var,LITELLM_CONFIG_BUCKET_OBJECT_KEY,TOKEN_IQ_CONFIG_BUCKET_OBJECT_KEY,1,"phase 7, old name still read"
+env var,LITELLM_CONFIG_BUCKET_TYPE,TOKEN_IQ_CONFIG_BUCKET_TYPE,1,"phase 7, old name still read"
 env var,LITELLM_CONFIG_CACHE_TTL_SECONDS,,1,phase 7
-env var,LITELLM_CONFIG_PARAM_CACHE_TTL_SECONDS,,1,phase 7
+env var,LITELLM_CONFIG_PARAM_CACHE_TTL_SECONDS,TOKEN_IQ_CONFIG_PARAM_CACHE_TTL_SECONDS,1,"phase 7, old name still read"
 env var,LITELLM_CONTROL_PLANE_URL,,1,phase 7
 env var,LITELLM_CREDENTIALS_NAME,,1,phase 7
 env var,LITELLM_DB_MODEL_API_KEY,,1,phase 7
-env var,LITELLM_DEPLOYMENT_ENVIRONMENT,,1,phase 7
-env var,LITELLM_DONT_SHOW_FEEDBACK_BOX,,1,phase 7
-env var,LITELLM_DROP_PARAMS,,1,phase 7
-env var,LITELLM_EXTERNAL_URL,,1,phase 7
-env var,LITELLM_GEMINI_LIVE_DEFER_SETUP,,1,phase 7
-env var,LITELLM_GLOBAL_MAX_PARALLEL_REQUEST_RETRIES,,1,phase 7
-env var,LITELLM_GLOBAL_MAX_PARALLEL_REQUEST_RETRY_TIMEOUT,,1,phase 7
+env var,LITELLM_DEPLOYMENT_ENVIRONMENT,TOKEN_IQ_DEPLOYMENT_ENVIRONMENT,1,"phase 7, old name still read"
+env var,LITELLM_DONT_SHOW_FEEDBACK_BOX,TOKEN_IQ_DONT_SHOW_FEEDBACK_BOX,1,"phase 7, old name still read"
+env var,LITELLM_DROP_PARAMS,TOKEN_IQ_DROP_PARAMS,1,"phase 7, old name still read"
+env var,LITELLM_EXTERNAL_URL,TOKEN_IQ_EXTERNAL_URL,1,"phase 7, old name still read"
+env var,LITELLM_GEMINI_LIVE_DEFER_SETUP,TOKEN_IQ_GEMINI_LIVE_DEFER_SETUP,1,"phase 7, old name still read"
+env var,LITELLM_GLOBAL_MAX_PARALLEL_REQUEST_RETRIES,TOKEN_IQ_GLOBAL_MAX_PARALLEL_REQUEST_RETRIES,1,"phase 7, old name still read"
+env var,LITELLM_GLOBAL_MAX_PARALLEL_REQUEST_RETRY_TIMEOUT,TOKEN_IQ_GLOBAL_MAX_PARALLEL_REQUEST_RETRY_TIMEOUT,1,"phase 7, old name still read"
 env var,LITELLM_INSECURE_SKIP_VERIFY,,1,phase 7
 env var,LITELLM_INTERNAL_ASSISTANT_FIELDS,,1,phase 7
 env var,LITELLM_JWT,,1,phase 7
 env var,LITELLM_JWT_CLAIMS,,1,phase 7
 env var,LITELLM_KEY_HEADERS,,1,phase 7
-env var,LITELLM_LOGGER_NAME,,1,phase 7
+env var,LITELLM_LOGGER_NAME,TOKEN_IQ_LOGGER_NAME,1,"phase 7, old name still read"
 env var,LITELLM_LOGGER_NAMES,,1,phase 7
-env var,LITELLM_MAX_BUDGET_PER_SESSION_TTL,,1,phase 7
-env var,LITELLM_MAX_CALLBACKS,,1,phase 7
-env var,LITELLM_MAX_ITERATIONS_TTL,,1,phase 7
-env var,LITELLM_MCP_CLIENT_TIMEOUT,,1,phase 7
-env var,LITELLM_MCP_HEALTH_CHECK_TIMEOUT,,1,phase 7
-env var,LITELLM_MCP_METADATA_TIMEOUT,,1,phase 7
-env var,LITELLM_MCP_TOOL_LISTING_TIMEOUT,,1,phase 7
-env var,LITELLM_METER_NAME,,1,phase 7
+env var,LITELLM_MAX_BUDGET_PER_SESSION_TTL,TOKEN_IQ_MAX_BUDGET_PER_SESSION_TTL,1,"phase 7, old name still read"
+env var,LITELLM_MAX_CALLBACKS,TOKEN_IQ_MAX_CALLBACKS,1,"phase 7, old name still read"
+env var,LITELLM_MAX_ITERATIONS_TTL,TOKEN_IQ_MAX_ITERATIONS_TTL,1,"phase 7, old name still read"
+env var,LITELLM_MCP_CLIENT_TIMEOUT,TOKEN_IQ_MCP_CLIENT_TIMEOUT,1,"phase 7, old name still read"
+env var,LITELLM_MCP_HEALTH_CHECK_TIMEOUT,TOKEN_IQ_MCP_HEALTH_CHECK_TIMEOUT,1,"phase 7, old name still read"
+env var,LITELLM_MCP_METADATA_TIMEOUT,TOKEN_IQ_MCP_METADATA_TIMEOUT,1,"phase 7, old name still read"
+env var,LITELLM_MCP_TOOL_LISTING_TIMEOUT,TOKEN_IQ_MCP_TOOL_LISTING_TIMEOUT,1,"phase 7, old name still read"
+env var,LITELLM_METER_NAME,TOKEN_IQ_METER_NAME,1,"phase 7, old name still read"
 env var,LITELLM_MODELS_ONLY,,1,phase 7
 env var,LITELLM_MODEL_COST_MAP_URL,,1,phase 7
-env var,LITELLM_MODIFY_PARAMS,,1,phase 7
+env var,LITELLM_MODIFY_PARAMS,TOKEN_IQ_MODIFY_PARAMS,1,"phase 7, old name still read"
 env var,LITELLM_OTEL_,,1,phase 7
 env var,LITELLM_PACKAGE_ROOT,,1,phase 7
 env var,LITELLM_PARAMS,,1,phase 7
 env var,LITELLM_PKG_MIGRATIONS_PATH,,1,phase 7
-env var,LITELLM_PRINT_STANDARD_LOGGING_PAYLOAD,,1,phase 7
+env var,LITELLM_PRINT_STANDARD_LOGGING_PAYLOAD,TOKEN_IQ_PRINT_STANDARD_LOGGING_PAYLOAD,1,"phase 7, old name still read"
 env var,LITELLM_PRISMA_BOOTSTRAP_TIMEOUT,,1,phase 7
 env var,LITELLM_PRISMA_COMMAND_TIMEOUT,,1,phase 7
 env var,LITELLM_PRISMA_MIGRATE_DEPLOY_TIMEOUT,,1,phase 7
-env var,LITELLM_PROFILE,,1,phase 7
+env var,LITELLM_PROFILE,TOKEN_IQ_PROFILE,1,"phase 7, old name still read"
 env var,LITELLM_PROXY_ALWAYS,,1,phase 7
 env var,LITELLM_PROXY_CONFIG_S3_BUCKET,,1,phase 7
 env var,LITELLM_PROXY_CONFIG_S3_ETAG,,1,phase 7
@@ -731,20 +731,20 @@ env var,LITELLM_PROXY_RESPONSES_MODEL,,1,phase 7
 env var,LITELLM_REPO,,1,phase 7
 env var,LITELLM_RESOURCE,,1,phase 7
 env var,LITELLM_ROOT,,1,phase 7
-env var,LITELLM_ROUTE_ALL_CHAT_OPENAI_TO_RESPONSES,,1,phase 7
+env var,LITELLM_ROUTE_ALL_CHAT_OPENAI_TO_RESPONSES,TOKEN_IQ_ROUTE_ALL_CHAT_OPENAI_TO_RESPONSES,1,"phase 7, old name still read"
 env var,LITELLM_RUN_LIVE_AWS_SECRET_MANAGER_TESTS,,1,phase 7
 env var,LITELLM_RUN_LIVE_BEDROCK_NOVA_JSON_TESTS,,1,phase 7
 env var,LITELLM_RUN_LIVE_BEDROCK_PASSTHROUGH_TESTS,,1,phase 7
 env var,LITELLM_RUN_LIVE_PROMPT_CACHING_TESTS,,1,phase 7
 env var,LITELLM_RUN_LIVE_VERTEX_MISTRAL_OCR_TESTS,,1,phase 7
 env var,LITELLM_SECRET_AWS_KMS_LITELLM_LICENSE,,1,phase 7
-env var,LITELLM_SENSITIVE_ROUTING_TTL,,1,phase 7
-env var,LITELLM_SSL_CIPHERS,,1,phase 7
+env var,LITELLM_SENSITIVE_ROUTING_TTL,TOKEN_IQ_SENSITIVE_ROUTING_TTL,1,"phase 7, old name still read"
+env var,LITELLM_SSL_CIPHERS,TOKEN_IQ_SSL_CIPHERS,1,"phase 7, old name still read"
 env var,LITELLM_TEST_MIN_TABLES,,1,phase 7
 env var,LITELLM_TRACE_CONTROL_METADATA_FIELDS,,1,phase 7
 env var,LITELLM_UI_PORT,,1,phase 7
 env var,LITELLM_UI_STARTUP_TIMEOUT,,1,phase 7
-env var,LITELLM_USE_LEGACY_INTERACTIONS_SCHEMA,,1,phase 7
+env var,LITELLM_USE_LEGACY_INTERACTIONS_SCHEMA,TOKEN_IQ_USE_LEGACY_INTERACTIONS_SCHEMA,1,"phase 7, old name still read"
 env var,LITELLM_USE_RUST_,,1,phase 7
 env var,LITELLM_VERBOSE,,1,phase 7
 env var,LITELLM_VIRTUAL_KEY_PREFIX,,1,phase 7
@@ -2966,6 +2966,89 @@ identifier,upsertLiteLLMFallback,upsertGatewayFallback,1,
 identifier,user_from_litellm_metadata,user_from_gateway_metadata,1,
 identifier,validate_litellm_request,validate_gateway_request,1,
 identifier,vector_store_litellm_params,vector_store_gateway_params,1,
+request header,x-litellm-adaptive-router-model,x-token-iq-adaptive-router-model,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-agent-id,x-token-iq-agent-id,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-api-key,x-token-iq-api-key,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-applied-guardrails,x-token-iq-applied-guardrails,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-applied-policies,x-token-iq-applied-policies,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-attempted-fallbacks,x-token-iq-attempted-fallbacks,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-attempted-retries,x-token-iq-attempted-retries,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-cache-key,x-token-iq-cache-key,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-call-id,x-token-iq-call-id,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-callback-duration-ms,x-token-iq-callback-duration-ms,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-classifier-cost,x-token-iq-classifier-cost,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-cli-poll-secret,x-token-iq-cli-poll-secret,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-customer-id,x-token-iq-customer-id,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-disable-callbacks,x-token-iq-disable-callbacks,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-enable-message-redaction,x-token-iq-enable-message-redaction,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-end-user-id,x-token-iq-end-user-id,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-fallback-errors,x-token-iq-fallback-errors,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-guardrail-scan-id,x-token-iq-guardrail-scan-id,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-keepalive-seconds,x-token-iq-keepalive-seconds,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-key-alias,x-token-iq-key-alias,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-key-max-budget,x-token-iq-key-max-budget,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-key-name,x-token-iq-key-name,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-key-remaining-requests-*,x-token-iq-key-remaining-requests-*,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-key-remaining-tokens-*,x-token-iq-key-remaining-tokens-*,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-key-rpm-limit,x-token-iq-key-rpm-limit,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-key-spend,x-token-iq-key-spend,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-key-tpm-limit,x-token-iq-key-tpm-limit,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-max-retries,x-token-iq-max-retries,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-mcp-debug,x-token-iq-mcp-debug,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-min-quality-tier,x-token-iq-min-quality-tier,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-model,x-token-iq-model,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-model-api-base,x-token-iq-model-api-base,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-model-group,x-token-iq-model-group,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-model-id,x-token-iq-model-id,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-model-name,x-token-iq-model-name,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-model-region,x-token-iq-model-region,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-num-retries,x-token-iq-num-retries,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-org-id,x-token-iq-org-id,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-overhead-duration-ms,x-token-iq-overhead-duration-ms,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-policy-sources,x-token-iq-policy-sources,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-priority,x-token-iq-priority,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-quality-router-complexity,x-token-iq-quality-router-complexity,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-quality-router-keyword,x-token-iq-quality-router-keyword,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-quality-router-model,x-token-iq-quality-router-model,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-quality-router-tier,x-token-iq-quality-router-tier,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-quality-router-via,x-token-iq-quality-router-via,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-rate-limiter-version,x-token-iq-rate-limiter-version,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-request-prioritization-used,x-token-iq-request-prioritization-used,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-response-cost,x-token-iq-response-cost,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-response-cost-cache-creation,x-token-iq-response-cost-cache-creation,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-response-cost-cache-read,x-token-iq-response-cost-cache-read,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-response-cost-discount-amount,x-token-iq-response-cost-discount-amount,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-response-cost-input,x-token-iq-response-cost-input,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-response-cost-margin-amount,x-token-iq-response-cost-margin-amount,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-response-cost-margin-percent,x-token-iq-response-cost-margin-percent,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-response-cost-original,x-token-iq-response-cost-original,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-response-cost-output,x-token-iq-response-cost-output,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-response-cost-reasoning,x-token-iq-response-cost-reasoning,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-response-cost-tool-usage,x-token-iq-response-cost-tool-usage,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-response-duration-ms,x-token-iq-response-duration-ms,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-rust,x-token-iq-rust,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-saturation,x-token-iq-saturation,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-semantic-filter,x-token-iq-semantic-filter,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-semantic-filter-tools,x-token-iq-semantic-filter-tools,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-semantic-similarity,x-token-iq-semantic-similarity,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-session-id,x-token-iq-session-id,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-spend-logs-metadata,x-token-iq-spend-logs-metadata,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-spend-logs-truncated,x-token-iq-spend-logs-truncated,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-stream-timeout,x-token-iq-stream-timeout,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-tags,x-token-iq-tags,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-team-id,x-token-iq-team-id,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-team-name,x-token-iq-team-name,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-timeout,x-token-iq-timeout,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-timing-llm-api-ms,x-token-iq-timing-llm-api-ms,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-timing-message-copy-ms,x-token-iq-timing-message-copy-ms,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-timing-post-processing-ms,x-token-iq-timing-post-processing-ms,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-timing-pre-processing-ms,x-token-iq-timing-pre-processing-ms,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-total-tokens,x-token-iq-total-tokens,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-trace-id,x-token-iq-trace-id,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-user-email,x-token-iq-user-email,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-user-id,x-token-iq-user-id,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-user-role,x-token-iq-user-role,,"phase 7, old name still accepted, only the new one is sent"
+request header,x-litellm-version,x-token-iq-version,,"phase 7, old name still accepted, only the new one is sent"
 metric name,litellm_core_utils,,1083,phase 9
 metric name,litellm_logging,,558,phase 9
 metric name,litellm_call_id,,285,phase 9
@@ -3107,6 +3190,3 @@ metric name,litellm_tokens_metric,,1,phase 9
 metric name,litellm_total_tokens_metric_total,,1,phase 9
 metric name,litellm_total_users_total,,1,phase 9
 metric name,litellm_user_email_metric,,1,phase 9
-request header,x_litellm_api_key,,3,phase 7
-request header,x_litellm_cli_poll_secret,,2,phase 7
-request header,x_litellm_tags,,1,phase 7
