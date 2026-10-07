@@ -15,7 +15,7 @@ from token_iq.gateway.types.llms.openai import ResponsesAPIResponse, ResponsesAP
 class ResponsePollingHandler:
     """Handles polling-based responses with Redis cache"""
 
-    CACHE_KEY_PREFIX = "litellm:polling:response:"
+    CACHE_KEY_PREFIX = "token_iq:polling:response:"
     POLLING_ID_PREFIX = "litellm_poll_"  # Clear prefix to identify polling IDs
 
     def __init__(self, redis_cache: RedisCache | None = None, ttl: int = 3600):

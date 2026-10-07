@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from typing_extensions import TypeIs  # noqa: TID251  # narrows untyped wire payloads without a runtime conversion
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
 from token_iq.gateway.types.llms.openai import (
@@ -26,6 +27,12 @@ from token_iq.gateway.types.utils import (
     SpecialEnums,
     Usage,
 )
+
+
+def _without_id_prefix(part: str) -> str:
+    """One field of a decoded identifier, with whichever spelling of the engine's prefix it carries gone."""
+    stripped: Final = compat.strip_id_prefix(part)
+    return part if stripped is None else stripped
 
 
 def _is_object_sequence(value: object) -> TypeIs[Sequence[object]]:  # guard-ok: a list is a Sequence of anything
@@ -366,7 +373,7 @@ class ResponsesAPIRequestUtils:
 
         Format: ``encitem_{base64("litellm:model_id:{model_id};item_id:{original_id}")}``
         """
-        assembled: Final = f"litellm:model_id:{model_id};item_id:{item_id}"
+        assembled: Final = f"token_iq:model_id:{model_id};item_id:{item_id}"
         encoded: Final = base64.b64encode(assembled.encode("utf-8")).decode("utf-8")
         return f"encitem_{encoded}"
 
@@ -390,7 +397,7 @@ class ResponsesAPIRequestUtils:
             parts: Final = decoded.split(";", 1)
             if len(parts) < 2:
                 return None
-            model_id: Final = parts[0].replace("litellm:model_id:", "")
+            model_id: Final = _without_id_prefix(parts[0]).removeprefix("model_id:")
             item_id: Final = parts[1].replace("item_id:", "")
             return {"model_id": model_id, "item_id": item_id}
         except Exception:
@@ -403,11 +410,11 @@ class ResponsesAPIRequestUtils:
         When Codex or other clients send items with encrypted_content but no ID,
         we encode the model_id directly into the encrypted_content itself.
 
-        Format: ``litellm_enc:{base64("model_id:{model_id}")};{original_encrypted_content}``
+        Format: ``token_iq_enc:{base64("model_id:{model_id}")};{original_encrypted_content}``
         """
         metadata: Final = f"model_id:{model_id}"
         encoded_metadata: Final = base64.b64encode(metadata.encode("utf-8")).decode("utf-8")
-        return f"litellm_enc:{encoded_metadata};{encrypted_content}"
+        return f"{compat.NEW_WRAPPED_CONTENT_PREFIX}{encoded_metadata};{encrypted_content}"
 
     @staticmethod
     def _unwrap_encrypted_content_with_model_id(
@@ -419,16 +426,17 @@ class ResponsesAPIRequestUtils:
             Tuple of (model_id, original_encrypted_content).
             If not wrapped, returns (None, original_content).
         """
-        if not wrapped_content.startswith("litellm_enc:"):
+        body: Final = compat.strip_wrapped_content_prefix(wrapped_content)
+        if body is None:
             return None, wrapped_content
 
         try:
             # Split on first ";" to separate metadata from content
-            parts: Final = wrapped_content.split(";", 1)
+            parts: Final = body.split(";", 1)
             if len(parts) < 2:
                 return None, wrapped_content
 
-            metadata_b64 = parts[0].replace("litellm_enc:", "")
+            metadata_b64 = parts[0]
             original_content: Final = parts[1]
 
             # Restore padding if needed
@@ -581,7 +589,7 @@ class ResponsesAPIRequestUtils:
                 model_id_part: Final = parts[1]
                 response_part: Final = parts[2]
 
-                custom_llm_provider = custom_llm_provider_part.replace("litellm:custom_llm_provider:", "")
+                custom_llm_provider = _without_id_prefix(custom_llm_provider_part).removeprefix("custom_llm_provider:")
                 model_id = model_id_part.replace("model_id:", "")
                 decoded_response_id = response_part.replace("response_id:", "")
             else:
@@ -649,7 +657,7 @@ class ResponsesAPIRequestUtils:
         # Avoid serializing Python None as the literal string "None" (breaks router affinity).
         provider_part: Final = "" if custom_llm_provider is None else custom_llm_provider
         model_part: Final = "" if model_id is None else model_id
-        assembled_id = f"litellm:custom_llm_provider:{provider_part};model_id:{model_part};container_id:{container_id}"
+        assembled_id = f"token_iq:custom_llm_provider:{provider_part};model_id:{model_part};container_id:{container_id}"
         base64_encoded_id: Final = base64.b64encode(assembled_id.encode("utf-8")).decode("utf-8")
         return f"cntr_{base64_encoded_id}"
 
@@ -674,7 +682,7 @@ class ResponsesAPIRequestUtils:
             decoded_id: Final = base64.b64decode(cleaned_id.encode("utf-8")).decode("utf-8")
 
             # Parse components using regex to handle semicolons in the container_id
-            if not decoded_id.startswith("litellm:"):
+            if not compat.has_id_prefix(decoded_id):
                 return DecodedResponseId(
                     custom_llm_provider=None,
                     model_id=None,
@@ -682,10 +690,13 @@ class ResponsesAPIRequestUtils:
                 )
 
             # Use regex to extract the three parts, allowing semicolons in container_id
-            # Format: litellm:custom_llm_provider:{provider};model_id:{model};container_id:{container}
-            # * for provider/model allows empty segments (missing router model_id).
-            pattern: Final = r"^litellm:custom_llm_provider:([^;]*);model_id:([^;]*);container_id:(.+)$"
-            match: Final = re.match(pattern, decoded_id)
+            # Format: <prefix>custom_llm_provider:{provider};model_id:{model};container_id:{container}
+            # * for provider/model allows empty segments (missing router model_id). The prefix is matched
+            # through the compatibility seam, so an id issued before the rename still decodes and one
+            # issued after it decodes at all.
+            body: Final = compat.strip_id_prefix(decoded_id) or ""
+            pattern: Final = r"^custom_llm_provider:([^;]*);model_id:([^;]*);container_id:(.+)$"
+            match: Final = re.match(pattern, body)
 
             if not match:
                 return DecodedResponseId(

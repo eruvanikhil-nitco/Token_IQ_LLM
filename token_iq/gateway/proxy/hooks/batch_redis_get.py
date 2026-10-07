@@ -48,7 +48,7 @@ class _PROXY_BatchRedisRequests(CustomLogger):
             """
             api_key: Final = user_api_key_dict.api_key
 
-            cache_key_name: Final = f"litellm:{api_key}:{call_type}"
+            cache_key_name: Final = f"token_iq:{api_key}:{call_type}"
             self.in_memory_cache = cache.in_memory_cache
 
             key_value_dict = {}

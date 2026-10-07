@@ -268,3 +268,63 @@ def both_spellings(names: Iterable[str]) -> tuple[str, ...]:
 def is_gateway_header(name: str) -> bool:
     """Whether this is one of the engine's own headers, under either spelling of the prefix."""
     return name.lower().startswith(HEADER_PREFIXES)
+
+
+OLD_ID_PREFIX: Final = "litellm:"
+NEW_ID_PREFIX: Final = "token_iq:"
+ID_PREFIXES: Final = (NEW_ID_PREFIX, OLD_ID_PREFIX)
+"""The prefix inside an identifier the engine hands a caller and later reads back.
+
+A file id, a batch id, a response item id and a container id are all base64 of a string that starts with
+this. The caller stores the result and sends it back whenever it likes, so an id issued before the rename
+has to keep decoding for as long as anything a customer saved is still in use. New ones carry the new
+spelling; both are accepted on the way in.
+"""
+
+
+def strip_id_prefix(decoded: str) -> str | None:
+    """What follows the prefix in a decoded identifier, or None when it carries neither spelling."""
+    for prefix in ID_PREFIXES:
+        if decoded.startswith(prefix):
+            return decoded[len(prefix) :]
+    return None
+
+
+def has_id_prefix(decoded: str) -> bool:
+    """Whether this decoded identifier is one the engine issued, under either spelling."""
+    return decoded.startswith(ID_PREFIXES)
+
+
+OLD_WRAPPED_CONTENT_PREFIX: Final = "litellm_enc:"
+NEW_WRAPPED_CONTENT_PREFIX: Final = "token_iq_enc:"
+WRAPPED_CONTENT_PREFIXES: Final = (NEW_WRAPPED_CONTENT_PREFIX, OLD_WRAPPED_CONTENT_PREFIX)
+"""The prefix on encrypted content the engine wraps a model id into and a client sends back verbatim.
+
+The same situation as an identifier, one layer in: a Codex client holds the wrapped content and replays it,
+so content wrapped before the rename has to keep unwrapping.
+"""
+
+
+def strip_wrapped_content_prefix(wrapped: str) -> str | None:
+    """What follows the prefix in wrapped content, or None when it carries neither spelling."""
+    for prefix in WRAPPED_CONTENT_PREFIXES:
+        if wrapped.startswith(prefix):
+            return wrapped[len(prefix) :]
+    return None
+
+
+def both_claim_sources(sources: Iterable[str]) -> tuple[str, ...]:
+    """Each claim source a guardrail accepts, followed by the spelling it had before the rename.
+
+    A customer writes these in their config, so the old ones keep working. Unlike a header, the engine never
+    sends one back, so there is nothing to stop emitting.
+    """
+    return tuple(
+        spelling
+        for source in sources
+        for spelling in (
+            source,
+            source.replace(NEW_ID_PREFIX, OLD_ID_PREFIX, 1) if source.startswith(NEW_ID_PREFIX) else None,
+        )
+        if spelling is not None
+    )

@@ -142,3 +142,85 @@ class TestNoTargetNamesTheOldPackage:
             f"{where}:{line} patches {target}, which moved to token_iq.gateway in phase 6"
             for where, target, line in STALE_TARGETS
         )
+
+
+ENGINE_PATH: Final = re.compile(r"^token_iq(\.[A-Za-z_][A-Za-z0-9_]*)+$")
+"""A dotted path into the engine and nothing else. `TARGET` above is loose enough to match a hostname, and
+`litellm.example.com` appears in a test as one."""
+
+DELIBERATELY_ABSENT: Final[frozenset[str]] = frozenset(
+    {
+        # A fixture in the mutation report's own test, standing in for a mutated function.
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.x_2",
+        # The snapshot test asserts what happens when a lazy import names nothing.
+        "token_iq.gateway.proxy.this_module_does_not_exist",
+    }
+)
+"""Paths a test names on purpose because nothing is there. Each needs a reason beside it."""
+
+
+def _dotted_paths_outside_patches() -> tuple[tuple[str, str, int], ...]:
+    """Every dotted path into the engine written as a string somewhere other than a `patch` call.
+
+    The gate above sees only the first argument of a `patch`-ish call, and a target held in a
+    `parametrize` list is not that. Three tests patched `litellm.afile_delete` from one of those lists and
+    had been failing since phase 6 moved the package, with nothing saying why: `mock.patch` reports a
+    missing module only once a test enters the patch, and these were failing inside a suite that already
+    could not import the enterprise package.
+    """
+    return tuple(
+        (path.relative_to(REPO).as_posix(), node.value, node.lineno)
+        for path in TESTS.rglob("test_*.py")
+        if "node_modules" not in path.parts
+        for tree in (_parsed(path),)
+        if tree is not None
+        for patched in (
+            {
+                id(call.args[0])
+                for call in ast.walk(tree)
+                if isinstance(call, ast.Call) and call.args and isinstance(call.args[0], ast.Constant)
+            },
+        )
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Constant)
+        and isinstance(node.value, str)
+        and ENGINE_PATH.match(node.value)
+        and id(node) not in patched
+        and node.value not in DELIBERATELY_ABSENT
+    )
+
+
+def _parsed(path: pathlib.Path) -> ast.Module | None:
+    try:
+        return ast.parse(path.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError, UnicodeDecodeError):
+        return None
+
+
+DOTTED_PATHS: Final = _dotted_paths_outside_patches()
+
+
+def _names_something(target: str) -> bool:
+    """Whether this path names a module or an attribute.
+
+    `_resolves` above deliberately starts one segment in, because that is what `mock.patch` does: it imports
+    the parent and reaches for the last part as an attribute. A path in a `parametrize` list is often a whole
+    module path instead, and `token_iq.gateway.proxy.proxy_server` is not an attribute of
+    `token_iq.gateway.proxy` until something has imported it.
+    """
+    try:
+        _ = importlib.import_module(target)
+    except ImportError:
+        return _resolves(target)
+    return True
+
+
+class TestDottedPathsOutsidePatchCalls:
+    def test_there_are_some_to_check(self) -> None:
+        assert DOTTED_PATHS, "no dotted paths into token_iq were found outside patch calls; the scan is broken"
+
+    @pytest.mark.parametrize(("where", "target", "line"), DOTTED_PATHS)
+    def test_the_path_exists(self, where: str, target: str, line: int) -> None:
+        """Most of these are patch targets held in a `parametrize` list. A few name a module for some other
+        reason, and those should resolve too, so one rule covers both."""
+        assert _names_something(target), f"{where}:{line} names {target}, which resolves to nothing"

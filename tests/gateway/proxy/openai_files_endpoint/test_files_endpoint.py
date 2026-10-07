@@ -3601,9 +3601,9 @@ def test_list_files_key_allowed_openai_model_still_resolves_team_credentials(
 @pytest.mark.parametrize(
     "http_method, url, patched_gateway_call",
     [
-        ("get", "/v1/files/file-victim-abc123", "litellm.afile_retrieve"),
-        ("get", "/v1/files/file-victim-abc123/content", "litellm.afile_content"),
-        ("delete", "/v1/files/file-victim-abc123", "litellm.afile_delete"),
+        ("get", "/v1/files/file-victim-abc123", "token_iq.gateway.afile_retrieve"),
+        ("get", "/v1/files/file-victim-abc123/content", "token_iq.gateway.afile_content"),
+        ("delete", "/v1/files/file-victim-abc123", "token_iq.gateway.afile_delete"),
     ],
 )
 def test_require_managed_files_rejects_raw_provider_file_id(

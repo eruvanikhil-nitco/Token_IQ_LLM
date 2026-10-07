@@ -205,7 +205,7 @@ def encode_file_id_with_model(file_id: str, model: str, id_type: Literal["file",
         encode_file_id_with_model("3814889423749775360", "gemini-2.5-pro", id_type="batch")
         -> "batch_bGl0ZWxsbTozODE0ODg5NDIzNzQ5Nzc1MzYwO21vZGVsLGdlbWluaS0yLjUtcHJv"
     """
-    encoded_str: Final = f"litellm:{file_id};model,{model}"
+    encoded_str: Final = f"token_iq:{file_id};model,{model}"
     encoded_bytes: Final = base64.urlsafe_b64encode(encoded_str.encode())
     encoded_b64: Final = encoded_bytes.decode().rstrip("=")
 
@@ -255,7 +255,7 @@ def decode_model_from_file_id(encoded_id: str) -> str | None:
 
         padded: Final = b64_part + "=" * (-len(b64_part) % 4)
         decoded: Final = base64.urlsafe_b64decode(padded).decode()
-        if decoded.startswith("litellm:") and ";model," in decoded:
+        if compat.has_id_prefix(decoded) and ";model," in decoded:
             match: Final = re.search(r";model,([^;]+)", decoded)
             if match:
                 return match.group(1).strip()
@@ -285,10 +285,9 @@ def get_original_file_id(encoded_id: str) -> str:
         padded: Final = b64_part + "=" * (-len(b64_part) % 4)
         decoded: Final = base64.urlsafe_b64decode(padded).decode()
 
-        if decoded.startswith("litellm:") and ";model," in decoded:
-            match: Final = re.search(r"litellm:([^;]+);model,", decoded)
-            if match:
-                return match.group(1)
+        body: Final = compat.strip_id_prefix(decoded)
+        if body is not None and ";model," in body:
+            return body.split(";model,", 1)[0]
 
         return encoded_id
     except Exception:

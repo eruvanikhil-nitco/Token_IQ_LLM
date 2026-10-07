@@ -9,6 +9,7 @@ These go through `ProxyConfig.get_config`, which is where every source of config
 than starting a server. Starting one needs a database, and what is under test is the reading.
 """
 
+import base64
 import os
 import pathlib
 import textwrap
@@ -423,3 +424,106 @@ def _clear_caches() -> None:
             clear = getattr(getattr(module, name), "cache_clear", None)
             if clear is not None:
                 clear()
+
+
+# --- Identifiers a caller stores and sends back -----------------------------------------------------
+#
+# A file id, a batch id, a response id, a container id, an item id and wrapped encrypted content are all
+# base64 of a string the engine prefixed. The caller keeps the result for as long as it likes, so the old
+# prefix has to keep decoding even though new ones carry the new spelling. Getting this wrong does not fail
+# at boot: it fails the first time a customer references a file they uploaded last week.
+
+
+def _encoded(body: str, prefix: str, *, urlsafe: bool = False) -> str:
+    raw = f"{body}".encode()
+    encoder = base64.urlsafe_b64encode if urlsafe else base64.b64encode
+    return encoder(raw).decode().rstrip("=") if urlsafe else encoder(raw).decode()
+
+
+def test_a_file_id_issued_before_the_rename_still_decodes() -> None:
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
+        decode_model_from_file_id,
+        get_original_file_id,
+    )
+
+    issued_then = "file-" + _encoded("litellm:file-abc123;model,gpt-4o", "", urlsafe=True)
+
+    assert get_original_file_id(issued_then) == "file-abc123"
+    assert decode_model_from_file_id(issued_then) == "gpt-4o"
+
+
+def test_a_file_id_issued_now_carries_the_new_prefix_and_decodes() -> None:
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
+        decode_model_from_file_id,
+        encode_file_id_with_model,
+        get_original_file_id,
+    )
+
+    issued_now = encode_file_id_with_model("file-abc123", "gpt-4o")
+    inside = base64.urlsafe_b64decode(issued_now[len("file-") :] + "==").decode()
+
+    assert inside.startswith("token_iq:")
+    assert get_original_file_id(issued_now) == "file-abc123"
+    assert decode_model_from_file_id(issued_now) == "gpt-4o"
+
+
+@pytest.mark.parametrize("prefix", ["litellm", "token_iq"], ids=["before the rename", "now"])
+def test_a_response_id_decodes_under_either_prefix(prefix: str) -> None:
+    from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+
+    body = f"{prefix}:custom_llm_provider:openai;model_id:m1;response_id:r1"
+    decoded = ResponsesAPIRequestUtils._decode_responses_api_response_id("resp_" + _encoded(body, prefix))
+
+    assert decoded["custom_llm_provider"] == "openai"
+    assert decoded["model_id"] == "m1"
+    assert decoded["response_id"] == "r1"
+
+
+@pytest.mark.parametrize("prefix", ["litellm", "token_iq"], ids=["before the rename", "now"])
+def test_a_container_id_decodes_under_either_prefix(prefix: str) -> None:
+    """The regex here was anchored on the old prefix, so renaming only the side that writes it left every
+    container id the engine issued afterwards undecodable."""
+    from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+
+    body = f"{prefix}:custom_llm_provider:openai;model_id:m1;container_id:c1"
+
+    assert ResponsesAPIRequestUtils.decode_container_id_to_original("cntr_" + _encoded(body, prefix)) == "c1"
+
+
+@pytest.mark.parametrize("prefix", ["litellm", "token_iq"], ids=["before the rename", "now"])
+def test_an_item_id_decodes_under_either_prefix(prefix: str) -> None:
+    from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+
+    body = f"{prefix}:model_id:m1;item_id:orig-9"
+    decoded = ResponsesAPIRequestUtils._decode_encrypted_item_id("encitem_" + _encoded(body, prefix, urlsafe=True))
+
+    assert decoded == {"model_id": "m1", "item_id": "orig-9"}
+
+
+@pytest.mark.parametrize("prefix", ["litellm_enc", "token_iq_enc"], ids=["before the rename", "now"])
+def test_wrapped_encrypted_content_unwraps_under_either_prefix(prefix: str) -> None:
+    """A Codex client replays this verbatim, so content wrapped last week has to keep unwrapping."""
+    from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+
+    wrapped = f"{prefix}:{base64.b64encode(b'model_id:m1').decode()};CONTENT"
+
+    assert ResponsesAPIRequestUtils._unwrap_encrypted_content_with_model_id(wrapped) == ("m1", "CONTENT")
+
+
+def test_something_the_engine_did_not_issue_is_left_alone() -> None:
+    """A provider's own id has no prefix of ours, and must come back unchanged rather than half-parsed."""
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import get_original_file_id
+
+    theirs = "file-" + _encoded("someone_else:file-abc;model,x", "", urlsafe=True)
+
+    assert get_original_file_id(theirs) == theirs
+
+
+# --- Claim sources a customer writes ----------------------------------------------------------------
+
+
+@pytest.mark.parametrize("spelling", ["litellm:user_id", "token_iq:user_id"], ids=["before the rename", "now"])
+def test_a_guardrail_claim_source_works_under_either_spelling(spelling: str) -> None:
+    """These sit in a customer's guardrail config, so the old spelling keeps resolving. Nothing sends one
+    back, so unlike a header there is no new-names-only side to this."""
+    assert spelling in compat.both_claim_sources(("token_iq:user_id",))

@@ -186,3 +186,22 @@ def test_the_notes_say_what_prometheus_appends() -> None:
 def test_the_notes_say_the_label_is_not_renamed() -> None:
     """It is also a key in the engine's hidden parameters, so a query grouping by it keeps working."""
     assert "`litellm_model_name` keeps its name" in CHANGELOG.read_text(encoding="utf-8")
+
+
+def test_the_notes_say_to_flush_the_counters_first() -> None:
+    """A cache entry that disappears costs one slow request. A spend or rate-limit counter that disappears
+    resets a budget window, and the plan asks for this to be said out loud."""
+    text = CHANGELOG.read_text(encoding="utf-8")
+
+    assert "Flush any spend or rate-limit counters to the database before upgrading" in text
+
+
+def test_the_notes_say_saved_identifiers_stay_valid() -> None:
+    """Otherwise a customer reads that a prefix moved and assumes every file they uploaded is now unusable."""
+    text = CHANGELOG.read_text(encoding="utf-8")
+
+    # Read with newlines flattened, because the notes are wrapped and a phrase can straddle two lines.
+    flat = " ".join(text.split())
+
+    assert "every one issued before this release still decodes" in flat
+    assert "nothing to migrate and nothing to re-upload" in flat

@@ -325,7 +325,7 @@ class MCPJWTSigner(CustomGuardrail):
         # Default chain: try incoming JWT sub, fall back to litellm user_id
         self.end_user_claim_sources: list[str] = end_user_claim_sources or [
             "token:sub",
-            "litellm:user_id",
+            "token_iq:user_id",
         ]
 
         # --- FR-13: Claim operations ---
@@ -579,19 +579,19 @@ class MCPJWTSigner(CustomGuardrail):
                 raw = (jwt_claims or {}).get(claim_name)
                 value = str(raw) if raw else None
 
-            elif source == "litellm:user_id":
+            elif source in compat.both_claim_sources(("token_iq:user_id",)):
                 uid = user_api_key_dict.user_id
                 value = str(uid) if uid else None
 
-            elif source == "litellm:email":
+            elif source in compat.both_claim_sources(("token_iq:email",)):
                 email = user_api_key_dict.user_email
                 value = str(email) if email else None
 
-            elif source == "litellm:end_user_id":
+            elif source in compat.both_claim_sources(("token_iq:end_user_id",)):
                 eid = user_api_key_dict.end_user_id
                 value = str(eid) if eid else None
 
-            elif source == "litellm:team_id":
+            elif source in compat.both_claim_sources(("token_iq:team_id",)):
                 tid = user_api_key_dict.team_id
                 value = str(tid) if tid else None
 

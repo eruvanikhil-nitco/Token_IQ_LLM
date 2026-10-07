@@ -78,7 +78,7 @@ router: Final = APIRouter(prefix="/v1/mcp", tags=["mcp"])
 MCP_AVAILABLE: bool = True
 
 TEMPORARY_MCP_SERVER_TTL_SECONDS: Final = 300
-TEMPORARY_MCP_SERVER_REDIS_KEY_PREFIX: Final = "litellm:mcp:temporary_server"
+TEMPORARY_MCP_SERVER_REDIS_KEY_PREFIX: Final = "token_iq:mcp:temporary_server"
 
 
 class _HasServerId(Protocol):

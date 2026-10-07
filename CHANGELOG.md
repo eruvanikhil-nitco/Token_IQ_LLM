@@ -339,6 +339,29 @@ new names.
 | `litellm_user_max_budget_metric` | `token_iq_user_max_budget_metric` |
 | `litellm_video_duration_seconds_metric` | `token_iq_video_duration_seconds_metric` |
 
+#### Redis and cache keys
+
+Three cache key prefixes move: the batch read-through cache, the temporary MCP server registry and the
+response polling store. Entries written under the old prefix are simply never read again, which costs one
+miss each and nothing more.
+
+**Flush any spend or rate-limit counters to the database before upgrading.** Those live in Redis under keys
+this release no longer reads, and unlike a cache entry a counter that disappears resets a budget window or a
+rate limit rather than causing one slow request.
+
+If you set a Redis namespace yourself, it is untouched: the engine has never added a prefix of its own on
+top of yours.
+
+#### Identifiers you already hold
+
+A file id, a batch id, a response id, a container id, an item id and wrapped encrypted content all carry a
+prefix inside them. New ones say `token_iq`, and every one issued before this release still decodes, because
+anything you saved stays valid for as long as you keep it. There is nothing to migrate and nothing to
+re-upload.
+
+The claim sources a guardrail config can name, `litellm:user_id` and its three neighbours, keep working
+alongside `token_iq:user_id`.
+
 #### What is not renamed
 
 The Prometheus label `litellm_model_name` keeps its name. It is also a key in the engine's hidden
