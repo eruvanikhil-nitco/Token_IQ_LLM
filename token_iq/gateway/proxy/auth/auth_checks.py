@@ -951,7 +951,7 @@ async def common_checks(
                 trace_id: Final = get_chain_id_from_headers(headers_dict)
                 if not trace_id:
                     raise ProxyException(
-                        message="Requests made with this agent's key must include the x-litellm-trace-id header.",
+                        message="Requests made with this agent's key must include the x-token-iq-trace-id header.",
                         type=ProxyErrorTypes.bad_request_error,
                         param=None,
                         code=status.HTTP_400_BAD_REQUEST,

@@ -42,7 +42,7 @@ RUST_CHAT_COMPLETIONS_PROVIDERS: Final = frozenset({"anthropic", "bedrock"})
 # rather than narrowing an unparameterized `Mapping` and typing the result Any.
 _GATEWAY_METADATA_ADAPTER: Final = TypeAdapter(Mapping[str, object])
 
-RUST_RESPONSE_HEADER: Final = "x-litellm-rust"
+RUST_RESPONSE_HEADER: Final = "x-token-iq-rust"
 
 
 class RustChatCompletions(Protocol):

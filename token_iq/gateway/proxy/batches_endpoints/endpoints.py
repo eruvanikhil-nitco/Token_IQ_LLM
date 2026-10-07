@@ -47,6 +47,7 @@ from token_iq.gateway.proxy.route_llm_request import raise_if_required_body_para
 from token_iq.gateway.proxy.utils import handle_exception_on_proxy, is_known_model
 from token_iq.gateway.repositories.table_repositories import ManagedFileRepository
 from token_iq.gateway.types.llms.openai import GatewayBatchCreateRequest
+from token_iq.gateway import compat
 
 router: Final = APIRouter()
 
@@ -303,7 +304,7 @@ async def create_batch(
         else:
             # Check if model specified via header/query/body param
             model_param: Final = (
-                data.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+                data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
             )
 
             # SCENARIO 2 & 3: Model from header/query OR custom_llm_provider fallback
@@ -758,7 +759,7 @@ async def list_batches(
                 llm_router=llm_router,
             )
         elif model_param := (
-            data.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+            data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
         ):
             # SCENARIO 2: Use model-based routing from header/query/body
             credentials: Final = get_credentials_for_model(

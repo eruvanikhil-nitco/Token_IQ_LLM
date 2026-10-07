@@ -85,11 +85,11 @@ async def test_rerank_emits_latency_and_cost_headers():
     """/rerank must surface the same hidden_params-derived headers as /chat/completions."""
     fastapi_response = await _call_rerank()
 
-    assert fastapi_response.headers["x-litellm-call-id"] == "call-123"
-    assert fastapi_response.headers["x-litellm-response-duration-ms"] == "1500.5"
-    assert fastapi_response.headers["x-litellm-overhead-duration-ms"] == "12.5"
-    assert fastapi_response.headers["x-litellm-callback-duration-ms"] == "1.25"
-    assert fastapi_response.headers["x-litellm-response-cost"] == "0.002"
+    assert fastapi_response.headers["x-token-iq-call-id"] == "call-123"
+    assert fastapi_response.headers["x-token-iq-response-duration-ms"] == "1500.5"
+    assert fastapi_response.headers["x-token-iq-overhead-duration-ms"] == "12.5"
+    assert fastapi_response.headers["x-token-iq-callback-duration-ms"] == "1.25"
+    assert fastapi_response.headers["x-token-iq-response-cost"] == "0.002"
 
 
 @pytest.mark.asyncio
@@ -98,10 +98,10 @@ async def test_rerank_emits_detailed_timing_headers_when_enabled():
     with patch.object(common_request_processing_mod, "LITELLM_DETAILED_TIMING", True):  # test-quality-ok: LITELLM_DETAILED_TIMING is a module constant; toggling it is the behavior under test
         fastapi_response = await _call_rerank()
 
-    assert fastapi_response.headers["x-litellm-timing-llm-api-ms"] == "1488.0"
-    assert fastapi_response.headers["x-litellm-timing-pre-processing-ms"] == "10.0"
-    assert fastapi_response.headers["x-litellm-timing-post-processing-ms"] == "2.5"
-    assert fastapi_response.headers["x-litellm-timing-message-copy-ms"] == "0.01"
+    assert fastapi_response.headers["x-token-iq-timing-llm-api-ms"] == "1488.0"
+    assert fastapi_response.headers["x-token-iq-timing-pre-processing-ms"] == "10.0"
+    assert fastapi_response.headers["x-token-iq-timing-post-processing-ms"] == "2.5"
+    assert fastapi_response.headers["x-token-iq-timing-message-copy-ms"] == "0.01"
 
 
 @pytest.mark.asyncio
@@ -109,7 +109,7 @@ async def test_rerank_emits_zero_response_cost_header():
     """A free deployment costs 0.0, which is a real cost and must not be dropped."""
     fastapi_response = await _call_rerank({**HIDDEN_PARAMS, "response_cost": 0.0})
 
-    assert fastapi_response.headers["x-litellm-response-cost"] == "0.0"
+    assert fastapi_response.headers["x-token-iq-response-cost"] == "0.0"
 
 
 @pytest.mark.asyncio
@@ -117,4 +117,4 @@ async def test_rerank_omits_detailed_timing_headers_when_disabled():
     with patch.object(common_request_processing_mod, "LITELLM_DETAILED_TIMING", False):  # test-quality-ok: LITELLM_DETAILED_TIMING is a module constant; toggling it is the behavior under test
         fastapi_response = await _call_rerank()
 
-    assert "x-litellm-timing-llm-api-ms" not in fastapi_response.headers
+    assert "x-token-iq-timing-llm-api-ms" not in fastapi_response.headers

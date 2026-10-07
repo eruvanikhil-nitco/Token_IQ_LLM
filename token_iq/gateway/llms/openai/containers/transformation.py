@@ -23,6 +23,7 @@ from token_iq.gateway.types.router import GenericGatewayParams
 
 from ...base_llm.containers.transformation import BaseContainerConfig
 from .utils import join_container_api_base_path
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
@@ -169,7 +170,7 @@ class OpenAIContainerConfig(BaseContainerConfig):
             container_obj._hidden_params = {}
         if "additional_headers" not in container_obj._hidden_params:
             container_obj._hidden_params["additional_headers"] = {}
-        container_obj._hidden_params["additional_headers"]["llm_provider-x-litellm-response-cost"] = container_cost
+        container_obj._hidden_params["additional_headers"][compat.PROVIDER_COST_KEY] = container_cost
 
         return container_obj
 

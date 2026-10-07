@@ -755,23 +755,23 @@ async def test_gateway_context_headers_automatically_added(
         )
 
     # Verify LiteLLM context headers are present
-    assert "X-LiteLLM-Key-Name" in captured_headers
-    assert captured_headers["X-LiteLLM-Key-Name"] == "production-api-key"
-    assert "X-LiteLLM-Key-Alias" in captured_headers
-    assert captured_headers["X-LiteLLM-Key-Alias"] == "prod-key"
-    assert "X-LiteLLM-User-Id" in captured_headers
-    assert captured_headers["X-LiteLLM-User-Id"] == "user-123"
-    assert "X-LiteLLM-User-Email" in captured_headers
-    assert captured_headers["X-LiteLLM-User-Email"] == "test@example.com"
-    assert "X-LiteLLM-Team-Id" in captured_headers
-    assert captured_headers["X-LiteLLM-Team-Id"] == "team-456"
-    assert "X-LiteLLM-Team-Name" in captured_headers
-    assert captured_headers["X-LiteLLM-Team-Name"] == "engineering-team"
-    assert "X-LiteLLM-Org-Id" in captured_headers
-    assert captured_headers["X-LiteLLM-Org-Id"] == "org-789"
+    assert "x-token-iq-key-name" in captured_headers
+    assert captured_headers["x-token-iq-key-name"] == "production-api-key"
+    assert "x-token-iq-key-alias" in captured_headers
+    assert captured_headers["x-token-iq-key-alias"] == "prod-key"
+    assert "x-token-iq-user-id" in captured_headers
+    assert captured_headers["x-token-iq-user-id"] == "user-123"
+    assert "x-token-iq-user-email" in captured_headers
+    assert captured_headers["x-token-iq-user-email"] == "test@example.com"
+    assert "x-token-iq-team-id" in captured_headers
+    assert captured_headers["x-token-iq-team-id"] == "team-456"
+    assert "x-token-iq-team-name" in captured_headers
+    assert captured_headers["x-token-iq-team-name"] == "engineering-team"
+    assert "x-token-iq-org-id" in captured_headers
+    assert captured_headers["x-token-iq-org-id"] == "org-789"
 
     # Metadata is NOT sent (may contain sensitive information)
-    assert "X-LiteLLM-Metadata" not in captured_headers
+    assert "x-token-iq-metadata" not in captured_headers
 
 
 @pytest.mark.asyncio
@@ -812,14 +812,14 @@ async def test_gateway_context_with_partial_fields(
         )
 
     # Verify only populated fields are present
-    assert "X-LiteLLM-User-Id" in captured_headers
-    assert captured_headers["X-LiteLLM-User-Id"] == "user-only"
-    assert "X-LiteLLM-Team-Id" in captured_headers
-    assert captured_headers["X-LiteLLM-Team-Id"] == "team-only"
+    assert "x-token-iq-user-id" in captured_headers
+    assert captured_headers["x-token-iq-user-id"] == "user-only"
+    assert "x-token-iq-team-id" in captured_headers
+    assert captured_headers["x-token-iq-team-id"] == "team-only"
 
     # Verify empty fields are not present
-    assert "X-LiteLLM-Key-Name" not in captured_headers
-    assert "X-LiteLLM-User-Email" not in captured_headers
+    assert "x-token-iq-key-name" not in captured_headers
+    assert "x-token-iq-user-email" not in captured_headers
 
 
 # =========================================================================

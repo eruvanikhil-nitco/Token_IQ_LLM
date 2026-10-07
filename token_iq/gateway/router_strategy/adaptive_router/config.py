@@ -43,7 +43,7 @@ LOOP_REPEAT_THRESHOLD: Final[int] = 3
 TOOL_CALL_HISTORY_MAX: Final[int] = 20
 
 # D1 — Caller filter for min quality tier.
-MIN_QUALITY_TIER_HEADER: Final[str] = "x-litellm-min-quality-tier"
+MIN_QUALITY_TIER_HEADER: Final[str] = "x-token-iq-min-quality-tier"
 MIN_QUALITY_TIER_METADATA_KEY: Final[str] = "min_quality_tier"
 
 # Pre-routing -> post-call relay: the chosen logical model is stashed on
@@ -51,4 +51,4 @@ MIN_QUALITY_TIER_METADATA_KEY: Final[str] = "min_quality_tier"
 # pre-routing hook, then read by the post-call hook to surface as the
 # ADAPTIVE_ROUTER_RESPONSE_HEADER response header.
 ADAPTIVE_ROUTER_CHOSEN_MODEL_KEY: Final[str] = "adaptive_router_chosen_model"
-ADAPTIVE_ROUTER_RESPONSE_HEADER: Final[str] = "x-litellm-adaptive-router-model"
+ADAPTIVE_ROUTER_RESPONSE_HEADER: Final[str] = "x-token-iq-adaptive-router-model"

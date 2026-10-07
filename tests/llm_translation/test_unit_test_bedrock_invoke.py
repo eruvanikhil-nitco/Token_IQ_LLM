@@ -229,7 +229,7 @@ def test_filter_headers_for_aws_signature():
         "x-amz-date": "20240101T120000Z",
         "x-amz-security-token": "test-token",
         "x-custom-header": "custom-value",
-        "x-litellm-user-id": "user123",
+        "x-token-iq-user-id": "user123",
         "x-forwarded-for": "192.168.1.1",
         "authorization": "Bearer test-token",
         "user-agent": "test-agent",
@@ -255,7 +255,7 @@ def test_filter_headers_for_aws_signature():
     # Verify that non-AWS headers are excluded
     excluded_headers = [
         "x-custom-header",
-        "x-litellm-user-id",
+        "x-token-iq-user-id",
         "x-forwarded-for",
         "user-agent",
         "x-envoy-expected-rq-timeout-ms",

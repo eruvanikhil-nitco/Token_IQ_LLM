@@ -19,6 +19,7 @@ from token_iq.gateway.types.llms.anthropic_skills import (
     ListSkillsResponse,
     Skill,
 )
+from token_iq.gateway import compat
 
 router: Final = APIRouter()
 
@@ -84,7 +85,7 @@ async def create_skill(
     data: Final = await convert_upload_files_to_file_data(form_data)
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
     if model:
         data["model"] = model
 
@@ -187,7 +188,7 @@ async def list_skills(
         data["before_id"] = before_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
     if model:
         data["model"] = model
 
@@ -284,7 +285,7 @@ async def get_skill(
     data["skill_id"] = skill_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
     if model:
         data["model"] = model
 
@@ -383,7 +384,7 @@ async def delete_skill(
     data["skill_id"] = skill_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
     if model:
         data["model"] = model
 

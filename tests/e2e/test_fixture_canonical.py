@@ -131,8 +131,8 @@ class TestKeyDistinctness:
         assert canonicalize(first).key != canonicalize(second).key
 
     def test_a_kept_header_is_identity(self) -> None:
-        first = request(headers={"x-litellm-tags": "prod"})
-        second = request(headers={"x-litellm-tags": "shadow"})
+        first = request(headers={"x-token-iq-tags": "prod"})
+        second = request(headers={"x-token-iq-tags": "shadow"})
         assert canonicalize(first).key != canonicalize(second).key
 
     def test_a_volatile_header_is_not_identity(self) -> None:

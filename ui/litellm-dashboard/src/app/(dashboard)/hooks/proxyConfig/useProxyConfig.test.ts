@@ -28,7 +28,7 @@ const {
 } = vi.hoisted(() => {
   const mockProxyBaseUrl = "https://proxy.example.com";
   const mockAccessToken = "test-access-token";
-  const mockHeaderName = "X-LiteLLM-API-Key";
+  const mockHeaderName = "x-token-iq-api-key";
 
   const mockProxyConfigResponse: ProxyConfigResponse = [
     {

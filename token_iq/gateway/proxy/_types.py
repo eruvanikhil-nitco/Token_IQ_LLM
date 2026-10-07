@@ -2612,7 +2612,7 @@ class ConfigGeneralSettings(GatewayPydanticObjectBase):
     )
     missing_session_id: Literal["generate", "reject"] | None = Field(
         None,
-        description="What to do with LLM API requests that carry no session id (x-litellm-session-id header, metadata.session_id, etc.). 'generate' stamps one id into litellm_session_id, litellm_trace_id and metadata.session_id so SpendLogs and logging callbacks agree; 'reject' returns 400. Unset keeps the legacy behavior where SpendLogs falls back to the trace id while callbacks get no session id.",
+        description="What to do with LLM API requests that carry no session id (x-token-iq-session-id header, metadata.session_id, etc.). 'generate' stamps one id into litellm_session_id, litellm_trace_id and metadata.session_id so SpendLogs and logging callbacks agree; 'reject' returns 400. Unset keeps the legacy behavior where SpendLogs falls back to the trace id while callbacks get no session id.",
     )
     enable_public_model_hub: bool = Field(
         default=False,
@@ -4052,6 +4052,7 @@ class CreatePassThroughEndpoint(GatewayPydanticObjectBase):
 from token_iq.gateway.models.team_membership import (  # noqa: E402
     LiteLLM_TeamMembership as LiteLLM_TeamMembership,
 )
+from token_iq.gateway import compat
 
 #### Organization / Team Member Requests ####
 
@@ -4327,7 +4328,8 @@ class SpecialHeaders(enum.Enum):
     anthropic_authorization = "x-api-key"
     google_ai_studio_authorization = "x-goog-api-key"
     azure_apim_authorization = "Ocp-Apim-Subscription-Key"
-    custom_gateway_api_key = "x-litellm-api-key"
+    custom_gateway_api_key = compat.NEW_API_KEY_HEADER
+    legacy_gateway_api_key = compat.OLD_API_KEY_HEADER
     mcp_auth = "x-mcp-auth"
     mcp_servers = "x-mcp-servers"
     mcp_access_groups = "x-mcp-access-groups"
@@ -4351,6 +4353,7 @@ class SpecialHeaders(enum.Enum):
                 cls.google_ai_studio_authorization,
                 cls.azure_apim_authorization,
                 cls.custom_gateway_api_key,
+                cls.legacy_gateway_api_key,
             )
         )
 
@@ -4399,7 +4402,7 @@ class UserManagementEndpointParamDocStringEnums(str, enum.Enum):
     teams_doc_str = "Optional[list] - specify a list of team id's a user belongs to."
     user_email_doc_str = "Optional[str] - Specify a user email."
     send_invite_email_doc_str = "Optional[bool] - Specify if an invite email should be sent."
-    user_role_doc_str ="""Optional[str] - Specify a user role -"proxy_admin","proxy_admin_viewer","internal_user","internal_user_viewer","team","customer". Info about each role here: ``"""
+    user_role_doc_str = """Optional[str] - Specify a user role -"proxy_admin","proxy_admin_viewer","internal_user","internal_user_viewer","team","customer". Info about each role here: ``"""
     max_budget_doc_str = """Optional[float] - Specify max budget for a given user."""
     budget_duration_doc_str = """Optional[str] - Budget is reset at the end of specified duration. If not set, budget is never reset. You can set duration as seconds ("30s"), minutes ("30m"), hours ("30h"), days ("30d"), months ("1mo")."""
     models_doc_str = (
@@ -4410,7 +4413,9 @@ class UserManagementEndpointParamDocStringEnums(str, enum.Enum):
     auto_create_key_doc_str = """bool - Default=True. Flag used for returning a key as part of the /user/new response"""
     aliases_doc_str = """Optional[dict] - Model aliases for the user - [Docs](https://litellm.vercel.app/docs/proxy/virtual_keys#model-aliases)"""
     config_doc_str = """Optional[dict] - [DEPRECATED PARAM] User-specific config."""
-    allowed_cache_controls_doc_str ="""Optional[list] - List of allowed cache control values. Example - ["no-cache","no-store"]. See all values"""
+    allowed_cache_controls_doc_str = (
+        """Optional[list] - List of allowed cache control values. Example - ["no-cache","no-store"]. See all values"""
+    )
     blocked_doc_str = """Optional[bool] - [Not Implemented Yet] Whether the user is blocked."""
     guardrails_doc_str = """Optional[List[str]] - [Not Implemented Yet] List of active guardrails for the user"""
     permissions_doc_str = (
@@ -4419,9 +4424,9 @@ class UserManagementEndpointParamDocStringEnums(str, enum.Enum):
     metadata_doc_str = """Optional[dict] - Metadata for user, store information for user. Example metadata = {"team": "core-infra", "app": "app2", "email": "ishaan@berri.ai" }"""
     max_parallel_requests_doc_str = """Optional[int] - Rate limit a user based on the number of parallel requests. Raises 429 error, if user's parallel requests > x."""
     soft_budget_doc_str = """Optional[float] - Get alerts when user crosses given budget, doesn't block requests."""
-    model_max_budget_doc_str ="""Optional[dict] - Model-specific max budget for user. [Docs]"""
-    model_rpm_limit_doc_str ="""Optional[float] - Model-specific rpm limit for user. [Docs]"""
-    model_tpm_limit_doc_str ="""Optional[float] - Model-specific tpm limit for user. [Docs]"""
+    model_max_budget_doc_str = """Optional[dict] - Model-specific max budget for user. [Docs]"""
+    model_rpm_limit_doc_str = """Optional[float] - Model-specific rpm limit for user. [Docs]"""
+    model_tpm_limit_doc_str = """Optional[float] - Model-specific tpm limit for user. [Docs]"""
     spend_doc_str = (
         """Optional[float] - Amount spent by user. Default is 0. Will be updated by proxy whenever user is used."""
     )

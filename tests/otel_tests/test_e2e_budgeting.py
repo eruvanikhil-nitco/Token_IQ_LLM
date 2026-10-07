@@ -406,7 +406,7 @@ async def obtain_cli_sso_token_via_poll_flow(
         assert resp.status == 200, await resp.text()
 
     poll_headers = {
-        "x-litellm-cli-poll-secret": poll_secret,
+        "x-token-iq-cli-poll-secret": poll_secret,
     }
     async with session.get(
         f"{PROXY_BASE}/sso/cli/poll/{login_id}",

@@ -29,7 +29,7 @@ export async function makeInteractionsRequest(
     [getGlobalLitellmHeaderName()]: `Bearer ${accessToken}`,
   };
   if (tags && tags.length > 0) {
-    headers["x-litellm-tags"] = tags.join(",");
+    headers["x-token-iq-tags"] = tags.join(",");
   }
 
   const body: Record<string, unknown> = {

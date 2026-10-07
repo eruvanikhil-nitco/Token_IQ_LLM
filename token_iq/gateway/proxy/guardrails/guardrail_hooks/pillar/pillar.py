@@ -560,13 +560,13 @@ class PillarGuardrail(CustomGuardrail):
 
         # Always add LiteLLM virtual key context headers (metadata excluded for security)
         context_mapping: Final = {
-            "X-LiteLLM-Key-Name": user_api_key_dict.key_name,
-            "X-LiteLLM-Key-Alias": user_api_key_dict.key_alias,
-            "X-LiteLLM-User-Id": user_api_key_dict.user_id,
-            "X-LiteLLM-User-Email": user_api_key_dict.user_email,
-            "X-LiteLLM-Team-Id": user_api_key_dict.team_id,
-            "X-LiteLLM-Team-Name": user_api_key_dict.team_alias,
-            "X-LiteLLM-Org-Id": user_api_key_dict.org_id,
+            "x-token-iq-key-name": user_api_key_dict.key_name,
+            "x-token-iq-key-alias": user_api_key_dict.key_alias,
+            "x-token-iq-user-id": user_api_key_dict.user_id,
+            "x-token-iq-user-email": user_api_key_dict.user_email,
+            "x-token-iq-team-id": user_api_key_dict.team_id,
+            "x-token-iq-team-name": user_api_key_dict.team_alias,
+            "x-token-iq-org-id": user_api_key_dict.org_id,
         }
         for header_name, value in context_mapping.items():
             if value:

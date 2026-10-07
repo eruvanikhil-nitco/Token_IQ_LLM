@@ -152,8 +152,8 @@ async def test_chat_completion_with_retries():
             return_headers=True,
         )
         print(f"headers: {headers}")
-        assert headers["x-litellm-attempted-retries"] == "1"
-        assert headers["x-litellm-max-retries"] == "50"
+        assert headers["x-token-iq-attempted-retries"] == "1"
+        assert headers["x-token-iq-max-retries"] == "50"
 
 
 @pytest.mark.asyncio
@@ -176,7 +176,7 @@ async def test_chat_completion_with_fallbacks():
             return_headers=True,
         )
         print(f"headers: {headers}")
-        assert headers["x-litellm-attempted-fallbacks"] == "1"
+        assert headers["x-token-iq-attempted-fallbacks"] == "1"
 
 
 @pytest.mark.asyncio
@@ -203,7 +203,7 @@ async def test_chat_completion_with_timeout():
         end_time = time.time()
         print(f"headers: {headers}")
         assert (
-            headers["x-litellm-timeout"] == "1.0"
+            headers["x-token-iq-timeout"] == "1.0"
         )  # assert model-specific timeout used
 
 
@@ -219,7 +219,7 @@ async def test_chat_completion_with_timeout_from_request():
             {"role": "user", "content": "Who was Alexander?"},
         ]
         extra_headers = {
-            "x-litellm-timeout": "0.001",
+            "x-token-iq-timeout": "0.001",
         }
         start_time = time.time()
         response, headers = await chat_completion(
@@ -235,7 +235,7 @@ async def test_chat_completion_with_timeout_from_request():
         end_time = time.time()
         print(f"headers: {headers}")
         assert (
-            headers["x-litellm-timeout"] == "0.001"
+            headers["x-token-iq-timeout"] == "0.001"
         )  # assert model-specific timeout used
 
 

@@ -165,6 +165,7 @@ from token_iq.gateway.types.mcp_server.mcp_server_manager import (
     MCPServer,
 )
 from token_iq.gateway.types.utils import CallTypes
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from mcp.client.session import ClientSession
@@ -832,26 +833,32 @@ LITELLM_VIRTUAL_KEY_PREFIX: Final = "sk-"
 
 
 def _raw_header_value(raw_headers: Mapping[str, str] | None, name: str) -> str | None:
-    return next((v for k, v in (raw_headers or {}).items() if isinstance(k, str) and k.lower() == name), None)
+    """Case-insensitively, because these are the raw ASGI headers rather than a normalised mapping.
+
+    A name that was renamed is looked up under both spellings, so a caller whose client still sends the
+    old one is admitted on the same terms as one that has been updated.
+    """
+    wanted: Final = {name, compat.old_header_for(name)} - {None}
+    return next((v for k, v in (raw_headers or {}).items() if isinstance(k, str) and k.lower() in wanted), None)
 
 
 def _has_explicit_gateway_admission_header(raw_headers: Mapping[str, str] | None) -> bool:
-    """Admission only consumes a non-empty ``x-litellm-api-key``; an empty one falls back to ``Authorization``."""
-    return bool(_raw_header_value(raw_headers, "x-litellm-api-key"))
+    """Admission only consumes a non-empty key header; an empty one falls back to ``Authorization``."""
+    return bool(_raw_header_value(raw_headers, compat.NEW_API_KEY_HEADER))
 
 
 def _authorization_is_gateway_admission_credential(
     raw_headers: Mapping[str, str] | None,
     user_api_key_auth: UserAPIKeyAuth | None,
 ) -> bool:
-    """True when ``Authorization`` carries the LiteLLM key admission validated.
+    """True when ``Authorization`` carries the virtual key admission validated.
 
-    That is the case when no usable ``x-litellm-api-key`` was sent, or when the client repeated the
-    same key in both headers.
+    That is the case when no usable key header was sent, or when the client repeated the same key in
+    both headers.
     """
     if user_api_key_auth is None or not user_api_key_auth.api_key:
         return False
-    admission_header: Final = _raw_header_value(raw_headers, "x-litellm-api-key")
+    admission_header: Final = _raw_header_value(raw_headers, compat.NEW_API_KEY_HEADER)
     if not admission_header:
         return True
     authorization: Final = _raw_header_value(raw_headers, "authorization")

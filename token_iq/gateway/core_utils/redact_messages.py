@@ -1,4 +1,3 @@
-
 import asyncio
 import copy
 import inspect
@@ -17,6 +16,7 @@ from token_iq.gateway.llms.vertex_ai.common_utils import (
 )
 from token_iq.gateway.secret_managers.main import str_to_bool
 from token_iq.gateway.types.utils import StandardCallbackDynamicParams
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (
@@ -317,10 +317,10 @@ def should_redact_message_logging(model_call_details: dict) -> bool:
         # User explicitly disabled redaction via header
         return False
 
-    possible_enable_headers: Final = [
-        "litellm-enable-message-redaction",  # old header. maintain backwards compatibility
-        "x-litellm-enable-message-redaction",  # new header
-    ]
+    possible_enable_headers: Final = (
+        "litellm-enable-message-redaction",  # the unprefixed form, still accepted
+        *compat.both_spellings(("x-token-iq-enable-message-redaction",)),
+    )
 
     is_redaction_enabled_via_header = False
     for header in possible_enable_headers:

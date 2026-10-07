@@ -746,7 +746,7 @@ class TestAzureContainerKnownFailureRegressions:
         ):
             captured["data"] = self.data
             captured["route_type"] = route_type
-            fastapi_response.headers["x-litellm-call-id"] = "call-123"
+            fastapi_response.headers["x-token-iq-call-id"] = "call-123"
             return b"csv-bytes"
 
         from token_iq.gateway.proxy.common_request_processing import (
@@ -793,7 +793,7 @@ class TestAzureContainerKnownFailureRegressions:
         assert captured["data"]["model_id"] == "model_abc123"
         assert response.status_code == 200
         assert response.body == b"csv-bytes"
-        assert response.headers["x-litellm-call-id"] == "call-123"
+        assert response.headers["x-token-iq-call-id"] == "call-123"
 
     @pytest.mark.asyncio
     async def test_regression_multipart_upload_request_uses_provider_from_managed_id(

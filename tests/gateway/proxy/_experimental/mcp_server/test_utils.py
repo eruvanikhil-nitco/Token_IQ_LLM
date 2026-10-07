@@ -83,7 +83,7 @@ class TestLoggingSafeMcpHeaders:
             {
                 "x-nuid": "nuid-1",
                 "x-app-id": "app-1",
-                "x-litellm-api-key": "sk-proxy",
+                "x-token-iq-api-key": "sk-proxy",
                 "cookie": "session=secret",
             }
         )

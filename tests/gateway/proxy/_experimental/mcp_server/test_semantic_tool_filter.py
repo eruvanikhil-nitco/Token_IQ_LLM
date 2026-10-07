@@ -1585,9 +1585,9 @@ async def test_semantic_filter_headers_hook_emits_only_complete_tool_names():
     )
 
     assert headers is not None
-    assert headers["x-litellm-semantic-filter"] == "40->8"
+    assert headers["x-token-iq-semantic-filter"] == "40->8"
 
-    tools_header = headers["x-litellm-semantic-filter-tools"]
+    tools_header = headers["x-token-iq-semantic-filter-tools"]
     assert len(tools_header) <= MAX_MCP_SEMANTIC_FILTER_TOOLS_HEADER_LENGTH
     emitted_names = tools_header.split(",")
     assert emitted_names == tool_names[: len(emitted_names)]

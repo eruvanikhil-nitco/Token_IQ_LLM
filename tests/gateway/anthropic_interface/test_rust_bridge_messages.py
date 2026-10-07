@@ -232,7 +232,7 @@ async def test_gate_invokes_rust_and_marks_response_header():
 
     assert response is not None
     assert response["id"] == "msg_123"
-    assert response["_hidden_params"]["additional_headers"] == {"x-litellm-rust": "true"}
+    assert response["_hidden_params"]["additional_headers"] == {"x-token-iq-rust": "true"}
     call = bridge.calls[0]
     assert call["model"] == "claude-sonnet-4-5"
     assert call["body"] == REQUEST_BODY
@@ -301,7 +301,7 @@ async def test_gate_invokes_rust_for_native_anthropic_provider():
     )
 
     assert response is not None
-    assert response["_hidden_params"]["additional_headers"] == {"x-litellm-rust": "true"}
+    assert response["_hidden_params"]["additional_headers"] == {"x-token-iq-rust": "true"}
     assert bridge.calls[0]["custom_llm_provider"] == "anthropic"
     assert bridge.calls[0]["api_key"] == "sk-ant"
 
@@ -370,7 +370,7 @@ async def test_gate_streams_through_rust_when_eligible_and_strips_stream_flag():
     )
 
     assert response is not None
-    assert response["_hidden_params"]["additional_headers"] == {"x-litellm-rust": "true"}
+    assert response["_hidden_params"]["additional_headers"] == {"x-token-iq-rust": "true"}
     assert "stream" not in bridge.calls[0]["body"]
     assert bridge.calls[0]["body"] == REQUEST_BODY
 
@@ -380,7 +380,7 @@ async def test_fake_stream_wraps_rust_response_as_anthropic_sse():
     response = cast(AnthropicMessagesResponse, dict(FAKE_MESSAGES_RESPONSE))
     stream = BaseLLMHTTPHandler._rust_anthropic_messages_fake_stream(response)
 
-    assert stream._hidden_params["additional_headers"] == {"x-litellm-rust": "true"}
+    assert stream._hidden_params["additional_headers"] == {"x-token-iq-rust": "true"}
 
     chunks = [chunk async for chunk in stream]
     joined = b"".join(chunks)

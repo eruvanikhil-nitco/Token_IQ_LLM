@@ -26195,7 +26195,7 @@ export interface components {
             mcp_xff_num_trusted_hops?: number | null;
             /**
              * Missing Session Id
-             * @description What to do with LLM API requests that carry no session id (x-litellm-session-id header, metadata.session_id, etc.). 'generate' stamps one id into litellm_session_id, litellm_trace_id and metadata.session_id so SpendLogs and logging callbacks agree; 'reject' returns 400. Unset keeps the legacy behavior where SpendLogs falls back to the trace id while callbacks get no session id.
+             * @description What to do with LLM API requests that carry no session id (x-token-iq-session-id header, metadata.session_id, etc.). 'generate' stamps one id into litellm_session_id, litellm_trace_id and metadata.session_id so SpendLogs and logging callbacks agree; 'reject' returns 400. Unset keeps the legacy behavior where SpendLogs falls back to the trace id while callbacks get no session id.
              */
             missing_session_id?: ("generate" | "reject") | null;
             /**
@@ -59285,7 +59285,7 @@ export interface operations {
                 team_id?: string | null;
             };
             header?: {
-                "x-litellm-cli-poll-secret"?: string | null;
+                "x-token-iq-cli-poll-secret"?: string | null;
             };
             path: {
                 key_id: string;

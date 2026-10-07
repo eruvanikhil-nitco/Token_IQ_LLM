@@ -2330,8 +2330,8 @@ class TestCustomUISSO:
         # Mock request with custom headers
         mock_request = MagicMock(spec=Request)
         mock_request.headers = {
-            "x-litellm-user-id": "test_user_123",
-            "x-litellm-user-email": "test@example.com",
+            "x-token-iq-user-id": "test_user_123",
+            "x-token-iq-user-email": "test@example.com",
             "x-forwarded-for": "192.168.1.1",
         }
         mock_request.base_url = "https://test.litellm.ai/"
@@ -2404,8 +2404,8 @@ class TestCustomUISSO:
 
         mock_request = MagicMock(spec=Request)
         mock_request.headers = {
-            "x-litellm-user-id": "admin",
-            "x-litellm-user-email": "admin@example.com",
+            "x-token-iq-user-id": "admin",
+            "x-token-iq-user-email": "admin@example.com",
         }
         mock_request.base_url = "https://test.litellm.ai/"
         mock_request.client.host = "203.0.113.10"
@@ -2456,9 +2456,9 @@ class TestCustomUISSO:
                 # Parse headers like the actual implementation would
                 request_headers_dict = dict(request.headers)
                 return OpenID(
-                    id=request_headers_dict.get("x-litellm-user-id", "default_user"),
+                    id=request_headers_dict.get("x-token-iq-user-id", "default_user"),
                     email=request_headers_dict.get(
-                        "x-litellm-user-email", "default@test.com"
+                        "x-token-iq-user-email", "default@test.com"
                     ),
                     first_name="Custom",
                     last_name="Handler",
@@ -2473,8 +2473,8 @@ class TestCustomUISSO:
         # Mock request with custom headers
         mock_request = MagicMock(spec=Request)
         mock_request.headers = {
-            "x-litellm-user-id": "custom_test_user_456",
-            "x-litellm-user-email": "custom@example.com",
+            "x-token-iq-user-id": "custom_test_user_456",
+            "x-token-iq-user-email": "custom@example.com",
             "x-forwarded-for": "10.0.0.1",
         }
         mock_request.base_url = "https://custom.litellm.ai/"
@@ -3265,7 +3265,7 @@ class TestCLIKeyRegenerationFlow:
             result = await cli_poll_key(
                 key_id=session_key,
                 team_id=None,
-                x_litellm_cli_poll_secret="poll-secret",
+                x_token_iq_cli_poll_secret="poll-secret",
             )
 
             # Assert - should return teams list for selection
@@ -3336,7 +3336,7 @@ class TestCLIKeyRegenerationFlow:
             result = await cli_poll_key(
                 key_id="cli-session-789123",
                 team_id=None,
-                x_litellm_cli_poll_secret="poll-secret",
+                x_token_iq_cli_poll_secret="poll-secret",
             )
 
         assert result == {"status": "pending"}
@@ -3531,7 +3531,7 @@ class TestCLIKeyRegenerationFlow:
             result = await cli_poll_key(
                 key_id=session_key,
                 team_id=selected_team,
-                x_litellm_cli_poll_secret="poll-secret",
+                x_token_iq_cli_poll_secret="poll-secret",
             )
 
             # Assert - should return JWT
@@ -3674,7 +3674,7 @@ class TestCLIKeyRegenerationFlow:
             result = await cli_poll_key(
                 key_id="cli-session-grants",
                 team_id="team-b",
-                x_litellm_cli_poll_secret="poll-secret",
+                x_token_iq_cli_poll_secret="poll-secret",
             )
 
         assert result["status"] == "ready"
@@ -3739,7 +3739,7 @@ class TestCLIKeyRegenerationFlow:
                 await cli_poll_key(
                     key_id="cli-session-grants",
                     team_id="team-a",
-                    x_litellm_cli_poll_secret="poll-secret",
+                    x_token_iq_cli_poll_secret="poll-secret",
                 )
 
         assert exc_info.value.status_code == 500
@@ -3780,7 +3780,7 @@ class TestCLIKeyRegenerationFlow:
             result = await cli_poll_key(
                 key_id="cli-session-teamless",
                 team_id=None,
-                x_litellm_cli_poll_secret="poll-secret",
+                x_token_iq_cli_poll_secret="poll-secret",
             )
 
         assert result["status"] == "ready"
@@ -3844,7 +3844,7 @@ class TestCLIKeyRegenerationFlow:
             result = await cli_poll_key(
                 key_id="cli-session-budgeted",
                 team_id=None,
-                x_litellm_cli_poll_secret="poll-secret",
+                x_token_iq_cli_poll_secret="poll-secret",
             )
 
         assert result["status"] == "ready"
@@ -3890,7 +3890,7 @@ class TestCLIKeyRegenerationFlow:
             result = await cli_poll_key(
                 key_id="cli-session-unbudgeted",
                 team_id="team-x",
-                x_litellm_cli_poll_secret="poll-secret",
+                x_token_iq_cli_poll_secret="poll-secret",
             )
 
         assert result["status"] == "ready"
@@ -7307,7 +7307,7 @@ class TestCliSsoAttributionMetadata:
             result = await cli_poll_key(
                 key_id=session_key,
                 team_id=None,
-                x_litellm_cli_poll_secret="poll-secret",
+                x_token_iq_cli_poll_secret="poll-secret",
             )
 
         assert result["attribution_metadata"] == {
@@ -8351,7 +8351,7 @@ async def test_cli_poll_key_tolerates_missing_user_row():
         result = await cli_poll_key(
             key_id=session_key,
             team_id=None,
-            x_litellm_cli_poll_secret="poll-secret",
+            x_token_iq_cli_poll_secret="poll-secret",
         )
 
     assert result["status"] == "ready"

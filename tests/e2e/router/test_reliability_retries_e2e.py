@@ -53,10 +53,10 @@ class TestReliabilityRetries:
             f"the retry should have landed on the healthy backup, got {resp.status_code}: {resp.body[:300]}"
         )
 
-        attempted = resp.headers.get("x-litellm-attempted-retries")
+        attempted = resp.headers.get("x-token-iq-attempted-retries")
         assert attempted is not None, "response is missing the x-litellm-attempted-retries header"
         assert int(attempted) >= 1, (
-            f"x-litellm-attempted-retries is {attempted!r}; a 200 with no retry means the request never "
+            f"x-token-iq-attempted-retries is {attempted!r}; a 200 with no retry means the request never "
             "opened on the timing-out deployment, so this proves nothing about retries"
         )
 

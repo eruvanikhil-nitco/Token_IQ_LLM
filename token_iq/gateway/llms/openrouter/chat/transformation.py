@@ -21,6 +21,7 @@ from token_iq.gateway.types.utils import ModelResponse, ModelResponseStream
 
 from ...openai.chat.gpt_transformation import OpenAIGPTConfig
 from ..common_utils import OpenRouterException
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     import tiktoken
@@ -221,7 +222,7 @@ class OpenrouterConfig(OpenAIGPTConfig):
                         model_response._hidden_params = {}
                     if "additional_headers" not in model_response._hidden_params:
                         model_response._hidden_params["additional_headers"] = {}
-                    model_response._hidden_params["additional_headers"]["llm_provider-x-litellm-response-cost"] = float(
+                    model_response._hidden_params["additional_headers"][compat.PROVIDER_COST_KEY] = float(
                         response_cost
                     )
         except Exception:

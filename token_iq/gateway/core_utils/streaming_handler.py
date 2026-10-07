@@ -44,6 +44,7 @@ from .core_helpers import map_finish_reason, process_response_headers
 from .exception_mapping_utils import exception_type
 from .llm_response_utils.get_api_base import get_api_base
 from .rules import Rules
+from token_iq.gateway import compat
 
 # Constants for special delta attribute names
 AUDIO_ATTRIBUTE: Final = "audio"
@@ -1910,7 +1911,7 @@ class CustomStreamWrapper:
         if _cost is not None:
             if "additional_headers" not in response._hidden_params:
                 response._hidden_params["additional_headers"] = {}
-            response._hidden_params["additional_headers"]["llm_provider-x-litellm-response-cost"] = _cost
+            response._hidden_params["additional_headers"][compat.PROVIDER_COST_KEY] = _cost
 
     def __next__(self) -> "ModelResponseStream":
         cache_hit = False

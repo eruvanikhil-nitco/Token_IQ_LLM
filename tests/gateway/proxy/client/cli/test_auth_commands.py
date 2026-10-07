@@ -340,7 +340,7 @@ class TestLoginCommand:
             assert "pre-filled in the browser" not in result.output
             mock_post.assert_called_once()
             mock_get.assert_called()
-            assert mock_get.call_args.kwargs["headers"] == {"x-litellm-cli-poll-secret": "poll-secret"}
+            assert mock_get.call_args.kwargs["headers"] == {"x-token-iq-cli-poll-secret": "poll-secret"}
 
             # Verify JWT was saved
             mock_save.assert_called_once()
@@ -870,7 +870,7 @@ class TestCLIKeyRegenerationFlow:
             first_poll_url = mock_get.call_args_list[0][0][0]
             assert "cli-session-uuid-456" in first_poll_url
             assert "team_id=" not in first_poll_url
-            assert mock_get.call_args_list[0].kwargs["headers"] == {"x-litellm-cli-poll-secret": "poll-secret"}
+            assert mock_get.call_args_list[0].kwargs["headers"] == {"x-token-iq-cli-poll-secret": "poll-secret"}
 
             # Second poll should include team_id=team-beta
             second_poll_url = mock_get.call_args_list[1][0][0]

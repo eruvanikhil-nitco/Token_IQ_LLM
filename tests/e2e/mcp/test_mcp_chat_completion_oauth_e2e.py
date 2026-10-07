@@ -105,7 +105,7 @@ class TestMcpChatCompletionOauth:
         )
 
         response = chat_client.chat_with_mcp(
-            AuthHeaders.model_validate({"x-litellm-api-key": f"Bearer {key}"}),
+            AuthHeaders.model_validate({"x-token-iq-api-key": f"Bearer {key}"}),
             ChatBody(
                 model=CHEAP_ANTHROPIC_MODEL,
                 messages=[ChatMessage(role="user", content=LINEAR_PROMPT)],

@@ -117,7 +117,7 @@ async def test_streaming_trace_id_prefers_logging_trace_id():
             ):
                 pass
 
-    assert captured["extra_headers"]["X-LiteLLM-Trace-Id"] == "trace-from-logging"
+    assert captured["extra_headers"]["x-token-iq-trace-id"] == "trace-from-logging"
 
 
 def test_streaming_logging_obj_carries_call_type_into_model_call_details():

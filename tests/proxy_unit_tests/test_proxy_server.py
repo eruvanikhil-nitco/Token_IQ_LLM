@@ -246,7 +246,7 @@ def test_get_settings_request_timeout(client_no_auth):
 
 @pytest.mark.parametrize(
     "litellm_key_header_name",
-    ["x-litellm-key", None],
+    ["x-token-iq-key", None],
 )
 def test_add_headers_to_request(litellm_key_header_name):
     from fastapi import Request
@@ -278,7 +278,7 @@ def test_add_headers_to_request(litellm_key_header_name):
 
 @pytest.mark.parametrize(
     "litellm_key_header_name",
-    ["x-litellm-key", None],
+    ["x-token-iq-key", None],
 )
 @pytest.mark.parametrize(
     "forward_headers",
@@ -2709,13 +2709,13 @@ def test_get_timeout_from_request():
     from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
     headers = {
-        "x-litellm-timeout": "90",
+        "x-token-iq-timeout": "90",
     }
     timeout = GatewayProxyRequestSetup._get_timeout_from_request(headers)
     assert timeout == 90
 
     headers = {
-        "x-litellm-timeout": "90.5",
+        "x-token-iq-timeout": "90.5",
     }
     timeout = GatewayProxyRequestSetup._get_timeout_from_request(headers)
     assert timeout == 90.5
@@ -2732,7 +2732,7 @@ def test_add_gateway_data_for_backend_llm_call_marks_client_side_timeout():
     user_api_key_dict = UserAPIKeyAuth(api_key="test_api_key")
 
     data = GatewayProxyRequestSetup.add_gateway_data_for_backend_llm_call(
-        headers={"x-litellm-timeout": "0.001"},
+        headers={"x-token-iq-timeout": "0.001"},
         request_data={},
         user_api_key_dict=user_api_key_dict,
     )

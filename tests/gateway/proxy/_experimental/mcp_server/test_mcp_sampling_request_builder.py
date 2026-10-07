@@ -24,16 +24,16 @@ class TestBuildSamplingRequest:
     def test_should_forward_raw_headers(self):
         """Headers from the original MCP connection should be forwarded."""
         raw = {
-            "x-litellm-tags": "tag1,tag2",
-            "x-litellm-trace-id": "trace-abc-123",
+            "x-token-iq-tags": "tag1,tag2",
+            "x-token-iq-trace-id": "trace-abc-123",
             "user-agent": "MCP-Client/1.0",
             "authorization": "Bearer sk-test",
         }
         req = _build_sampling_request(raw_headers=raw)
         headers = dict(req.headers)
 
-        assert headers.get("x-litellm-tags") == "tag1,tag2"
-        assert headers.get("x-litellm-trace-id") == "trace-abc-123"
+        assert headers.get("x-token-iq-tags") == "tag1,tag2"
+        assert headers.get("x-token-iq-trace-id") == "trace-abc-123"
         assert headers.get("user-agent") == "MCP-Client/1.0"
         assert headers.get("authorization") == "Bearer sk-test"
 
@@ -140,8 +140,8 @@ class TestBuildSamplingRequest:
         )
 
     def test_should_forward_x_gateway_api_key(self):
-        """x-litellm-api-key header must be forwarded for auth."""
-        raw = {"x-litellm-api-key": "sk-proxy-key-123"}
+        """x-token-iq-api-key header must be forwarded for auth."""
+        raw = {"x-token-iq-api-key": "sk-proxy-key-123"}
         req = _build_sampling_request(raw_headers=raw)
         headers = dict(req.headers)
-        assert headers.get("x-litellm-api-key") == "sk-proxy-key-123"
+        assert headers.get("x-token-iq-api-key") == "sk-proxy-key-123"

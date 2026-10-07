@@ -2432,7 +2432,7 @@ class BaseLLMHTTPHandler:
             return None
 
         response_obj: Final = cast(AnthropicMessagesResponse, dict(rust_response))
-        response_obj["_hidden_params"] = {"additional_headers": {"x-litellm-rust": "true"}}
+        response_obj["_hidden_params"] = {"additional_headers": {"x-token-iq-rust": "true"}}
         return response_obj
 
     @staticmethod
@@ -2448,7 +2448,7 @@ class BaseLLMHTTPHandler:
         )
 
         completion_stream = cast(AsyncIterator[bytes], FakeAnthropicMessagesStreamIterator(response=rust_response))
-        hidden_params: Final = AnthropicMessagesStreamHiddenParams(additional_headers={"x-litellm-rust": "true"})
+        hidden_params: Final = AnthropicMessagesStreamHiddenParams(additional_headers={"x-token-iq-rust": "true"})
         return AnthropicMessagesStreamingResponse(
             completion_stream=completion_stream,
             hidden_params=hidden_params,

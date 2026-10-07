@@ -78,7 +78,7 @@ async def test_create_batch_with_x_gateway_model_encodes_batch_id():
     raw_batch_id = "batch_abc123"
 
     mock_response = _make_batch_response(batch_id=raw_batch_id)
-    mock_request = _make_mock_request(headers={"x-litellm-model": model_name})
+    mock_request = _make_mock_request(headers={"x-token-iq-model": model_name})
     mock_fastapi_response = MagicMock()
     mock_user_api_key_dict = MagicMock()
     mock_user_api_key_dict.parent_otel_span = None
@@ -203,7 +203,7 @@ async def test_create_batch_with_x_gateway_model_encodes_output_and_error_file_i
         error_file_id=raw_error_file,
         status="completed",
     )
-    mock_request = _make_mock_request(headers={"x-litellm-model": model_name})
+    mock_request = _make_mock_request(headers={"x-token-iq-model": model_name})
     mock_fastapi_response = MagicMock()
     mock_user_api_key_dict = MagicMock()
     mock_user_api_key_dict.parent_otel_span = None

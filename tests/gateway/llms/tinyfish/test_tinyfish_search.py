@@ -528,17 +528,17 @@ class TestTransformSearchResponse:
         config = TinyfishSearchConfig()
         mock_response = _make_mock_response(
             MOCK_TINYFISH_RESPONSE,
-            headers={"x-litellm-attempted-fallbacks": "spoofed", "X-Request-ID": "r1"},
+            headers={"x-token-iq-attempted-fallbacks": "spoofed", "X-Request-ID": "r1"},
         )
         result = config.transform_search_response(
             raw_response=mock_response, logging_obj=None
         )
         # Raw view still has the spoof.
-        assert result._hidden_params["headers"]["x-litellm-attempted-fallbacks"] == "spoofed"
+        assert result._hidden_params["headers"]["x-token-iq-attempted-fallbacks"] == "spoofed"
         # Sanitized view: the spoof survives only under the llm_provider- prefix
         # (never under the bare x-litellm-* key that LiteLLM downstream trusts).
         additional = result._hidden_params["additional_headers"]
-        assert "x-litellm-attempted-fallbacks" not in additional
+        assert "x-token-iq-attempted-fallbacks" not in additional
         assert additional.get("llm_provider-x-litellm-attempted-fallbacks") == "spoofed"
 
     def test_fetch_field_rides_through_to_search_result(self):

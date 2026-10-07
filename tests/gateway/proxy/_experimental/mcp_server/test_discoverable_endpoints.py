@@ -6908,7 +6908,7 @@ async def test_extract_user_id_reads_x_gateway_api_key_header(proxy_globals):
     proxy_globals.user_api_key_cache = cache
     proxy_globals.prisma_client = object()
 
-    request = _token_request({"x-litellm-api-key": f"Bearer {key}"})
+    request = _token_request({"x-token-iq-api-key": f"Bearer {key}"})
     assert await _extract_user_id_from_request(request) == "alice"
 
 
@@ -6953,7 +6953,7 @@ async def test_extract_user_id_falls_back_to_db_on_cache_miss(proxy_globals):
     proxy_globals.user_api_key_cache = UserApiKeyCache()
     proxy_globals.prisma_client = _FakePrisma()
 
-    request = _token_request({"x-litellm-api-key": key})
+    request = _token_request({"x-token-iq-api-key": key})
     assert await _extract_user_id_from_request(request) == "db-bob"
 
 
@@ -6990,7 +6990,7 @@ async def test_extract_user_id_rejects_blocked_key(proxy_globals):
     proxy_globals.user_api_key_cache = UserApiKeyCache()
     proxy_globals.prisma_client = _FakePrisma()
 
-    request = _token_request({"x-litellm-api-key": "sk-blocked-key"})
+    request = _token_request({"x-token-iq-api-key": "sk-blocked-key"})
     assert await _extract_user_id_from_request(request) is None
 
 
@@ -7014,7 +7014,7 @@ async def test_extract_user_id_rejects_expired_key(proxy_globals):
     proxy_globals.user_api_key_cache = UserApiKeyCache()
     proxy_globals.prisma_client = _FakePrisma()
 
-    request = _token_request({"x-litellm-api-key": "sk-expired-key"})
+    request = _token_request({"x-token-iq-api-key": "sk-expired-key"})
     assert await _extract_user_id_from_request(request) is None
 
 
@@ -7041,7 +7041,7 @@ async def test_resolve_active_gateway_key_returns_resolved_key_for_active_key(pr
     proxy_globals.user_api_key_cache = cache
     proxy_globals.prisma_client = object()
 
-    request = _token_request({"x-litellm-api-key": f"Bearer {key}"})
+    request = _token_request({"x-token-iq-api-key": f"Bearer {key}"})
     resolved = await _resolve_active_gateway_key(request)
     assert isinstance(resolved, _ResolvedKey)
     assert resolved.key_hash == hash_token(key)
@@ -7072,7 +7072,7 @@ async def test_resolve_active_gateway_key_resolves_key_without_user_id(proxy_glo
     proxy_globals.user_api_key_cache = cache
     proxy_globals.prisma_client = object()
 
-    request = _token_request({"x-litellm-api-key": f"Bearer {key}"})
+    request = _token_request({"x-token-iq-api-key": f"Bearer {key}"})
     resolved = await _resolve_active_gateway_key(request)
     assert isinstance(resolved, _ResolvedKey)
     assert resolved.key_hash == hash_token(key)
@@ -7096,7 +7096,7 @@ async def test_resolve_active_gateway_key_rejects_blocked_key(proxy_globals):
     proxy_globals.user_api_key_cache = UserApiKeyCache()
     proxy_globals.prisma_client = _FakePrisma()
 
-    request = _token_request({"x-litellm-api-key": "sk-blocked-key"})
+    request = _token_request({"x-token-iq-api-key": "sk-blocked-key"})
     assert await _resolve_active_gateway_key(request) == "no_active_key"
 
 
@@ -7119,7 +7119,7 @@ async def test_resolve_active_gateway_key_fails_closed_on_malformed_expiry(proxy
     proxy_globals.user_api_key_cache = UserApiKeyCache()
     proxy_globals.prisma_client = _FakePrisma()
 
-    request = _token_request({"x-litellm-api-key": "sk-bad-expiry-key"})
+    request = _token_request({"x-token-iq-api-key": "sk-bad-expiry-key"})
     assert await _resolve_active_gateway_key(request) == "no_active_key"
 
 
@@ -7156,7 +7156,7 @@ async def test_resolve_active_gateway_key_db_outage_is_unavailable(proxy_globals
     proxy_globals.user_api_key_cache = UserApiKeyCache()
     proxy_globals.prisma_client = _OutagePrisma()
 
-    request = _token_request({"x-litellm-api-key": "sk-during-outage"})
+    request = _token_request({"x-token-iq-api-key": "sk-during-outage"})
     assert await _resolve_active_gateway_key(request) == "unavailable"
 
 
@@ -7179,7 +7179,7 @@ async def test_resolve_active_gateway_key_permanent_engine_fault_is_faulted(prox
     proxy_globals.user_api_key_cache = UserApiKeyCache()
     proxy_globals.prisma_client = _FaultedPrisma()
 
-    request = _token_request({"x-litellm-api-key": "sk-during-engine-fault"})
+    request = _token_request({"x-token-iq-api-key": "sk-during-engine-fault"})
     assert await _resolve_active_gateway_key(request) == "faulted"
 
 
@@ -7206,7 +7206,7 @@ async def test_resolve_active_gateway_key_transport_error_over_permanent_fault_i
     proxy_globals.user_api_key_cache = UserApiKeyCache()
     proxy_globals.prisma_client = _ReconnectFailedPrisma()
 
-    request = _token_request({"x-litellm-api-key": "sk-during-failed-reconnect"})
+    request = _token_request({"x-token-iq-api-key": "sk-during-failed-reconnect"})
     assert await _resolve_active_gateway_key(request) == "faulted"
 
 
@@ -7223,7 +7223,7 @@ async def test_resolve_active_gateway_key_no_database_is_unresolvable(proxy_glob
     proxy_globals.user_api_key_cache = UserApiKeyCache()
     proxy_globals.prisma_client = None
 
-    request = _token_request({"x-litellm-api-key": "sk-no-db"})
+    request = _token_request({"x-token-iq-api-key": "sk-no-db"})
     assert await _resolve_active_gateway_key(request) == "unresolvable"
 
 

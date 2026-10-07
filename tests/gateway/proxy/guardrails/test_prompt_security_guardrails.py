@@ -575,7 +575,7 @@ async def test_user_api_key_alias_forwarding(monkeypatch: pytest.MonkeyPatch):
     call_kwargs = mock_post.call_args.kwargs
     assert "headers" in call_kwargs
     headers = call_kwargs["headers"]
-    assert headers.get("X-LiteLLM-Key-Alias") == "vk-alias"
+    assert headers.get("x-token-iq-key-alias") == "vk-alias"
     payload = call_kwargs["json"]
     assert payload["user"] == "vk-alias"
 

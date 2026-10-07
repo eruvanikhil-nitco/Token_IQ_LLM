@@ -593,11 +593,11 @@ def test_foward_gateway_user_info_to_backend_llm_call():
         )
 
     expected_data = {
-        "x-litellm-user_api_key_user_id": "test_user_id",
-        "x-litellm-user_api_key_org_id": "test_org_id",
-        "x-litellm-user_api_key_hash": "test_api_key",
-        "x-litellm-user_api_key_spend": "0.0",
-        "x-litellm-user_api_key_auth_metadata": "{}",
+        "x-token-iq-user_api_key_user_id": "test_user_id",
+        "x-token-iq-user_api_key_org_id": "test_org_id",
+        "x-token-iq-user_api_key_hash": "test_api_key",
+        "x-token-iq-user_api_key_spend": "0.0",
+        "x-token-iq-user_api_key_auth_metadata": "{}",
     }
 
     assert json.dumps(data, sort_keys=True) == json.dumps(expected_data, sort_keys=True)

@@ -24,6 +24,7 @@ from token_iq.gateway.proxy.vector_store_endpoints.utils import (
 )
 from token_iq.gateway.types.utils import LlmProviders
 from token_iq.gateway.types.vector_stores import LiteLLM_ManagedVectorStore
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.router import Router
@@ -241,7 +242,7 @@ async def _update_request_data_with_model_routing_hint(
     if data.get("api_key") is not None or data.get("api_base") is not None:
         return data
 
-    user_controlled_model_hint: Final = request.query_params.get("model") or request.headers.get("x-litellm-model")
+    user_controlled_model_hint: Final = request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
     model_hint: Final = data.get("model") or user_controlled_model_hint
     should_authorize_model_hint: Final = isinstance(model_hint, str) and model_hint == user_controlled_model_hint
 

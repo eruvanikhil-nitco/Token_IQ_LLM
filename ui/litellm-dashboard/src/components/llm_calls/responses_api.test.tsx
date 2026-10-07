@@ -445,7 +445,7 @@ describe("responses_api response cache", () => {
             input_tokens_details: { cached_tokens: 4695 },
           },
         },
-        { "x-litellm-cache-key": "cache-key-abc" },
+        { "x-token-iq-cache-key": "cache-key-abc" },
       ),
     );
 

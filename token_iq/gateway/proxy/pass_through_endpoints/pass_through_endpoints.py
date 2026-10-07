@@ -344,7 +344,7 @@ class HttpPassThroughEndpointHelpers(BasePassthroughUtils):
 
         return_headers: Final = {key: value for key, value in headers.items() if key.lower() not in excluded_headers}
         if litellm_call_id:
-            return_headers["x-litellm-call-id"] = litellm_call_id
+            return_headers["x-token-iq-call-id"] = litellm_call_id
         if custom_headers:
             # Ensure custom headers don't override actual upstream response headers or let framework defaults (like content-length: 0) interfere.
             sanitized_custom_headers: Final = {
@@ -888,6 +888,7 @@ from token_iq.gateway.passthrough.timeout_utils import (
     resolve_llm_passthrough_timeout,  # noqa: F401 - re-exported for backward compat
     resolve_pass_through_request_timeout,
 )
+from token_iq.gateway import compat
 
 
 async def pass_through_request(
@@ -1729,7 +1730,7 @@ def _update_metadata_with_tags_in_header(request: Request, metadata: dict) -> di
     if _tags:
         tags_to_add.extend([tag.strip() for tag in _tags.split(",")])
 
-    _tags = request.headers.get("x-litellm-tags")
+    _tags = compat.header(request.headers, "x-token-iq-tags")
     if _tags:
         tags_to_add.extend([tag.strip() for tag in _tags.split(",")])
 

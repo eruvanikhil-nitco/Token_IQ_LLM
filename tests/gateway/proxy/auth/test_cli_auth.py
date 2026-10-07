@@ -210,7 +210,7 @@ async def test_poll_for_authentication_no_data(click_mock, poll_mock, handle_moc
     assert actual is None
     poll_mock.assert_called_once_with(
         "https://litellm.com/sso/cli/poll/key-123",
-        headers={"x-litellm-cli-poll-secret": "poll-secret"},
+        headers={"x-token-iq-cli-poll-secret": "poll-secret"},
         pending_message="Still waiting for authentication...",
     )
     handle_mock.assert_not_called()
@@ -230,7 +230,7 @@ async def test_poll_for_authentication_no_teams(click_mock, poll_mock, handle_mo
     assert actual is None
     poll_mock.assert_called_once_with(
         "https://litellm.com/sso/cli/poll/key-123",
-        headers={"x-litellm-cli-poll-secret": "poll-secret"},
+        headers={"x-token-iq-cli-poll-secret": "poll-secret"},
         pending_message="Still waiting for authentication...",
     )
     handle_mock.assert_not_called()
@@ -265,7 +265,7 @@ async def test_poll_for_authentication_team_selection_success(
     }
     poll_mock.assert_called_once_with(
         "https://litellm.com/sso/cli/poll/key-123",
-        headers={"x-litellm-cli-poll-secret": "poll-secret"},
+        headers={"x-token-iq-cli-poll-secret": "poll-secret"},
         pending_message="Still waiting for authentication...",
     )
     handle_mock.assert_called_once_with(
@@ -302,7 +302,7 @@ async def test_poll_for_authentication_team_selection_cancelled(
     assert actual is None
     poll_mock.assert_called_once_with(
         "https://litellm.com/sso/cli/poll/key-123",
-        headers={"x-litellm-cli-poll-secret": "poll-secret"},
+        headers={"x-token-iq-cli-poll-secret": "poll-secret"},
         pending_message="Still waiting for authentication...",
     )
     handle_mock.assert_called_once_with(
@@ -340,7 +340,7 @@ async def test_poll_for_authentication_auto_assigned_team(
     }
     poll_mock.assert_called_once_with(
         "https://litellm.com/sso/cli/poll/key-123",
-        headers={"x-litellm-cli-poll-secret": "poll-secret"},
+        headers={"x-token-iq-cli-poll-secret": "poll-secret"},
         pending_message="Still waiting for authentication...",
     )
     handle_mock.assert_not_called()

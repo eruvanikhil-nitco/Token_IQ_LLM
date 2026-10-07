@@ -62,6 +62,7 @@ from token_iq.gateway.repositories.table_repositories import (
 )
 from token_iq.gateway.repositories.user_repository import UserRepository
 from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.proxy.utils import PrismaClient
@@ -386,8 +387,10 @@ class MCPRequestHandler:
         """
         headers: Final = MCPRequestHandler._safe_get_headers_from_scope(scope)
 
-        # Check if there is an explicit LiteLLM API key (primary header)
-        has_explicit_gateway_key: Final = headers.get(MCPRequestHandler.LITELLM_API_KEY_HEADER_NAME_PRIMARY) is not None
+        # Check if there is an explicit virtual key (primary header, either spelling)
+        has_explicit_gateway_key: Final = (
+            compat.header(headers, MCPRequestHandler.LITELLM_API_KEY_HEADER_NAME_PRIMARY) is not None
+        )
 
         litellm_api_key: Final = MCPRequestHandler.get_gateway_api_key_from_headers(headers) or ""
 
@@ -1388,7 +1391,7 @@ class MCPRequestHandler:
             headers: Starlette Headers object that handles case insensitivity
         """
         # Headers object handles case insensitivity automatically
-        api_key: Final = headers.get(MCPRequestHandler.LITELLM_API_KEY_HEADER_NAME_PRIMARY)
+        api_key: Final = compat.header(headers, MCPRequestHandler.LITELLM_API_KEY_HEADER_NAME_PRIMARY)
         if api_key:
             return api_key
 

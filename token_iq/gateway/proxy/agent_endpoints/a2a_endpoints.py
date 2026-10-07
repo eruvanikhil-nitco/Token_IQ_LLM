@@ -45,6 +45,7 @@ from token_iq.gateway.proxy.common_utils.sse_keepalive import (
 )
 from token_iq.gateway.proxy.utils import ProxyLogging, get_custom_url
 from token_iq.gateway.types.utils import all_litellm_params
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from a2a.compat.v0_3.types import MessageSendParams
@@ -147,9 +148,9 @@ def _validate_push_notification_url(url: str) -> None:
 def _caller_identity_headers(user_api_key_dict: UserAPIKeyAuth) -> dict[str, str]:
     headers: Final[dict[str, str]] = {}
     if user_api_key_dict.user_id:
-        headers["X-LiteLLM-User-Id"] = user_api_key_dict.user_id
+        headers["x-token-iq-user-id"] = user_api_key_dict.user_id
     if user_api_key_dict.team_id:
-        headers["X-LiteLLM-Team-Id"] = user_api_key_dict.team_id
+        headers["x-token-iq-team-id"] = user_api_key_dict.team_id
     return headers
 
 
@@ -159,7 +160,7 @@ def _forwarding_headers(
     agent_extra_headers: Mapping[str, str] | None,
 ) -> Mapping[str, str] | None:
     sanitized: Final = (
-        {k: v for k, v in agent_extra_headers.items() if not k.lower().startswith("x-litellm-")}
+        {k: v for k, v in agent_extra_headers.items() if not compat.is_gateway_header(k)}
         if agent_extra_headers
         else None
     )
@@ -167,7 +168,7 @@ def _forwarding_headers(
     identity: Final = _caller_identity_headers(user_api_key_dict)
     trace_id: Final = request_data.get("litellm_trace_id")
     if trace_id:
-        identity["X-LiteLLM-Trace-Id"] = str(trace_id)
+        identity["x-token-iq-trace-id"] = str(trace_id)
     merged.update(identity)
     return merged or None
 
@@ -211,7 +212,7 @@ def _enforce_inbound_trace_id(agent: "AgentResponse", request: Request) -> None:
     if not trace_id:
         raise HTTPException(
             status_code=400,
-            detail=(f"Agent '{agent.agent_id}' requires x-litellm-trace-id header on all inbound requests."),
+            detail=(f"Agent '{agent.agent_id}' requires x-token-iq-trace-id header on all inbound requests."),
         )
 
 

@@ -116,7 +116,7 @@ async def test_team_tag_routing():
             print(response_a)
             print(headers)
             assert (
-                headers["x-litellm-model-id"] == "team-a-model"
+                headers["x-token-iq-model-id"] == "team-a-model"
             ), "Model ID should be teamA"
 
         key_with_team_b = await create_key_with_team(session, key, team_b_id)
@@ -127,7 +127,7 @@ async def test_team_tag_routing():
             print(response_b)
             print(headers)
             assert (
-                headers["x-litellm-model-id"] == "team-b-model"
+                headers["x-token-iq-model-id"] == "team-b-model"
             ), "Model ID should be teamB"
 
 

@@ -52,6 +52,7 @@ if TYPE_CHECKING:
 from token_iq.gateway.proxy.common_utils.http_parsing_utils import _safe_get_request_headers
 from token_iq.gateway.types.mcp import MCPAuth
 from token_iq.gateway.types.utils import CallTypes
+from token_iq.gateway import compat
 
 MCP_AVAILABLE: bool = True
 try:
@@ -1424,11 +1425,11 @@ if MCP_AVAILABLE:
                 mcp_auth_header = credentials.get("auth_value")
 
         # Authorization doubles as the admission fallback (LITELLM_API_KEY_HEADER_NAME_SECONDARY):
-        # when the primary x-litellm-api-key header is absent, the Authorization value is the
-        # caller's LiteLLM key, not an upstream token, and must never be forwarded upstream.
+        # when the primary key header is absent, the Authorization value is the caller's virtual key,
+        # not an upstream token, and must never be forwarded upstream.
         oauth2_headers: dict[str, str] | None = None
-        if new_mcp_server_request.auth_type in _UPSTREAM_OAUTH_DISCOVERY_AUTH_TYPES and headers.get(
-            MCPRequestHandler.LITELLM_API_KEY_HEADER_NAME_PRIMARY
+        if new_mcp_server_request.auth_type in _UPSTREAM_OAUTH_DISCOVERY_AUTH_TYPES and compat.header(
+            headers, MCPRequestHandler.LITELLM_API_KEY_HEADER_NAME_PRIMARY
         ):
             oauth2_headers = MCPRequestHandler._get_oauth2_headers_from_headers(headers)
 

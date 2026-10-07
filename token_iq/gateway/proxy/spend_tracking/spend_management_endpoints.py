@@ -218,7 +218,7 @@ async def _find_spend_logs(
     """Read spend log rows as Prisma model instances, capped at ``take`` rows."""
     rows: Final = await _spend_logs_table(prisma_client).find_many(where=where, order=order, take=take)
     if len(rows) == take:
-        http_response.headers["x-litellm-spend-logs-truncated"] = "true"
+        http_response.headers["x-token-iq-spend-logs-truncated"] = "true"
         verbose_proxy_logger.warning(
             "/spend/logs result truncated to the %s most recent rows; use /spend/logs/v2 for paginated access",
             take,

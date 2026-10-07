@@ -2034,8 +2034,8 @@ async def test_task_methods_forward_caller_identity_headers():
         )
 
     posted_headers = mock_handler.post.call_args.kwargs.get("headers") or {}
-    assert posted_headers.get("X-LiteLLM-User-Id") == "user-abc"
-    assert posted_headers.get("X-LiteLLM-Team-Id") == "team-xyz"
+    assert posted_headers.get("x-token-iq-user-id") == "user-abc"
+    assert posted_headers.get("x-token-iq-team-id") == "team-xyz"
 
 
 @pytest.mark.asyncio
@@ -2110,7 +2110,7 @@ async def test_task_methods_forward_trace_header(method: str):
         forwarded_headers = mock_async_client.build_request.call_args.kwargs["headers"]
     else:
         forwarded_headers = mock_handler.post.call_args.kwargs["headers"]
-    assert forwarded_headers.get("X-LiteLLM-Trace-Id") == "trace-123"
+    assert forwarded_headers.get("x-token-iq-trace-id") == "trace-123"
 
 
 @pytest.mark.asyncio
@@ -2323,10 +2323,10 @@ async def test_caller_identity_headers_cannot_be_spoofed_via_forwarded_headers()
 
     posted_headers = mock_handler.post.call_args.kwargs.get("headers") or {}
     assert (
-        posted_headers.get("X-LiteLLM-User-Id") == "real-user"
+        posted_headers.get("x-token-iq-user-id") == "real-user"
     ), "authenticated user id must not be overridden by forwarded client headers"
     assert (
-        posted_headers.get("X-LiteLLM-Team-Id") == "real-team"
+        posted_headers.get("x-token-iq-team-id") == "real-team"
     ), "authenticated team id must not be overridden by forwarded client headers"
 
 

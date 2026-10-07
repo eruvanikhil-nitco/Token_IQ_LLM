@@ -232,7 +232,7 @@ class TestDynamicRateLimitPriority:
                 assert "Priority-based rate limit exceeded" in outcome.body, (
                     f"the saturated dev key must get the priority-flavored 429, got: {outcome.body[:300]}"
                 )
-                assert outcome.headers.get("x-litellm-priority") == DEV_PRIORITY, (
+                assert outcome.headers.get("x-token-iq-priority") == DEV_PRIORITY, (
                     f"the 429 must attribute the blocked priority, headers: "
                     f"{ {k: v for k, v in outcome.headers.items() if 'litellm' in k} }"
                 )

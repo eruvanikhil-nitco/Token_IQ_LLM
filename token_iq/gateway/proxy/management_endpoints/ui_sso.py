@@ -2404,6 +2404,10 @@ async def cli_sso_callback(
 async def cli_poll_key(
     key_id: str,
     team_id: str | None = None,
+    x_token_iq_cli_poll_secret: str | None = Header(default=None),
+    # FastAPI turns a parameter name into a header name by swapping underscores for hyphens, so the
+    # spelling this header had before the rename needs a parameter of its own. A CLI built against the
+    # earlier release keeps polling successfully.
     x_litellm_cli_poll_secret: str | None = Header(default=None),
 ):
     """
@@ -2422,7 +2426,8 @@ async def cli_poll_key(
 
     try:
         flow: Final = _get_cli_sso_flow_or_raise(login_id=key_id, cache=cli_sso_session_cache)
-        if not _verify_cli_sso_poll_secret(flow=flow, poll_secret=x_litellm_cli_poll_secret):
+        sent: Final = x_token_iq_cli_poll_secret or x_litellm_cli_poll_secret
+        if not _verify_cli_sso_poll_secret(flow=flow, poll_secret=sent):
             raise HTTPException(status_code=403, detail="Invalid CLI polling secret")
 
         if not flow.get("sso_complete") or not flow.get("user_code_verified"):

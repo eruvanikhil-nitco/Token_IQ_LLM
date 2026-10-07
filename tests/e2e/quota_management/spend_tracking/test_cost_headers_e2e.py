@@ -45,11 +45,11 @@ CACHE_READ_RATE = 1e-05
 CACHE_WRITE_RATE = 5e-05
 
 COMPONENT_HEADERS = (
-    "x-litellm-response-cost-input",
-    "x-litellm-response-cost-cache-read",
-    "x-litellm-response-cost-cache-creation",
-    "x-litellm-response-cost-output",
-    "x-litellm-response-cost-tool-usage",
+    "x-token-iq-response-cost-input",
+    "x-token-iq-response-cost-cache-read",
+    "x-token-iq-response-cost-cache-creation",
+    "x-token-iq-response-cost-output",
+    "x-token-iq-response-cost-tool-usage",
 )
 
 
@@ -98,7 +98,7 @@ class TestCostHeaders:
             for _ in range(CACHE_REREADS):
                 time.sleep(CACHE_SETTLE_SECONDS)
                 response = priced_call(f"{prefix}\nReply with the single word measured.", marker)
-                if _header_cost(response, "x-litellm-response-cost-cache-read") > 0:
+                if _header_cost(response, "x-token-iq-response-cost-cache-read") > 0:
                     return response
             return None
 
@@ -113,7 +113,7 @@ class TestCostHeaders:
 
         total = measured.response_cost
         assert total is not None and total > 0, (
-            f"x-litellm-response-cost missing or zero: {measured.headers}"
+            f"x-token-iq-response-cost missing or zero: {measured.headers}"
         )
         component_sum = sum(_header_cost(measured, name) for name in COMPONENT_HEADERS)
         assert approx_equal(component_sum, total), (
@@ -121,8 +121,8 @@ class TestCostHeaders:
             f"{ {name: measured.headers.get(name) for name in COMPONENT_HEADERS} }"
         )
 
-        reasoning = _header_cost(measured, "x-litellm-response-cost-reasoning")
-        output = _header_cost(measured, "x-litellm-response-cost-output")
+        reasoning = _header_cost(measured, "x-token-iq-response-cost-reasoning")
+        output = _header_cost(measured, "x-token-iq-response-cost-output")
         assert reasoning <= output * 1.01, (
             f"reasoning header {reasoning} exceeds output header {output}; "
             "reasoning must be a subset of output"
@@ -136,17 +136,17 @@ class TestCostHeaders:
         cache_creation_tokens = usage.cache_creation_input_tokens or 0
         assert cached_tokens > 0, f"cache-read header nonzero but usage shows no cached tokens: {usage}"
         assert approx_equal(
-            _header_cost(measured, "x-litellm-response-cost-cache-read"),
+            _header_cost(measured, "x-token-iq-response-cost-cache-read"),
             cached_tokens * CACHE_READ_RATE,
         ), (
-            f"cache-read header {measured.headers.get('x-litellm-response-cost-cache-read')} != "
+            f"cache-read header {measured.headers.get('x-token-iq-response-cost-cache-read')} != "
             f"{cached_tokens} cached tokens * {CACHE_READ_RATE}"
         )
         fresh_tokens = (usage.prompt_tokens or 0) - cached_tokens - cache_creation_tokens
         assert approx_equal(
-            _header_cost(measured, "x-litellm-response-cost-input"), fresh_tokens * INPUT_RATE
+            _header_cost(measured, "x-token-iq-response-cost-input"), fresh_tokens * INPUT_RATE
         ), (
-            f"input header {measured.headers.get('x-litellm-response-cost-input')} != "
+            f"input header {measured.headers.get('x-token-iq-response-cost-input')} != "
             f"{fresh_tokens} fresh tokens * {INPUT_RATE}; the input component is not "
             "subtracting the cache components"
         )

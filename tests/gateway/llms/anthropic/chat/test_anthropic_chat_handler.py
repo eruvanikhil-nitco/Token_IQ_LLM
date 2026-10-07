@@ -2325,7 +2325,7 @@ class TestRustChatCompletionsHook:
         response = AnthropicChatCompletion().completion(**self._completion_kwargs())
 
         assert response.choices[0].message.content == "hello from rust"
-        assert response._hidden_params["additional_headers"] == {"x-litellm-rust": "true"}
+        assert response._hidden_params["additional_headers"] == {"x-token-iq-rust": "true"}
         assert len(seen["call"]) == 1
 
     def test_the_core_receives_the_untranslated_openai_messages(self):
@@ -2540,7 +2540,7 @@ class TestRustChatCompletionsHook:
             )
 
         assert result.choices[0].message.content == "hello from rust"
-        assert result._hidden_params["additional_headers"] == {"x-litellm-rust": "true"}
+        assert result._hidden_params["additional_headers"] == {"x-token-iq-rust": "true"}
         assert not python_call.called
 
 

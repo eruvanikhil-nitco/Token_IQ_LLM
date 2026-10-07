@@ -478,7 +478,7 @@ class _PROXY_DynamicRateLimitHandlerV3(CustomLogger):
                         headers={
                             "retry-after": str(self.v3_limiter.window_size),
                             "rate_limit_type": str(status["rate_limit_type"]),
-                            "x-litellm-priority": priority or "default",
+                            "x-token-iq-priority": priority or "default",
                         },
                         rate_limit_type=map_v3_rate_limit_type(status["rate_limit_type"]),
                         model=resolved_model,
@@ -502,8 +502,8 @@ class _PROXY_DynamicRateLimitHandlerV3(CustomLogger):
                         headers={
                             "retry-after": str(self.v3_limiter.window_size),
                             "rate_limit_type": str(status["rate_limit_type"]),
-                            "x-litellm-priority": priority or "default",
-                            "x-litellm-saturation": f"{saturation:.2%}",
+                            "x-token-iq-priority": priority or "default",
+                            "x-token-iq-saturation": f"{saturation:.2%}",
                         },
                         rate_limit_type=map_v3_rate_limit_type(status["rate_limit_type"]),
                         model=resolved_model,
@@ -533,7 +533,7 @@ class _PROXY_DynamicRateLimitHandlerV3(CustomLogger):
                 rate_limit_type=map_v3_rate_limit_type(offending["rate_limit_type"] if offending else None),
                 headers={
                     "retry-after": str(self.v3_limiter.window_size),
-                    "x-litellm-priority": priority or "default",
+                    "x-token-iq-priority": priority or "default",
                 },
                 model=resolved_model,
                 llm_provider=llm_provider,
@@ -668,8 +668,8 @@ class _PROXY_DynamicRateLimitHandlerV3(CustomLogger):
                 additional_headers: Final = getattr(response, "_hidden_params", {}).get("additional_headers", {}) or {}
 
                 # Add priority information
-                additional_headers["x-litellm-priority"] = priority or "default"
-                additional_headers["x-litellm-rate-limiter-version"] = "v3"
+                additional_headers["x-token-iq-priority"] = priority or "default"
+                additional_headers["x-token-iq-rate-limiter-version"] = "v3"
 
                 # Update response
                 if not hasattr(response, "_hidden_params"):

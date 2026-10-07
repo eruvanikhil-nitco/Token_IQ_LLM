@@ -90,12 +90,13 @@ from typing import TYPE_CHECKING, Final
 from starlette.types import Message, Send
 
 from token_iq.gateway.core_utils.sensitive_data_masker import SensitiveDataMasker
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
 # Header the client sends to opt into debug mode
-MCP_DEBUG_REQUEST_HEADER: Final = "x-litellm-mcp-debug"
+MCP_DEBUG_REQUEST_HEADER: Final = "x-token-iq-mcp-debug"
 
 # Prefix for all debug response headers
 _RESPONSE_HEADER_PREFIX: Final = "x-mcp-debug"
@@ -213,7 +214,11 @@ class MCPDebug:
 
         # --- Inbound auth summary ---
         inbound_parts: Final = []
-        for hdr_name in ("x-litellm-api-key", "authorization", "x-mcp-auth"):
+        for hdr_name in (
+            *compat.both_spellings(("x-token-iq-api-key",)),
+            "authorization",
+            "x-mcp-auth",
+        ):
             for k, v in inbound_headers.items():
                 if k.lower() == hdr_name:
                     inbound_parts.append(f"{hdr_name}={MCPDebug._mask(v)}")

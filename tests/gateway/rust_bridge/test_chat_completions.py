@@ -263,7 +263,7 @@ class TestSyncCall:
         assert result.usage.prompt_tokens == 11
         assert result.usage.completion_tokens == 4
         assert result.usage.total_tokens == 15
-        assert result._hidden_params["additional_headers"] == {"x-litellm-rust": "true"}
+        assert result._hidden_params["additional_headers"] == {"x-token-iq-rust": "true"}
         assert result.id == original_id, "the rust path must keep the chatcmpl id litellm already minted"
 
     def test_passes_the_timeout_through_as_seconds(self):
@@ -289,7 +289,7 @@ class TestAsyncCall:
         result = await bridge.achat_completions(**_call_kwargs(ModelResponse()))
         assert result is not None
         assert result.choices[0].message.content == "hello from rust"
-        assert result._hidden_params["additional_headers"] == {"x-litellm-rust": "true"}
+        assert result._hidden_params["additional_headers"] == {"x-token-iq-rust": "true"}
 
     @pytest.mark.asyncio
     async def test_falls_back_when_the_bridge_is_unavailable(self, monkeypatch):

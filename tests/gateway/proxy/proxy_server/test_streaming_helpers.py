@@ -367,9 +367,9 @@ def test_get_streaming_fallback_metadata_reads_headers():
         [],
         hidden_params={
             "additional_headers": {
-                "x-litellm-attempted-fallbacks": "1",
-                "x-litellm-model-group": "fallback-model",
-                "x-litellm-fallback-errors": json.dumps(fallback_errors),
+                "x-token-iq-attempted-fallbacks": "1",
+                "x-token-iq-model-group": "fallback-model",
+                "x-token-iq-fallback-errors": json.dumps(fallback_errors),
             }
         },
     )
@@ -388,7 +388,7 @@ def test_get_streaming_fallback_metadata_no_additional_headers():
 def test_get_streaming_fallback_metadata_zero_fallback_count():
     stream = _FakeStream(
         [],
-        hidden_params={"additional_headers": {"x-litellm-attempted-fallbacks": 0}},
+        hidden_params={"additional_headers": {"x-token-iq-attempted-fallbacks": 0}},
     )
     assert _get_streaming_fallback_metadata(stream) == (False, None, [])
 
@@ -398,7 +398,7 @@ def test_get_streaming_fallback_metadata_no_model_group_returns_none_model():
         [],
         hidden_params={
             "additional_headers": {
-                "x-litellm-attempted-fallbacks": 1,
+                "x-token-iq-attempted-fallbacks": 1,
             }
         },
     )
@@ -690,8 +690,8 @@ async def test_async_data_generator_uses_response_fallback_metadata(monkeypatch)
         [_simple_chunk(model="openai/internal-fallback", content="hello")],
         hidden_params={
             "additional_headers": {
-                "x-litellm-attempted-fallbacks": 1,
-                "x-litellm-model-group": "fallback-model",
+                "x-token-iq-attempted-fallbacks": 1,
+                "x-token-iq-model-group": "fallback-model",
             }
         },
     )
@@ -716,8 +716,8 @@ async def test_async_data_generator_uses_chunk_fallback_metadata(monkeypatch):
     chunk = _simple_chunk(model="openai/internal-fallback", content="hello")
     chunk._hidden_params = {
         "additional_headers": {
-            "x-litellm-attempted-fallbacks": 1,
-            "x-litellm-model-group": "fallback-model",
+            "x-token-iq-attempted-fallbacks": 1,
+            "x-token-iq-model-group": "fallback-model",
         }
     }
     out = []
@@ -745,8 +745,8 @@ async def test_async_data_generator_switches_model_mid_stream_on_fallback(monkey
     fallback_chunk = _simple_chunk(model="openai/internal-fallback", content="there")
     fallback_chunk._hidden_params = {
         "additional_headers": {
-            "x-litellm-attempted-fallbacks": 1,
-            "x-litellm-model-group": "fallback-model",
+            "x-token-iq-attempted-fallbacks": 1,
+            "x-token-iq-model-group": "fallback-model",
         }
     }
     out = []
@@ -780,9 +780,9 @@ async def test_async_data_generator_emits_fallback_error_metadata_event(monkeypa
         [_simple_chunk(model="openai/internal-fallback", content="hello")],
         hidden_params={
             "additional_headers": {
-                "x-litellm-attempted-fallbacks": 1,
-                "x-litellm-model-group": "fallback-model",
-                "x-litellm-fallback-errors": json.dumps(fallback_errors),
+                "x-token-iq-attempted-fallbacks": 1,
+                "x-token-iq-model-group": "fallback-model",
+                "x-token-iq-fallback-errors": json.dumps(fallback_errors),
             }
         },
     )
@@ -829,9 +829,9 @@ async def test_async_data_generator_skips_fallback_error_event_without_opt_in(
         [_simple_chunk(model="openai/internal-fallback", content="hello")],
         hidden_params={
             "additional_headers": {
-                "x-litellm-attempted-fallbacks": 1,
-                "x-litellm-model-group": "fallback-model",
-                "x-litellm-fallback-errors": json.dumps(fallback_errors),
+                "x-token-iq-attempted-fallbacks": 1,
+                "x-token-iq-model-group": "fallback-model",
+                "x-token-iq-fallback-errors": json.dumps(fallback_errors),
             }
         },
     )

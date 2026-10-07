@@ -367,7 +367,7 @@ def test_forward_headers_from_request_x_pass_prefix():
         "x-pass-custom-header": "custom-value",
         "x-pass-another-header": "another-value",
         "authorization": "Bearer sk-litellm-key",
-        "x-litellm-api-key": "sk-1234",
+        "x-token-iq-api-key": "sk-1234",
         "content-type": "application/json",
     }
 
@@ -392,7 +392,7 @@ def test_forward_headers_from_request_x_pass_prefix():
 
     # Verify other headers are NOT forwarded (since forward_headers=False)
     assert "authorization" not in result
-    assert "x-litellm-api-key" not in result
+    assert "x-token-iq-api-key" not in result
     assert "content-type" not in result
 
     # Verify original x-pass- prefixed headers are NOT in output (only stripped versions)

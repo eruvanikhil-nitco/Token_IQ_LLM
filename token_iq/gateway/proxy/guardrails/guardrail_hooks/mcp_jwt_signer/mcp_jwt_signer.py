@@ -890,7 +890,7 @@ class MCPJWTSigner(CustomGuardrail):
         # ------------------------------------------------------------------
         if self.debug_headers:
             debug_claims: Final[_DebugHeaderClaims] = claims
-            new_headers["x-litellm-mcp-debug"] = self._build_debug_header(debug_claims, self._kid)
+            new_headers["x-token-iq-mcp-debug"] = self._build_debug_header(debug_claims, self._kid)
 
         hook_data["extra_headers"] = new_headers
 

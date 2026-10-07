@@ -50,7 +50,7 @@ async def test_anthropic_basic_completion_with_headers():
             anthropic_api_output_tokens = (
                 reported_usage.get("output_tokens", None) if reported_usage else None
             )
-            litellm_call_id = response_headers.get("x-litellm-call-id")
+            litellm_call_id = response_headers.get("x-token-iq-call-id")
 
             print(f"LiteLLM Call ID: {litellm_call_id}")
 
@@ -182,7 +182,7 @@ async def test_anthropic_streaming_with_headers():
             assert response.status == 200, "Response should be successful"
             response_headers = response.headers
             print(f"Response headers: {response_headers}")
-            litellm_call_id = response_headers.get("x-litellm-call-id")
+            litellm_call_id = response_headers.get("x-token-iq-call-id")
             print(f"LiteLLM Call ID: {litellm_call_id}")
 
             collected_output = []

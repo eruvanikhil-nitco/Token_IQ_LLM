@@ -28,7 +28,7 @@ McpToolArguments = Mapping[str, McpToolArg]
 
 
 class ApiKeyHeaders(Headers):
-    x_litellm_api_key: str = Field(serialization_alias="x-litellm-api-key")
+    x_litellm_api_key: str = Field(serialization_alias="x-token-iq-api-key")
 
 
 class McpServerNewBody(BaseModel):

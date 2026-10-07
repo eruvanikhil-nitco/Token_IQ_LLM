@@ -551,7 +551,7 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
           <div className="flex items-center justify-between">
             <div>
               <span className="text-sm font-medium text-foreground">
-                Require x-litellm-trace-id on calls TO this agent
+                Require x-token-iq-trace-id on calls TO this agent
               </span>
               <p className="mt-1 text-xs text-muted-foreground">
                 Only accept this agent being invoked with a trace-id (e.g. when used as a sub-agent).
@@ -563,10 +563,10 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
           <div className="flex items-center justify-between">
             <div>
               <span className="text-sm font-medium text-foreground">
-                Require x-litellm-trace-id on calls BY this agent
+                Require x-token-iq-trace-id on calls BY this agent
               </span>
               <p className="mt-1 text-xs text-muted-foreground">
-                Requires LLM/MCP calls made by this agent to include x-litellm-trace-id for session tracking.
+                Requires LLM/MCP calls made by this agent to include x-token-iq-trace-id for session tracking.
               </p>
             </div>
             <Switch
@@ -590,7 +590,7 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
         <div className="space-y-4">
           {!requireTraceIdOutbound && (
             <div className="rounded-lg border border-warning/20 bg-warning/10 p-3 text-sm text-warning">
-              Enable &quot;Require x-litellm-trace-id on calls BY this agent&quot; in Tracing to configure budgets and
+              Enable &quot;Require x-token-iq-trace-id on calls BY this agent&quot; in Tracing to configure budgets and
               rate limits.
             </div>
           )}
@@ -644,7 +644,7 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
 
           <div className="mt-4 text-sm font-medium text-foreground">Per-Session Rate Limits</div>
           <p className="text-xs text-muted-foreground">
-            Rate limits per session (x-litellm-trace-id). Each session gets its own counters.
+            Rate limits per session (x-token-iq-trace-id). Each session gets its own counters.
           </p>
           <div className="grid grid-cols-2 gap-4">
             {rateLimitField("session_tpm_limit", "Session TPM Limit", "e.g. 10000")}

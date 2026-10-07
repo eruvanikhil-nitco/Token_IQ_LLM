@@ -189,6 +189,7 @@ from token_iq.gateway.types.utils import (
     StandardLoggingPayloadErrorInformation,
     Usage,
 )
+from token_iq.gateway import compat
 
 # Datadog streaming spans are a no-op when ddtrace is not enabled, but the
 # ``with tracer.trace(...)`` context manager still allocates a NullSpan and
@@ -1208,7 +1209,7 @@ def _override_openai_response_model(
     if isinstance(hidden_params, dict):
         # Check if a fallback occurred - if so, preserve the actual model used
         fallback_headers: Final = hidden_params.get("additional_headers", {}) or {}
-        attempted_fallbacks: Final = fallback_headers.get("x-litellm-attempted-fallbacks", None)
+        attempted_fallbacks: Final = compat.header(fallback_headers, "x-token-iq-attempted-fallbacks", None)
         if attempted_fallbacks is not None and attempted_fallbacks > 0:
             verbose_proxy_logger.debug(
                 "%s: fallback detected (attempted_fallbacks=%d), preserving actual model used instead of overriding to requested model.",
@@ -1220,7 +1221,7 @@ def _override_openai_response_model(
         # For fastest_response batch completions, use the winning model's group
         # name rather than the comma-separated list the client sent.
         if hidden_params.get("fastest_response_batch_completion"):
-            winning_model: Final = fallback_headers.get("x-litellm-model-group")
+            winning_model: Final = compat.header(fallback_headers, "x-token-iq-model-group")
             if winning_model:
                 verbose_proxy_logger.debug(
                     "%s: fastest_response detected, using winning model group=%r instead of requested=%r.",
@@ -1574,68 +1575,68 @@ class ProxyBaseLLMRequestProcessing:
         classifier_cost: Final = _classifier_cost_from_request_data(request_data)
 
         headers: Final = {
-            "x-litellm-call-id": call_id,
-            "x-litellm-model-id": model_id,
-            "x-litellm-model-name": model_name,
-            "x-litellm-cache-key": cache_key,
-            "x-litellm-model-api-base": (
+            "x-token-iq-call-id": call_id,
+            "x-token-iq-model-id": model_id,
+            "x-token-iq-model-name": model_name,
+            "x-token-iq-cache-key": cache_key,
+            "x-token-iq-model-api-base": (
                 api_base.split("?")[0] if api_base else None
             ),  # don't include query params, risk of leaking sensitive info
-            "x-litellm-version": version,
-            "x-litellm-model-region": model_region,
-            "x-litellm-response-cost": str(response_cost),
-            "x-litellm-response-cost-original": (
+            "x-token-iq-version": version,
+            "x-token-iq-model-region": model_region,
+            "x-token-iq-response-cost": str(response_cost),
+            "x-token-iq-response-cost-original": (
                 str(cost_breakdown.original_cost) if cost_breakdown.original_cost is not None else None
             ),
-            "x-litellm-response-cost-discount-amount": (
+            "x-token-iq-response-cost-discount-amount": (
                 str(cost_breakdown.discount_amount) if cost_breakdown.discount_amount is not None else None
             ),
-            "x-litellm-response-cost-margin-amount": (
+            "x-token-iq-response-cost-margin-amount": (
                 str(cost_breakdown.margin_total_amount) if cost_breakdown.margin_total_amount is not None else None
             ),
-            "x-litellm-response-cost-margin-percent": (
+            "x-token-iq-response-cost-margin-percent": (
                 str(cost_breakdown.margin_percent) if cost_breakdown.margin_percent is not None else None
             ),
-            "x-litellm-response-cost-input": (
+            "x-token-iq-response-cost-input": (
                 str(cost_breakdown.input_cost) if cost_breakdown.input_cost is not None else None
             ),
-            "x-litellm-response-cost-output": (
+            "x-token-iq-response-cost-output": (
                 str(cost_breakdown.output_cost) if cost_breakdown.output_cost is not None else None
             ),
-            "x-litellm-response-cost-cache-read": (
+            "x-token-iq-response-cost-cache-read": (
                 str(cost_breakdown.cache_read_cost) if cost_breakdown.cache_read_cost is not None else None
             ),
-            "x-litellm-response-cost-cache-creation": (
+            "x-token-iq-response-cost-cache-creation": (
                 str(cost_breakdown.cache_creation_cost) if cost_breakdown.cache_creation_cost is not None else None
             ),
-            "x-litellm-response-cost-reasoning": (
+            "x-token-iq-response-cost-reasoning": (
                 str(cost_breakdown.reasoning_cost) if cost_breakdown.reasoning_cost is not None else None
             ),
-            "x-litellm-response-cost-tool-usage": (
+            "x-token-iq-response-cost-tool-usage": (
                 str(cost_breakdown.tool_usage_cost) if cost_breakdown.tool_usage_cost is not None else None
             ),
-            "x-litellm-classifier-cost": (str(classifier_cost) if classifier_cost is not None else None),
-            "x-litellm-key-tpm-limit": str(user_api_key_dict.tpm_limit),
-            "x-litellm-key-rpm-limit": str(user_api_key_dict.rpm_limit),
-            "x-litellm-key-max-budget": str(user_api_key_dict.max_budget),
-            "x-litellm-key-spend": str(updated_spend),
-            "x-litellm-response-duration-ms": str(timing_values.get("_response_ms")),
-            "x-litellm-overhead-duration-ms": str(timing_values.get("litellm_overhead_time_ms")),
-            "x-litellm-callback-duration-ms": str(hidden_params.get("callback_duration_ms", None)),
+            "x-token-iq-classifier-cost": (str(classifier_cost) if classifier_cost is not None else None),
+            "x-token-iq-key-tpm-limit": str(user_api_key_dict.tpm_limit),
+            "x-token-iq-key-rpm-limit": str(user_api_key_dict.rpm_limit),
+            "x-token-iq-key-max-budget": str(user_api_key_dict.max_budget),
+            "x-token-iq-key-spend": str(updated_spend),
+            "x-token-iq-response-duration-ms": str(timing_values.get("_response_ms")),
+            "x-token-iq-overhead-duration-ms": str(timing_values.get("litellm_overhead_time_ms")),
+            "x-token-iq-callback-duration-ms": str(hidden_params.get("callback_duration_ms", None)),
             **(
                 {
-                    "x-litellm-timing-pre-processing-ms": str(hidden_params.get("timing_pre_processing_ms", None)),
-                    "x-litellm-timing-llm-api-ms": str(hidden_params.get("timing_llm_api_ms", None)),
-                    "x-litellm-timing-post-processing-ms": str(hidden_params.get("timing_post_processing_ms", None)),
-                    "x-litellm-timing-message-copy-ms": str(hidden_params.get("timing_message_copy_ms", None)),
+                    "x-token-iq-timing-pre-processing-ms": str(hidden_params.get("timing_pre_processing_ms", None)),
+                    "x-token-iq-timing-llm-api-ms": str(hidden_params.get("timing_llm_api_ms", None)),
+                    "x-token-iq-timing-post-processing-ms": str(hidden_params.get("timing_post_processing_ms", None)),
+                    "x-token-iq-timing-message-copy-ms": str(hidden_params.get("timing_message_copy_ms", None)),
                 }
                 if LITELLM_DETAILED_TIMING
                 else {}
             ),
-            "x-litellm-fastest_response_batch_completion": (
+            "x-token-iq-fastest_response_batch_completion": (
                 str(fastest_response_batch_completion) if fastest_response_batch_completion is not None else None
             ),
-            "x-litellm-timeout": str(timeout) if timeout is not None else None,
+            "x-token-iq-timeout": str(timeout) if timeout is not None else None,
             **{k: str(v) for k, v in kwargs.items()},
         }
         if request_data:
@@ -1922,7 +1923,7 @@ class ProxyBaseLLMRequestProcessing:
                 if alias_target is not None:
                     self.data["model"] = alias_target
 
-        self.data["litellm_call_id"] = request.headers.get("x-litellm-call-id", str(uuid.uuid4()))
+        self.data["litellm_call_id"] = compat.header(request.headers, "x-token-iq-call-id", str(uuid.uuid4()))
         DDSpanTagger.tag_call_id(self.data.get("litellm_call_id"))
         DDSpanTagger.tag_request(
             user_api_key_dict=user_api_key_dict,

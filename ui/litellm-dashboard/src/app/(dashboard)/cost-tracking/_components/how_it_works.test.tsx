@@ -37,9 +37,9 @@ describe("HowItWorks", () => {
 
   it("should show the response header names for discount verification", () => {
     renderWithProviders(<HowItWorks />);
-    expect(screen.getByText("x-litellm-response-cost")).toBeInTheDocument();
-    expect(screen.getByText("x-litellm-response-cost-original")).toBeInTheDocument();
-    expect(screen.getByText("x-litellm-response-cost-discount-amount")).toBeInTheDocument();
+    expect(screen.getByText("x-token-iq-response-cost")).toBeInTheDocument();
+    expect(screen.getByText("x-token-iq-response-cost-original")).toBeInTheDocument();
+    expect(screen.getByText("x-token-iq-response-cost-discount-amount")).toBeInTheDocument();
   });
 
   it("should not show calculated results initially when no input is provided", () => {

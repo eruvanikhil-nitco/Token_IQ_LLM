@@ -8,6 +8,7 @@ import httpx
 
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.types.llms.openai import AllMessageValues, OpenAIChatCompletionFinishReason
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from opentelemetry.trace import Span as _Span
@@ -372,11 +373,14 @@ def process_response_headers(
             openai_headers[k] = v
         if k.startswith("llm_provider-"):  # return raw provider headers (incl. openai-compatible ones)
             processed_headers[k] = v
-        elif _preserve and k.startswith("x-litellm-"):
-            # LiteLLM's own internal headers (e.g. x-litellm-attempted-fallbacks,
-            # x-litellm-model-group) are not LLM provider headers and must not be
+        elif _preserve and compat.is_gateway_header(k):
+            # The engine's own internal headers (e.g. x-token-iq-attempted-fallbacks,
+            # x-token-iq-model-group) are not LLM provider headers and must not be
             # prefixed. Downstream consumers (proxy override, callers checking
-            # whether a fallback happened) look up the bare key.
+            # whether a fallback happened) look up the bare key. Either spelling of
+            # the prefix counts, so a hop through a proxy that has not been upgraded
+            # keeps its markers readable; the flag, not this test, is what stops a
+            # provider spoofing them, and it is False for every raw provider response.
             processed_headers[k] = v
         else:
             additional_headers["{}-{}".format("llm_provider", k)] = v

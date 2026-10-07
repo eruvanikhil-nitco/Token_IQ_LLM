@@ -24,7 +24,7 @@ async def test_get_gateway_virtual_key():
     """
     # Test with x-litellm-api-key
     mock_request = Mock()
-    mock_request.headers = {"x-litellm-api-key": "test-key-123"}
+    mock_request.headers = {"x-token-iq-api-key": "test-key-123"}
     result = get_gateway_virtual_key(mock_request)
     assert result == "Bearer test-key-123"
 
@@ -35,7 +35,7 @@ async def test_get_gateway_virtual_key():
 
     # Test with both headers (x-litellm-api-key should take precedence)
     mock_request.headers = {
-        "x-litellm-api-key": "test-key-123",
+        "x-token-iq-api-key": "test-key-123",
         "Authorization": "Bearer auth-key-456",
     }
     result = get_gateway_virtual_key(mock_request)

@@ -2787,7 +2787,7 @@ class TestMCPServerManager:
             mcp_server_auth_headers=None,
             oauth2_headers=None,
             raw_headers={
-                "x-litellm-api-key": "Bearer sk-litellm-key",
+                "x-token-iq-api-key": "Bearer sk-litellm-key",
                 "authorization": "Bearer upstream-oauth-bearer",
             },
             proxy_logging_obj=None,
@@ -2911,7 +2911,7 @@ class TestMCPServerManager:
             server,
             oauth2_headers={"Authorization": "Bearer upstream-token"},
             raw_headers={
-                "x-litellm-api-key": "Bearer sk-litellm-key",
+                "x-token-iq-api-key": "Bearer sk-litellm-key",
                 "authorization": "Bearer upstream-token",
             },
             user_api_key_auth=UserAPIKeyAuth(api_key="sk-litellm-key"),
@@ -2967,7 +2967,7 @@ class TestMCPServerManager:
             _should_strip_caller_authorization(
                 mcp_server=oauth_delegate,
                 raw_headers={
-                    "x-litellm-api-key": "Bearer sk-litellm-key",
+                    "x-token-iq-api-key": "Bearer sk-litellm-key",
                     "authorization": "Bearer upstream",
                 },
                 user_api_key_auth=UserAPIKeyAuth(api_key="sk-litellm-key"),
@@ -3008,7 +3008,7 @@ class TestMCPServerManager:
             _should_strip_caller_authorization(
                 mcp_server=oauth_delegate,
                 raw_headers={
-                    "x-litellm-api-key": "Bearer sk-1234",
+                    "x-token-iq-api-key": "Bearer sk-1234",
                     "authorization": "Bearer upstream",
                 },
                 user_api_key_auth=UserAPIKeyAuth(user_id="alice", api_key=None),
@@ -11136,7 +11136,7 @@ class TestGatewayAdmissionKeyIsNeverTheSubjectToken:
             self._token_exchange_server("te-split"),
             oauth2_headers={"Authorization": f"Bearer {self._USER_TOKEN}"},
             raw_headers={
-                "X-LiteLLM-API-Key": f"Bearer {self._ADMISSION_KEY}",
+                "x-token-iq-api-key": f"Bearer {self._ADMISSION_KEY}",
                 "authorization": f"Bearer {self._USER_TOKEN}",
             },
             user_api_key_auth=UserAPIKeyAuth(api_key="hashed-key", user_id="alice"),
@@ -11149,7 +11149,7 @@ class TestGatewayAdmissionKeyIsNeverTheSubjectToken:
         subject_token = await self._call_tool_subject(
             self._token_exchange_server("te-empty-header"),
             oauth2_headers={"Authorization": f"Bearer {self._ADMISSION_KEY}"},
-            raw_headers={"x-litellm-api-key": "", "authorization": f"Bearer {self._ADMISSION_KEY}"},
+            raw_headers={"x-token-iq-api-key": "", "authorization": f"Bearer {self._ADMISSION_KEY}"},
             user_api_key_auth=UserAPIKeyAuth(api_key="hashed-key", user_id="alice"),
         )
         assert subject_token is None
@@ -11160,7 +11160,7 @@ class TestGatewayAdmissionKeyIsNeverTheSubjectToken:
             self._token_exchange_server("te-same-key"),
             oauth2_headers={"Authorization": f"Bearer {self._ADMISSION_KEY}"},
             raw_headers={
-                "x-litellm-api-key": self._ADMISSION_KEY,
+                "x-token-iq-api-key": self._ADMISSION_KEY,
                 "authorization": f"Bearer {self._ADMISSION_KEY}",
             },
             user_api_key_auth=UserAPIKeyAuth(api_key="hashed-key", user_id="alice"),
@@ -11174,7 +11174,7 @@ class TestGatewayAdmissionKeyIsNeverTheSubjectToken:
             self._token_exchange_server("te-second-key"),
             oauth2_headers={"Authorization": "Bearer sk-another-virtual-key"},
             raw_headers={
-                "x-litellm-api-key": f"Bearer {self._ADMISSION_KEY}",
+                "x-token-iq-api-key": f"Bearer {self._ADMISSION_KEY}",
                 "authorization": "Bearer sk-another-virtual-key",
             },
             user_api_key_auth=UserAPIKeyAuth(api_key="hashed-key", user_id="alice"),
@@ -11232,7 +11232,7 @@ class TestGatewayAdmissionKeyIsNeverTheSubjectToken:
             user_api_key_auth=UserAPIKeyAuth(api_key="hashed-key", user_id="alice"),
             url=AnyUrl("file:///notes.txt"),
             raw_headers={
-                "x-litellm-api-key": f"Bearer {self._ADMISSION_KEY}",
+                "x-token-iq-api-key": f"Bearer {self._ADMISSION_KEY}",
                 "authorization": f"Bearer {self._USER_TOKEN}",
             },
         )
@@ -11268,7 +11268,7 @@ class TestGatewayAdmissionKeyIsNeverTheSubjectToken:
             mcp_server=server,
             oauth2_headers={"Authorization": f"Bearer {self._USER_TOKEN}"},
             raw_headers={
-                "x-litellm-api-key": f"Bearer {self._ADMISSION_KEY}",
+                "x-token-iq-api-key": f"Bearer {self._ADMISSION_KEY}",
                 "authorization": f"Bearer {self._USER_TOKEN}",
             },
             mcp_auth_header=None,
@@ -11304,7 +11304,7 @@ class TestGatewayAdmissionKeyIsNeverTheSubjectToken:
             oauth2_headers={"Authorization": f"Bearer {self._USER_TOKEN}"},
             user_api_key_auth=UserAPIKeyAuth(api_key="hashed-key", user_id="alice"),
             raw_headers={
-                "x-litellm-api-key": f"Bearer {self._ADMISSION_KEY}",
+                "x-token-iq-api-key": f"Bearer {self._ADMISSION_KEY}",
                 "authorization": f"Bearer {self._USER_TOKEN}",
             },
         )

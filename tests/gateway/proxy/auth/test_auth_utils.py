@@ -283,13 +283,13 @@ class TestGetCustomerIdFromStandardHeaders:
 
     def test_should_return_customer_id_from_x_gateway_customer_id_header(self):
         """Should extract customer ID from x-litellm-customer-id header."""
-        headers = {"x-litellm-customer-id": "customer-123"}
+        headers = {"x-token-iq-customer-id": "customer-123"}
         result = _get_customer_id_from_standard_headers(request_headers=headers)
         assert result == "customer-123"
 
     def test_should_return_customer_id_from_x_gateway_end_user_id_header(self):
         """Should extract customer ID from x-litellm-end-user-id header."""
-        headers = {"x-litellm-end-user-id": "end-user-456"}
+        headers = {"x-token-iq-end-user-id": "end-user-456"}
         result = _get_customer_id_from_standard_headers(request_headers=headers)
         assert result == "end-user-456"
 
@@ -310,7 +310,7 @@ class TestGetEndUserIdFromRequestBodyWithStandardHeaders:
 
     def test_should_prioritize_standard_header_over_body_user(self):
         """Standard customer ID header should take precedence over body user field."""
-        headers = {"x-litellm-customer-id": "header-customer"}
+        headers = {"x-token-iq-customer-id": "header-customer"}
         request_body = {"user": "body-user"}
 
         with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
@@ -432,7 +432,7 @@ def test_get_model_from_request_includes_file_endpoint_header_model():
         get_model_from_request(
             request_data={},
             route="/v1/files",
-            request_headers={"X-LiteLLM-Model": "restricted-model"},
+            request_headers={"x-token-iq-model": "restricted-model"},
         )
         == "restricted-model"
     )
@@ -443,7 +443,7 @@ def test_get_model_from_request_ignores_routing_header_on_standard_llm_routes():
         get_model_from_request(
             request_data={"model": "allowed-model"},
             route="/v1/chat/completions",
-            request_headers={"x-litellm-model": "restricted-model"},
+            request_headers={"x-token-iq-model": "restricted-model"},
         )
         == "allowed-model"
     )
@@ -453,7 +453,7 @@ def test_get_model_from_request_authorizes_all_file_routing_model_sources():
     models = get_model_from_request(
         request_data={"model": "body-model"},
         route="/v1/files",
-        request_headers={"x-litellm-model": "header-model"},
+        request_headers={"x-token-iq-model": "header-model"},
         request_query_params={"target_model_names": "query-model-a,query-model-b"},
     )
     assert isinstance(models, list)

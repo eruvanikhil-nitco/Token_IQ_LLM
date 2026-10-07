@@ -13,6 +13,7 @@ from typing_extensions import assert_never
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import TOKEN_NO_CACHE_HEADERS
 from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.models.user import LiteLLM_UserTable
@@ -35,7 +36,7 @@ def _gateway_key_from_request(request: Request) -> str | None:
     an OAuth/upstream bearer.
     """
     for header_value in (
-        request.headers.get("x-litellm-api-key"),
+        compat.header(request.headers, "x-token-iq-api-key"),
         request.headers.get("Authorization") or request.headers.get("authorization"),
     ):
         if not header_value:
@@ -431,7 +432,7 @@ def _bridge_mint_error_response(error: _BridgeMintError) -> JSONResponse:
                 400,
                 "invalid_request",
                 "this server issues a gateway-bound credential; complete the interactive sign-in, or "
-                "send a litellm credential (x-litellm-api-key or Authorization) on the token request",
+                "send a litellm credential (x-token-iq-api-key or Authorization) on the token request",
             )
         case "invalid_refresh":
             status, code, desc = (

@@ -5784,8 +5784,8 @@ class TestPanwAirsScanIdExposure:
         )
 
         headers = get_logging_caching_headers(data)
-        assert headers["x-litellm-guardrail-scan-id"] == "scan-abc-123"
-        assert "x-litellm-guardrail-scan-metadata" not in headers
+        assert headers["x-token-iq-guardrail-scan-id"] == "scan-abc-123"
+        assert "x-token-iq-guardrail-scan-metadata" not in headers
 
     @pytest.mark.asyncio
     async def test_request_and_response_scan_ids_are_both_exposed(self, user_api_key_dict):
@@ -5808,7 +5808,7 @@ class TestPanwAirsScanIdExposure:
         )
 
         headers = get_logging_caching_headers(data)
-        assert headers["x-litellm-guardrail-scan-id"] == "scan-abc-123,scan-response-456"
+        assert headers["x-token-iq-guardrail-scan-id"] == "scan-abc-123,scan-response-456"
 
     @pytest.mark.asyncio
     async def test_repeated_scan_id_is_not_duplicated(self, user_api_key_dict):

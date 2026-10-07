@@ -251,7 +251,7 @@ class _PROXY_DynamicRateLimitHandler(CustomLogger):
                     active_projects,
                 ) = await self.check_available_usage(model=model_info["model_name"], priority=key_priority)
                 response._hidden_params["additional_headers"] = {  # Add additional response headers - easier debugging
-                    "x-litellm-model_group": model_info["model_name"],
+                    "x-token-iq-model_group": model_info["model_name"],
                     "x-ratelimit-remaining-litellm-project-tokens": available_tpm,
                     "x-ratelimit-remaining-litellm-project-requests": available_rpm,
                     "x-ratelimit-remaining-model-tokens": model_tpm,

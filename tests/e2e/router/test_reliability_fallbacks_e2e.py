@@ -55,9 +55,9 @@ def _assert_served_by_fallback(resp: StreamingResponse) -> None:
         f"content is only acceptable when the budget was spent on non-visible reasoning "
         f"(body={resp.body[:300]})"
     )
-    attempted = resp.headers.get("x-litellm-attempted-fallbacks")
+    attempted = resp.headers.get("x-token-iq-attempted-fallbacks")
     assert attempted is not None, "response is missing the x-litellm-attempted-fallbacks header"
-    assert int(attempted) >= 1, f"x-litellm-attempted-fallbacks should be >= 1, got {attempted!r}"
+    assert int(attempted) >= 1, f"x-token-iq-attempted-fallbacks should be >= 1, got {attempted!r}"
 
 
 class TestReliabilityFallbacks:

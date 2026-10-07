@@ -1961,7 +1961,7 @@ class Logging(GatewayLoggingBaseClass):
             standard_callback_dynamic_params=self.standard_callback_dynamic_params,
         ):
             verbose_logger.debug(
-                "Callback %s disabled via x-litellm-disable-callbacks header for %s event", callback, event_hook
+                "Callback %s disabled via x-token-iq-disable-callbacks header for %s event", callback, event_hook
             )
             return False
 

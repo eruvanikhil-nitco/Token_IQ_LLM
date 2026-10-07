@@ -523,7 +523,7 @@ class TestTogetherChatCompletions:
         )
         header_cost = result.response_cost
         assert header_cost is not None and header_cost > 0, (
-            f"x-litellm-response-cost header missing or non-positive: {result.headers}"
+            f"x-token-iq-response-cost header missing or non-positive: {result.headers}"
         )
 
         price = registry[reasoning_tool_backend]
@@ -638,7 +638,7 @@ class TestTogetherChatCompletions:
 
         header_cost = result.response_cost
         assert header_cost is not None and header_cost > 0, (
-            f"x-litellm-response-cost header missing or non-positive: {result.headers}"
+            f"x-token-iq-response-cost header missing or non-positive: {result.headers}"
         )
         expected = (
             (usage.prompt_tokens - cached) * price.input_cost_per_token

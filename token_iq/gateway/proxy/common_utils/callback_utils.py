@@ -437,13 +437,13 @@ def get_remaining_tokens_and_requests_from_request_data(data: dict) -> dict[str,
     remaining_requests_variable_name: Final = f"litellm-key-remaining-requests-{model_group}"
     remaining_requests: Final = _metadata.get(remaining_requests_variable_name, None)
     if remaining_requests:
-        headers[f"x-litellm-key-remaining-requests-{h11_model_group_name}"] = remaining_requests
+        headers[f"x-token-iq-key-remaining-requests-{h11_model_group_name}"] = remaining_requests
 
     # Remaining Tokens
     remaining_tokens_variable_name: Final = f"litellm-key-remaining-tokens-{model_group}"
     remaining_tokens: Final = _metadata.get(remaining_tokens_variable_name, None)
     if remaining_tokens:
-        headers[f"x-litellm-key-remaining-tokens-{h11_model_group_name}"] = remaining_tokens
+        headers[f"x-token-iq-key-remaining-tokens-{h11_model_group_name}"] = remaining_tokens
 
     return headers
 
@@ -460,23 +460,23 @@ def get_logging_caching_headers(request_data: dict) -> dict | None:
         _metadata.update(gateway_metadata_bucket)
     headers: Final = {}
     if "applied_guardrails" in _metadata:
-        headers["x-litellm-applied-guardrails"] = ",".join(_metadata["applied_guardrails"])
+        headers["x-token-iq-applied-guardrails"] = ",".join(_metadata["applied_guardrails"])
 
     scan_ids: Final = _metadata.get(GUARDRAIL_SCAN_IDS_METADATA_KEY)
     if scan_ids:
-        headers["x-litellm-guardrail-scan-id"] = ",".join(scan_ids)
+        headers["x-token-iq-guardrail-scan-id"] = ",".join(scan_ids)
 
     if "applied_policies" in _metadata:
-        headers["x-litellm-applied-policies"] = ",".join(_metadata["applied_policies"])
+        headers["x-token-iq-applied-policies"] = ",".join(_metadata["applied_policies"])
 
     if "policy_sources" in _metadata:
         sources: Final = _metadata["policy_sources"]
         if isinstance(sources, dict) and sources:
             # Use ';' as delimiter — matched_via reasons may contain commas
-            headers["x-litellm-policy-sources"] = "; ".join(f"{name}={reason}" for name, reason in sources.items())
+            headers["x-token-iq-policy-sources"] = "; ".join(f"{name}={reason}" for name, reason in sources.items())
 
     if "semantic-similarity" in _metadata:
-        headers["x-litellm-semantic-similarity"] = str(_metadata["semantic-similarity"])
+        headers["x-token-iq-semantic-similarity"] = str(_metadata["semantic-similarity"])
 
     is_trusted_pillar_metadata: Final = _metadata.get(TRUSTED_PILLAR_RESPONSE_HEADERS_METADATA_KEY) is True
     pillar_headers: Final = _metadata.get("pillar_response_headers")

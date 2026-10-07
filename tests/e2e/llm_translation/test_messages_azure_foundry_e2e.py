@@ -51,7 +51,7 @@ def _assert_streamed_ok(result: StreamingResponse) -> None:
         "stream never reached message_stop"
     )
     if EXPECT_RUST:
-        assert result.headers.get("x-litellm-rust") == "true", (
+        assert result.headers.get("x-token-iq-rust") == "true", (
             "E2E_EXPECT_RUST is set, so this gateway must serve /v1/messages through the "
             "Rust path, but the response carried no x-litellm-rust marker. The request "
             "still succeeded, which is exactly the failure mode: a gateway whose native "

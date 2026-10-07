@@ -125,7 +125,7 @@ def test_get_response_headers_filters_excluded_custom_headers():
     )
 
     custom_headers = {
-        "x-litellm-version": "1.84.0",
+        "x-token-iq-version": "1.84.0",
         "content-length": "0",  # should be excluded
         "server": "uvicorn",  # should be excluded
     }
@@ -138,8 +138,8 @@ def test_get_response_headers_filters_excluded_custom_headers():
 
     assert result["content-type"] == "application/json"
     assert result["x-amzn-requestid"] == "req-123"
-    assert result["x-litellm-version"] == "1.84.0"
-    assert result["x-litellm-call-id"] == "call-123"
+    assert result["x-token-iq-version"] == "1.84.0"
+    assert result["x-token-iq-call-id"] == "call-123"
     assert "content-length" not in result
     assert "server" not in result
 

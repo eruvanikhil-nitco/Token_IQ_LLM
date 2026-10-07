@@ -1614,7 +1614,7 @@ async def test_router_attempted_fallbacks_in_response(expected_attempted_fallbac
             messages=[{"role": "user", "content": "Hey, how's it going?"}],
         )
         assert (
-            resp._hidden_params["additional_headers"]["x-litellm-attempted-fallbacks"]
+            resp._hidden_params["additional_headers"]["x-token-iq-attempted-fallbacks"]
             == expected_attempted_fallbacks
         )
     elif expected_attempted_fallbacks == 1:
@@ -1623,6 +1623,6 @@ async def test_router_attempted_fallbacks_in_response(expected_attempted_fallbac
             messages=[{"role": "user", "content": "Hey, how's it going?"}],
         )
         assert (
-            resp._hidden_params["additional_headers"]["x-litellm-attempted-fallbacks"]
+            resp._hidden_params["additional_headers"]["x-token-iq-attempted-fallbacks"]
             == expected_attempted_fallbacks
         )

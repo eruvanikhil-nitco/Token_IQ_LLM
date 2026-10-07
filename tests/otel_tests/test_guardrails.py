@@ -93,10 +93,10 @@ async def test_llm_guard_triggered_safe_request():
 
         print("response=", response, "response headers", headers)
 
-        assert "x-litellm-applied-guardrails" in headers
+        assert "x-token-iq-applied-guardrails" in headers
 
         assert (
-            headers["x-litellm-applied-guardrails"]
+            headers["x-token-iq-applied-guardrails"]
             == "aporia-pre-guard,aporia-post-guard"
         )
 
@@ -145,7 +145,7 @@ async def test_no_llm_guard_triggered():
 
         print("response=", response, "response headers", headers)
 
-        assert "x-litellm-applied-guardrails" not in headers
+        assert "x-token-iq-applied-guardrails" not in headers
 
 
 @pytest.mark.asyncio
@@ -181,7 +181,7 @@ async def test_guardrails_with_api_key_controls():
         await asyncio.sleep(3)
 
         print("response=", response, "response headers", headers)
-        assert "x-litellm-applied-guardrails" not in headers
+        assert "x-token-iq-applied-guardrails" not in headers
 
         # test guardrails triggered for key with guardrails
         response, headers = await chat_completion(
@@ -191,8 +191,8 @@ async def test_guardrails_with_api_key_controls():
             messages=[{"role": "user", "content": f"Hello my name is ishaan@berri.ai"}],
         )
 
-        assert "x-litellm-applied-guardrails" in headers
-        assert headers["x-litellm-applied-guardrails"] == "bedrock-pre-guard"
+        assert "x-token-iq-applied-guardrails" in headers
+        assert headers["x-token-iq-applied-guardrails"] == "bedrock-pre-guard"
 
 
 @pytest.mark.asyncio
@@ -299,7 +299,7 @@ async def test_guardrails_with_team_controls():
         await asyncio.sleep(3)
 
         print("response=", response, "response headers", headers)
-        assert "x-litellm-applied-guardrails" not in headers
+        assert "x-token-iq-applied-guardrails" not in headers
 
         response, headers = await chat_completion(
             session,
@@ -310,8 +310,8 @@ async def test_guardrails_with_team_controls():
 
         print("response headers=", json.dumps(headers, indent=4))
 
-        assert "x-litellm-applied-guardrails" in headers
-        assert headers["x-litellm-applied-guardrails"] == "bedrock-pre-guard"
+        assert "x-token-iq-applied-guardrails" in headers
+        assert headers["x-token-iq-applied-guardrails"] == "bedrock-pre-guard"
 
 
 async def get_guardrail_lb_counts(session):
@@ -348,8 +348,8 @@ async def test_guardrail_load_balancing():
             )
 
             # Verify guardrail was applied
-            assert "x-litellm-applied-guardrails" in headers
-            assert headers["x-litellm-applied-guardrails"] == "lb-test-guard"
+            assert "x-token-iq-applied-guardrails" in headers
+            assert headers["x-token-iq-applied-guardrails"] == "lb-test-guard"
 
         # All requests should succeed - the test passes if we get here
         # The actual load balancing verification is done by checking proxy logs

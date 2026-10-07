@@ -608,7 +608,7 @@ def _start_cli_sso_flow(base_url: str) -> CliSsoStartData:
 
 
 def _get_cli_sso_poll_headers(poll_secret: str) -> dict[str, str]:
-    return {"x-litellm-cli-poll-secret": poll_secret}
+    return {"x-token-iq-cli-poll-secret": poll_secret}
 
 
 def _poll_for_authentication(base_url: str, key_id: str, poll_secret: str) -> CliAuthResult | None:

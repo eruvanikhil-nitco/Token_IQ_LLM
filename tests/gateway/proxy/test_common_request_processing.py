@@ -53,8 +53,8 @@ class TestProxyBaseLLMRequestProcessing:
 
         async def fake_base_process_llm_request(**kwargs):
             passthrough_response = kwargs["fastapi_response"]
-            passthrough_response.headers["x-litellm-call-id"] = "test-call-id"
-            passthrough_response.headers["x-litellm-version"] = "test-version"
+            passthrough_response.headers["x-token-iq-call-id"] = "test-call-id"
+            passthrough_response.headers["x-token-iq-version"] = "test-version"
             return httpx.Response(
                 status_code=200,
                 content=b'{"ok":true}',
@@ -84,8 +84,8 @@ class TestProxyBaseLLMRequestProcessing:
         assert result.status_code == 200
         assert result.body == b'{"ok":true}'
         assert result.headers["x-amzn-requestid"] == "bedrock-request-id"
-        assert result.headers["x-litellm-call-id"] == "test-call-id"
-        assert result.headers["x-litellm-version"] == "test-version"
+        assert result.headers["x-token-iq-call-id"] == "test-call-id"
+        assert result.headers["x-token-iq-version"] == "test-version"
 
     @pytest.mark.asyncio
     async def test_base_passthrough_process_llm_request_returns_fastapi_response_from_guardrails(self, monkeypatch):
@@ -164,14 +164,14 @@ class TestProxyBaseLLMRequestProcessing:
             response=upstream,
             proxy_logging_obj=proxy_logging_obj,
             user_api_key_dict=MagicMock(spec=UserAPIKeyAuth),
-            custom_headers={"x-litellm-call-id": "test-call-id"},
+            custom_headers={"x-token-iq-call-id": "test-call-id"},
             request_headers={},
         )
 
         assert isinstance(result, Response)
         assert result.status_code == 200
         assert result.headers["x-amzn-requestid"] == "bedrock-request-id"
-        assert result.headers["x-litellm-call-id"] == "test-call-id"
+        assert result.headers["x-token-iq-call-id"] == "test-call-id"
         assert result.headers["content-length"] == str(len(result.body))
 
     @pytest.mark.asyncio
@@ -214,14 +214,14 @@ class TestProxyBaseLLMRequestProcessing:
             response=upstream,
             proxy_logging_obj=proxy_logging_obj,
             user_api_key_dict=MagicMock(spec=UserAPIKeyAuth),
-            custom_headers={"x-litellm-call-id": "test-call-id"},
+            custom_headers={"x-token-iq-call-id": "test-call-id"},
             request_headers={},
         )
 
         assert isinstance(result, Response)
         assert result.body == b"rewritten-frames"
         assert result.headers["x-amzn-requestid"] == "bedrock-request-id"
-        assert result.headers["x-litellm-call-id"] == "test-call-id"
+        assert result.headers["x-token-iq-call-id"] == "test-call-id"
 
     @pytest.mark.asyncio
     async def test_handle_non_streaming_allm_passthrough_route_applies_response_headers_hook(
@@ -252,20 +252,20 @@ class TestProxyBaseLLMRequestProcessing:
 
         proxy_logging_obj.post_call_success_hook = fake_post_call_success_hook
         proxy_logging_obj.post_call_response_headers_hook = AsyncMock(
-            return_value={"x-litellm-custom": "from-hook"}
+            return_value={"x-token-iq-custom": "from-hook"}
         )
 
         result = await processing_obj._handle_non_streaming_allm_passthrough_route(
             response=upstream,
             proxy_logging_obj=proxy_logging_obj,
             user_api_key_dict=MagicMock(spec=UserAPIKeyAuth),
-            custom_headers={"x-litellm-call-id": "test-call-id"},
+            custom_headers={"x-token-iq-call-id": "test-call-id"},
             request_headers={"authorization": "Bearer sk-test"},
         )
 
         assert isinstance(result, Response)
-        assert result.headers["x-litellm-custom"] == "from-hook"
-        assert result.headers["x-litellm-call-id"] == "test-call-id"
+        assert result.headers["x-token-iq-custom"] == "from-hook"
+        assert result.headers["x-token-iq-call-id"] == "test-call-id"
         proxy_logging_obj.post_call_response_headers_hook.assert_awaited_once()
         _, kwargs = proxy_logging_obj.post_call_response_headers_hook.call_args
         assert kwargs["request_headers"] == {"authorization": "Bearer sk-test"}
@@ -481,7 +481,7 @@ class TestProxyBaseLLMRequestProcessing:
         from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
         # Test with stream timeout header
-        headers_with_timeout = {"x-litellm-stream-timeout": "30.5"}
+        headers_with_timeout = {"x-token-iq-stream-timeout": "30.5"}
         result = GatewayProxyRequestSetup._get_stream_timeout_from_request(headers_with_timeout)
         assert result == 30.5
 
@@ -491,7 +491,7 @@ class TestProxyBaseLLMRequestProcessing:
         assert result is None
 
         # Test with invalid header value (should raise ValueError when converting to float)
-        headers_with_invalid = {"x-litellm-stream-timeout": "invalid"}
+        headers_with_invalid = {"x-token-iq-stream-timeout": "invalid"}
         with pytest.raises(ValueError, match="could not convert string to float: 'invalid"):
             GatewayProxyRequestSetup._get_stream_timeout_from_request(headers_with_invalid)
 
@@ -538,9 +538,9 @@ class TestProxyBaseLLMRequestProcessing:
             proxy_logging_obj=proxy_logging_obj,
         )
 
-        assert headers["x-litellm-call-id"] == "call-id-test"
-        assert headers["x-litellm-model-id"] == "deployment-model-id"
-        assert headers["x-litellm-version"] == "9.9.9"
+        assert headers["x-token-iq-call-id"] == "call-id-test"
+        assert headers["x-token-iq-model-id"] == "deployment-model-id"
+        assert headers["x-token-iq-version"] == "9.9.9"
         assert headers["llm_provider-ratelimit-requests"] == "1000"
         assert headers["x-ratelimit-remaining-requests"] == "999"
         proxy_logging_obj.post_call_response_headers_hook.assert_awaited_once()
@@ -587,8 +587,8 @@ class TestProxyBaseLLMRequestProcessing:
             proxy_logging_obj=proxy_logging_obj,
         )
 
-        assert headers["x-litellm-model-id"] == "stream-model-id"
-        assert headers["x-litellm-model-api-base"] == ("https://generativelanguage.googleapis.com/v1beta")
+        assert headers["x-token-iq-model-id"] == "stream-model-id"
+        assert headers["x-token-iq-model-api-base"] == ("https://generativelanguage.googleapis.com/v1beta")
         assert headers["llm_provider-x"] == "y"
 
     @pytest.mark.asyncio
@@ -626,7 +626,7 @@ class TestProxyBaseLLMRequestProcessing:
             proxy_logging_obj=proxy_logging_obj,
         )
 
-        assert headers["x-litellm-model-id"] == "meta-model-id"
+        assert headers["x-token-iq-model-id"] == "meta-model-id"
 
     @pytest.mark.asyncio
     async def test_add_gateway_data_to_request_with_stream_timeout_header(self):
@@ -644,7 +644,7 @@ class TestProxyBaseLLMRequestProcessing:
 
         # Mock request with stream timeout header
         mock_request = MagicMock(spec=Request)
-        mock_request.headers = {"x-litellm-stream-timeout": "45.0"}
+        mock_request.headers = {"x-token-iq-stream-timeout": "45.0"}
         mock_request.url.path = "/v1/chat/completions"
         mock_request.method = "POST"
         mock_request.query_params = {}
@@ -742,14 +742,14 @@ class TestProxyBaseLLMRequestProcessing:
         )
 
         # Verify discount headers are present
-        assert "x-litellm-response-cost" in headers
-        assert float(headers["x-litellm-response-cost"]) == 0.000095
+        assert "x-token-iq-response-cost" in headers
+        assert float(headers["x-token-iq-response-cost"]) == 0.000095
 
-        assert "x-litellm-response-cost-original" in headers
-        assert float(headers["x-litellm-response-cost-original"]) == 0.0001
+        assert "x-token-iq-response-cost-original" in headers
+        assert float(headers["x-token-iq-response-cost-original"]) == 0.0001
 
-        assert "x-litellm-response-cost-discount-amount" in headers
-        assert float(headers["x-litellm-response-cost-discount-amount"]) == 0.000005
+        assert "x-token-iq-response-cost-discount-amount" in headers
+        assert float(headers["x-token-iq-response-cost-discount-amount"]) == 0.000005
 
     def test_get_custom_headers_without_discount_info(self):
         """
@@ -794,12 +794,12 @@ class TestProxyBaseLLMRequestProcessing:
         )
 
         # Verify discount headers are NOT present
-        assert "x-litellm-response-cost" in headers
-        assert float(headers["x-litellm-response-cost"]) == 0.0001
+        assert "x-token-iq-response-cost" in headers
+        assert float(headers["x-token-iq-response-cost"]) == 0.0001
 
         # Discount headers should not be in the final dict
-        assert "x-litellm-response-cost-original" not in headers
-        assert "x-litellm-response-cost-discount-amount" not in headers
+        assert "x-token-iq-response-cost-original" not in headers
+        assert "x-token-iq-response-cost-discount-amount" not in headers
 
     def test_get_custom_headers_with_margin_info(self):
         """
@@ -843,14 +843,14 @@ class TestProxyBaseLLMRequestProcessing:
         )
 
         # Verify margin headers are present
-        assert "x-litellm-response-cost" in headers
-        assert float(headers["x-litellm-response-cost"]) == 0.00011
+        assert "x-token-iq-response-cost" in headers
+        assert float(headers["x-token-iq-response-cost"]) == 0.00011
 
-        assert "x-litellm-response-cost-margin-amount" in headers
-        assert float(headers["x-litellm-response-cost-margin-amount"]) == 0.00001
+        assert "x-token-iq-response-cost-margin-amount" in headers
+        assert float(headers["x-token-iq-response-cost-margin-amount"]) == 0.00001
 
-        assert "x-litellm-response-cost-margin-percent" in headers
-        assert float(headers["x-litellm-response-cost-margin-percent"]) == 0.10
+        assert "x-token-iq-response-cost-margin-percent" in headers
+        assert float(headers["x-token-iq-response-cost-margin-percent"]) == 0.10
 
     def test_get_custom_headers_without_margin_info(self):
         """
@@ -891,8 +891,8 @@ class TestProxyBaseLLMRequestProcessing:
         )
 
         # Verify margin headers are not present
-        assert "x-litellm-response-cost-margin-amount" not in headers
-        assert "x-litellm-response-cost-margin-percent" not in headers
+        assert "x-token-iq-response-cost-margin-amount" not in headers
+        assert "x-token-iq-response-cost-margin-percent" not in headers
 
     def test_get_custom_headers_per_component_cost_breakdown(self):
         """Test per-component cost headers against the stored production breakdown.
@@ -949,36 +949,36 @@ class TestProxyBaseLLMRequestProcessing:
             litellm_logging_obj=logging_obj,
         )
 
-        assert "x-litellm-response-cost" in headers
-        assert float(headers["x-litellm-response-cost"]) == pytest.approx(total_cost)
+        assert "x-token-iq-response-cost" in headers
+        assert float(headers["x-token-iq-response-cost"]) == pytest.approx(total_cost)
 
-        assert "x-litellm-response-cost-input" in headers
-        assert float(headers["x-litellm-response-cost-input"]) == pytest.approx(uncached_input_cost)
+        assert "x-token-iq-response-cost-input" in headers
+        assert float(headers["x-token-iq-response-cost-input"]) == pytest.approx(uncached_input_cost)
 
-        assert "x-litellm-response-cost-output" in headers
-        assert float(headers["x-litellm-response-cost-output"]) == pytest.approx(output_cost)
+        assert "x-token-iq-response-cost-output" in headers
+        assert float(headers["x-token-iq-response-cost-output"]) == pytest.approx(output_cost)
 
-        assert "x-litellm-response-cost-cache-read" in headers
-        assert float(headers["x-litellm-response-cost-cache-read"]) == pytest.approx(cache_read_cost)
+        assert "x-token-iq-response-cost-cache-read" in headers
+        assert float(headers["x-token-iq-response-cost-cache-read"]) == pytest.approx(cache_read_cost)
 
-        assert "x-litellm-response-cost-cache-creation" in headers
-        assert float(headers["x-litellm-response-cost-cache-creation"]) == pytest.approx(cache_creation_cost)
+        assert "x-token-iq-response-cost-cache-creation" in headers
+        assert float(headers["x-token-iq-response-cost-cache-creation"]) == pytest.approx(cache_creation_cost)
 
-        assert "x-litellm-response-cost-reasoning" in headers
-        assert float(headers["x-litellm-response-cost-reasoning"]) == pytest.approx(reasoning_cost)
+        assert "x-token-iq-response-cost-reasoning" in headers
+        assert float(headers["x-token-iq-response-cost-reasoning"]) == pytest.approx(reasoning_cost)
 
-        assert "x-litellm-response-cost-tool-usage" in headers
-        assert float(headers["x-litellm-response-cost-tool-usage"]) == pytest.approx(tool_usage_cost)
+        assert "x-token-iq-response-cost-tool-usage" in headers
+        assert float(headers["x-token-iq-response-cost-tool-usage"]) == pytest.approx(tool_usage_cost)
 
         component_sum: Final = (
-            float(headers["x-litellm-response-cost-input"])
-            + float(headers["x-litellm-response-cost-cache-read"])
-            + float(headers["x-litellm-response-cost-cache-creation"])
-            + float(headers["x-litellm-response-cost-output"])
-            + float(headers["x-litellm-response-cost-tool-usage"])
+            float(headers["x-token-iq-response-cost-input"])
+            + float(headers["x-token-iq-response-cost-cache-read"])
+            + float(headers["x-token-iq-response-cost-cache-creation"])
+            + float(headers["x-token-iq-response-cost-output"])
+            + float(headers["x-token-iq-response-cost-tool-usage"])
         )
-        assert component_sum == pytest.approx(float(headers["x-litellm-response-cost"]))
-        assert float(headers["x-litellm-response-cost-reasoning"]) <= float(headers["x-litellm-response-cost-output"])
+        assert component_sum == pytest.approx(float(headers["x-token-iq-response-cost"]))
+        assert float(headers["x-token-iq-response-cost-reasoning"]) <= float(headers["x-token-iq-response-cost-output"])
 
     def test_get_custom_headers_without_cost_breakdown_omits_component_headers(self):
         """Test that when litellm_logging_obj has no cost_breakdown, component headers are omitted."""
@@ -1008,13 +1008,13 @@ class TestProxyBaseLLMRequestProcessing:
             litellm_logging_obj=logging_obj,
         )
 
-        assert "x-litellm-response-cost" in headers
-        assert "x-litellm-response-cost-input" not in headers
-        assert "x-litellm-response-cost-output" not in headers
-        assert "x-litellm-response-cost-cache-read" not in headers
-        assert "x-litellm-response-cost-cache-creation" not in headers
-        assert "x-litellm-response-cost-reasoning" not in headers
-        assert "x-litellm-response-cost-tool-usage" not in headers
+        assert "x-token-iq-response-cost" in headers
+        assert "x-token-iq-response-cost-input" not in headers
+        assert "x-token-iq-response-cost-output" not in headers
+        assert "x-token-iq-response-cost-cache-read" not in headers
+        assert "x-token-iq-response-cost-cache-creation" not in headers
+        assert "x-token-iq-response-cost-reasoning" not in headers
+        assert "x-token-iq-response-cost-tool-usage" not in headers
 
     def test_get_custom_headers_per_component_with_discount_and_margin(self):
         """Test that component headers co-exist accurately with discount and margin headers."""
@@ -1056,17 +1056,17 @@ class TestProxyBaseLLMRequestProcessing:
             litellm_logging_obj=logging_obj,
         )
 
-        assert float(headers["x-litellm-response-cost"]) == pytest.approx(0.000105)
-        assert float(headers["x-litellm-response-cost-original"]) == pytest.approx(0.0001)
-        assert float(headers["x-litellm-response-cost-discount-amount"]) == pytest.approx(0.000005)
-        assert float(headers["x-litellm-response-cost-margin-amount"]) == pytest.approx(0.00001)
-        assert float(headers["x-litellm-response-cost-margin-percent"]) == pytest.approx(0.10)
-        assert float(headers["x-litellm-response-cost-input"]) == pytest.approx(0.00006)
-        assert float(headers["x-litellm-response-cost-output"]) == pytest.approx(0.00004)
-        assert "x-litellm-response-cost-cache-read" not in headers
-        assert "x-litellm-response-cost-cache-creation" not in headers
-        assert "x-litellm-response-cost-reasoning" not in headers
-        assert float(headers["x-litellm-response-cost-tool-usage"]) == pytest.approx(0.0)
+        assert float(headers["x-token-iq-response-cost"]) == pytest.approx(0.000105)
+        assert float(headers["x-token-iq-response-cost-original"]) == pytest.approx(0.0001)
+        assert float(headers["x-token-iq-response-cost-discount-amount"]) == pytest.approx(0.000005)
+        assert float(headers["x-token-iq-response-cost-margin-amount"]) == pytest.approx(0.00001)
+        assert float(headers["x-token-iq-response-cost-margin-percent"]) == pytest.approx(0.10)
+        assert float(headers["x-token-iq-response-cost-input"]) == pytest.approx(0.00006)
+        assert float(headers["x-token-iq-response-cost-output"]) == pytest.approx(0.00004)
+        assert "x-token-iq-response-cost-cache-read" not in headers
+        assert "x-token-iq-response-cost-cache-creation" not in headers
+        assert "x-token-iq-response-cost-reasoning" not in headers
+        assert float(headers["x-token-iq-response-cost-tool-usage"]) == pytest.approx(0.0)
 
     @pytest.mark.parametrize("metadata_key", ["metadata", "litellm_metadata"])
     def test_get_custom_headers_classifier_cost_from_routing_decision(self, metadata_key):
@@ -1094,8 +1094,8 @@ class TestProxyBaseLLMRequestProcessing:
             },
         )
 
-        assert headers["x-litellm-classifier-cost"] == "8.1e-05"
-        assert float(headers["x-litellm-response-cost"]) == 0.00023
+        assert headers["x-token-iq-classifier-cost"] == "8.1e-05"
+        assert float(headers["x-token-iq-response-cost"]) == 0.00023
 
     @pytest.mark.parametrize(
         "request_data",
@@ -1123,7 +1123,7 @@ class TestProxyBaseLLMRequestProcessing:
             request_data=request_data,
         )
 
-        assert "x-litellm-classifier-cost" not in headers
+        assert "x-token-iq-classifier-cost" not in headers
 
     def test_get_cost_breakdown_from_logging_obj_helper(self):
         """
@@ -1264,10 +1264,10 @@ class TestProxyBaseLLMRequestProcessing:
             response_cost=response_cost_1,
         )
 
-        assert "x-litellm-key-spend" in headers_1
+        assert "x-token-iq-key-spend" in headers_1
         expected_spend_1 = 0.001 + 0.0005  # Initial spend + current request cost
-        assert float(headers_1["x-litellm-key-spend"]) == pytest.approx(expected_spend_1, abs=1e-10)
-        assert float(headers_1["x-litellm-response-cost"]) == response_cost_1
+        assert float(headers_1["x-token-iq-key-spend"]) == pytest.approx(expected_spend_1, abs=1e-10)
+        assert float(headers_1["x-token-iq-response-cost"]) == response_cost_1
 
         # Test case 2: response_cost is provided as string
         response_cost_2 = "0.0003"  # Current request cost as string
@@ -1277,9 +1277,9 @@ class TestProxyBaseLLMRequestProcessing:
             response_cost=response_cost_2,
         )
 
-        assert "x-litellm-key-spend" in headers_2
+        assert "x-token-iq-key-spend" in headers_2
         expected_spend_2 = 0.001 + 0.0003  # Initial spend + current request cost
-        assert float(headers_2["x-litellm-key-spend"]) == pytest.approx(expected_spend_2, abs=1e-10)
+        assert float(headers_2["x-token-iq-key-spend"]) == pytest.approx(expected_spend_2, abs=1e-10)
 
         # Test case 3: response_cost is None (should use original spend)
         headers_3 = ProxyBaseLLMRequestProcessing.get_custom_headers(
@@ -1288,8 +1288,8 @@ class TestProxyBaseLLMRequestProcessing:
             response_cost=None,
         )
 
-        assert "x-litellm-key-spend" in headers_3
-        assert float(headers_3["x-litellm-key-spend"]) == 0.001  # Should use original spend
+        assert "x-token-iq-key-spend" in headers_3
+        assert float(headers_3["x-token-iq-key-spend"]) == 0.001  # Should use original spend
 
         # Test case 4: response_cost is 0 (should not change spend)
         headers_4 = ProxyBaseLLMRequestProcessing.get_custom_headers(
@@ -1298,8 +1298,8 @@ class TestProxyBaseLLMRequestProcessing:
             response_cost=0.0,
         )
 
-        assert "x-litellm-key-spend" in headers_4
-        assert float(headers_4["x-litellm-key-spend"]) == 0.001  # Should remain unchanged for 0 cost
+        assert "x-token-iq-key-spend" in headers_4
+        assert float(headers_4["x-token-iq-key-spend"]) == 0.001  # Should remain unchanged for 0 cost
 
         # Test case 5: user_api_key_dict.spend is None (should default to 0.0)
         mock_user_api_key_dict.spend = None
@@ -1309,8 +1309,8 @@ class TestProxyBaseLLMRequestProcessing:
             response_cost=0.0002,
         )
 
-        assert "x-litellm-key-spend" in headers_5
-        assert float(headers_5["x-litellm-key-spend"]) == 0.0002  # 0.0 + 0.0002
+        assert "x-token-iq-key-spend" in headers_5
+        assert float(headers_5["x-token-iq-key-spend"]) == 0.0002  # 0.0 + 0.0002
 
         # Test case 6: response_cost is negative (should not be added, use original spend)
         mock_user_api_key_dict.spend = 0.001
@@ -1320,8 +1320,8 @@ class TestProxyBaseLLMRequestProcessing:
             response_cost=-0.0001,  # Negative cost (should not be added)
         )
 
-        assert "x-litellm-key-spend" in headers_6
-        assert float(headers_6["x-litellm-key-spend"]) == 0.001  # Should use original spend
+        assert "x-token-iq-key-spend" in headers_6
+        assert float(headers_6["x-token-iq-key-spend"]) == 0.001  # Should use original spend
 
         # Test case 7: response_cost is invalid string (should fallback to original spend)
         headers_7 = ProxyBaseLLMRequestProcessing.get_custom_headers(
@@ -1330,8 +1330,8 @@ class TestProxyBaseLLMRequestProcessing:
             response_cost="invalid",  # Invalid string
         )
 
-        assert "x-litellm-key-spend" in headers_7
-        assert float(headers_7["x-litellm-key-spend"]) == 0.001  # Should use original spend on error
+        assert "x-token-iq-key-spend" in headers_7
+        assert float(headers_7["x-token-iq-key-spend"]) == 0.001  # Should use original spend on error
 
     @pytest.mark.asyncio
     async def test_queue_time_seconds_is_set_in_metadata(self, monkeypatch):
@@ -1697,7 +1697,7 @@ class TestCommonRequestProcessingHelpers:
             detail={"error": "Content blocked", "guardrail": "keyword-block"},
         )
         exc.provider_specific_fields = {"existing": "field", "guardrail": "stale"}
-        result = proxy_exception_from_http_exception(exc, {"x-litellm-call-id": "abc"})
+        result = proxy_exception_from_http_exception(exc, {"x-token-iq-call-id": "abc"})
         assert result.message == "Content blocked"
         assert result.code == "400"
         assert result.provider_specific_fields == {
@@ -1705,7 +1705,7 @@ class TestCommonRequestProcessingHelpers:
             "error": "Content blocked",
             "guardrail": "keyword-block",
         }
-        assert result.headers == {"x-litellm-call-id": "abc"}
+        assert result.headers == {"x-token-iq-call-id": "abc"}
 
         plain = proxy_exception_from_http_exception(HTTPException(status_code=429, detail="slow down"), {})
         assert plain.message == "slow down"
@@ -2065,7 +2065,7 @@ class TestOverrideOpenAIResponseModel:
         # _hidden_params is an attribute (not a dict key) accessed via getattr
         response_obj = MagicMock()
         response_obj.model = fallback_model
-        response_obj._hidden_params = {"additional_headers": {"x-litellm-attempted-fallbacks": 1}}
+        response_obj._hidden_params = {"additional_headers": {"x-token-iq-attempted-fallbacks": 1}}
 
         # Call the function - should preserve fallback model
         _override_openai_response_model(
@@ -2091,7 +2091,7 @@ class TestOverrideOpenAIResponseModel:
         response_obj.model = fallback_model
         response_obj._hidden_params = {
             "additional_headers": {
-                "x-litellm-attempted-fallbacks": 2  # Multiple fallbacks
+                "x-token-iq-attempted-fallbacks": 2  # Multiple fallbacks
             }
         }
 
@@ -2167,7 +2167,7 @@ class TestOverrideOpenAIResponseModel:
         response_obj.model = downstream_model
         response_obj._hidden_params = {
             "additional_headers": {
-                "x-litellm-attempted-fallbacks": 0  # Zero means no fallback occurred
+                "x-token-iq-attempted-fallbacks": 0  # Zero means no fallback occurred
             }
         }
 
@@ -2192,7 +2192,7 @@ class TestOverrideOpenAIResponseModel:
         # Create a mock object response
         response_obj = MagicMock()
         response_obj.model = downstream_model
-        response_obj._hidden_params = {"additional_headers": {"x-litellm-attempted-fallbacks": None}}
+        response_obj._hidden_params = {"additional_headers": {"x-token-iq-attempted-fallbacks": None}}
 
         # Call the function - should override to requested model
         _override_openai_response_model(
@@ -2237,7 +2237,7 @@ class TestOverrideOpenAIResponseModel:
         # Create a mock object response
         response_obj = MagicMock()
         response_obj.model = fallback_model
-        response_obj._hidden_params = {"additional_headers": {"x-litellm-attempted-fallbacks": 1}}
+        response_obj._hidden_params = {"additional_headers": {"x-token-iq-attempted-fallbacks": 1}}
 
         # Call the function with None requested_model
         _override_openai_response_model(
@@ -2383,7 +2383,7 @@ class TestOverrideOpenAIResponseModel:
         response_obj._hidden_params = {
             "fastest_response_batch_completion": True,
             "additional_headers": {
-                "x-litellm-model-group": winning_model_group,
+                "x-token-iq-model-group": winning_model_group,
             },
         }
 
@@ -2433,7 +2433,7 @@ class TestOverrideOpenAIResponseModel:
         response_obj.model = downstream_model
         response_obj._hidden_params = {
             "additional_headers": {
-                "x-litellm-model-group": "openai/gpt-4o",
+                "x-token-iq-model-group": "openai/gpt-4o",
             },
         }
 
@@ -2547,8 +2547,8 @@ class TestStreamingOverheadHeader:
             hidden_params=hidden_params,
         )
 
-        assert "x-litellm-overhead-duration-ms" in headers
-        assert headers["x-litellm-overhead-duration-ms"] == "42.5"
+        assert "x-token-iq-overhead-duration-ms" in headers
+        assert headers["x-token-iq-overhead-duration-ms"] == "42.5"
 
     @staticmethod
     def _timing_logging_obj(timing_metrics):
@@ -2587,8 +2587,8 @@ class TestStreamingOverheadHeader:
             ),
         )
 
-        assert headers["x-litellm-response-duration-ms"] == "500.0"
-        assert headers["x-litellm-overhead-duration-ms"] == "42.5"
+        assert headers["x-token-iq-response-duration-ms"] == "500.0"
+        assert headers["x-token-iq-overhead-duration-ms"] == "42.5"
 
     def test_get_custom_headers_skips_logging_obj_timing_on_the_failure_path(self):
         """LIT-5466: a failed request reports no timing, the same as /v1/chat/completions."""
@@ -2609,8 +2609,8 @@ class TestStreamingOverheadHeader:
             read_timing_from_logging_obj=False,
         )
 
-        assert "x-litellm-response-duration-ms" not in headers
-        assert "x-litellm-overhead-duration-ms" not in headers
+        assert "x-token-iq-response-duration-ms" not in headers
+        assert "x-token-iq-overhead-duration-ms" not in headers
 
     def test_get_custom_headers_takes_both_timing_values_from_one_source(self):
         """A response that timed itself but has no overhead (lazy provider streams) does not pick
@@ -2631,8 +2631,8 @@ class TestStreamingOverheadHeader:
             ),
         )
 
-        assert headers["x-litellm-response-duration-ms"] == "300.0"
-        assert "x-litellm-overhead-duration-ms" not in headers
+        assert headers["x-token-iq-response-duration-ms"] == "300.0"
+        assert "x-token-iq-overhead-duration-ms" not in headers
 
     def test_get_custom_headers_survives_a_logging_object_without_timing_metrics(self):
         """Duck-typed logging objects (older custom code, test doubles) must not break headers."""
@@ -2654,7 +2654,7 @@ class TestStreamingOverheadHeader:
             litellm_logging_obj=_NoTimingLoggingObj(),
         )
 
-        assert "x-litellm-overhead-duration-ms" not in headers
+        assert "x-token-iq-overhead-duration-ms" not in headers
 
     def test_get_custom_headers_prefers_response_hidden_params_over_logging_obj_timing(self):
         """A response that carries its own timing (chat completions) is not overridden."""
@@ -2674,8 +2674,8 @@ class TestStreamingOverheadHeader:
             ),
         )
 
-        assert headers["x-litellm-response-duration-ms"] == "300.0"
-        assert headers["x-litellm-overhead-duration-ms"] == "7.5"
+        assert headers["x-token-iq-response-duration-ms"] == "300.0"
+        assert headers["x-token-iq-overhead-duration-ms"] == "7.5"
 
     def test_get_custom_headers_omits_timing_when_no_source_has_it(self):
         """No timing on the response and none on the logging object leaves both headers out."""
@@ -2693,8 +2693,8 @@ class TestStreamingOverheadHeader:
             litellm_logging_obj=self._timing_logging_obj({}),
         )
 
-        assert "x-litellm-response-duration-ms" not in headers
-        assert "x-litellm-overhead-duration-ms" not in headers
+        assert "x-token-iq-response-duration-ms" not in headers
+        assert "x-token-iq-overhead-duration-ms" not in headers
 
     def test_get_custom_headers_omits_overhead_when_none(self):
         """
@@ -2726,7 +2726,7 @@ class TestStreamingOverheadHeader:
         )
 
         # Should be absent (None gets filtered by exclude_values)
-        assert "x-litellm-overhead-duration-ms" not in headers
+        assert "x-token-iq-overhead-duration-ms" not in headers
 
     def test_update_response_metadata_sets_overhead_on_stream_wrapper(self):
         """
@@ -2787,9 +2787,9 @@ class TestStreamingOverheadHeader:
             yield "data: [DONE]\n\n"
 
         headers = {
-            "x-litellm-overhead-duration-ms": "42.5",
-            "x-litellm-call-id": "test-call-id",
-            "x-litellm-model-id": "test-model-id",
+            "x-token-iq-overhead-duration-ms": "42.5",
+            "x-token-iq-call-id": "test-call-id",
+            "x-token-iq-model-id": "test-model-id",
         }
 
         response = await create_response(
@@ -2799,7 +2799,7 @@ class TestStreamingOverheadHeader:
         )
 
         assert isinstance(response, StreamingResponse)
-        assert response.headers.get("x-litellm-overhead-duration-ms") == "42.5"
+        assert response.headers.get("x-token-iq-overhead-duration-ms") == "42.5"
 
     def test_streaming_overhead_header_in_custom_headers_from_stream_hidden_params(
         self,
@@ -2847,11 +2847,11 @@ class TestStreamingOverheadHeader:
         )
 
         # The overhead header must be present and correct
-        assert "x-litellm-overhead-duration-ms" in custom_headers, (
+        assert "x-token-iq-overhead-duration-ms" in custom_headers, (
             "x-litellm-overhead-duration-ms header must be emitted during streaming. "
             "It was missing — this is the streaming overhead header regression."
         )
-        assert custom_headers["x-litellm-overhead-duration-ms"] == "55.3"
+        assert custom_headers["x-token-iq-overhead-duration-ms"] == "55.3"
 
 
 class TestDDSpanTaggerTagRequest:
@@ -4700,8 +4700,8 @@ class TestEventStreamAllmPassthroughRoute:
         proxy_logging_obj.post_call_response_headers_hook = AsyncMock(return_value={})
 
         custom_headers = {
-            "x-litellm-call-id": "test-call-123",
-            "x-litellm-model-id": "bedrock/claude",
+            "x-token-iq-call-id": "test-call-123",
+            "x-token-iq-model-id": "bedrock/claude",
             "content-length": "99",
         }
 
@@ -4716,8 +4716,8 @@ class TestEventStreamAllmPassthroughRoute:
             )
 
         assert result is not None
-        assert result.headers.get("x-litellm-call-id") == "test-call-123"
-        assert result.headers.get("x-litellm-model-id") == "bedrock/claude"
+        assert result.headers.get("x-token-iq-call-id") == "test-call-123"
+        assert result.headers.get("x-token-iq-model-id") == "bedrock/claude"
         # content-length from custom_headers is filtered; Starlette sets the correct value from body
         assert result.headers.get("content-length") != "99"
 
@@ -5049,7 +5049,7 @@ class TestResponseCostHeaderForTypedDictResponses:
             route_type="anthropic_messages",
         )
 
-        assert fastapi_response.headers["x-litellm-response-cost"] == "0.00123"
+        assert fastapi_response.headers["x-token-iq-response-cost"] == "0.00123"
         recompute.assert_not_called()
 
     @pytest.mark.asyncio
@@ -5090,7 +5090,7 @@ class TestResponseCostHeaderForTypedDictResponses:
             return_result=True,
         )
 
-        assert fastapi_response.headers["x-litellm-response-cost"] == "0.003"
+        assert fastapi_response.headers["x-token-iq-response-cost"] == "0.003"
         assert result["model"] == "muse-glimmer-30b"
         recompute.assert_called_once()
 
@@ -5119,7 +5119,7 @@ class TestResponseCostHeaderForTypedDictResponses:
             route_type="agenerate_content",
         )
 
-        assert fastapi_response.headers["x-litellm-response-cost"] == "0.00456"
+        assert fastapi_response.headers["x-token-iq-response-cost"] == "0.00456"
         recompute.assert_called_once()
         assert recompute.call_args.kwargs["result"] is response
 
@@ -5178,7 +5178,7 @@ class TestResponseCostHeaderForTypedDictResponses:
             custom_llm_provider="gemini",
         )
         assert expected_cost > 0
-        assert float(fastapi_response.headers["x-litellm-response-cost"]) == pytest.approx(expected_cost)
+        assert float(fastapi_response.headers["x-token-iq-response-cost"]) == pytest.approx(expected_cost)
 
     @pytest.mark.asyncio
     async def test_generate_content_with_hidden_params_emits_cost_header(self, monkeypatch):
@@ -5194,7 +5194,7 @@ class TestResponseCostHeaderForTypedDictResponses:
 
         response = SimpleNamespace(
             _hidden_params={
-                "additional_headers": {"x-litellm-model-group": "gemini-2.5-flash"},
+                "additional_headers": {"x-token-iq-model-group": "gemini-2.5-flash"},
             }
         )
         recompute = MagicMock(return_value=999.0)
@@ -5210,8 +5210,8 @@ class TestResponseCostHeaderForTypedDictResponses:
             route_type="agenerate_content",
         )
 
-        assert fastapi_response.headers["x-litellm-response-cost"] == "0.0004521"
-        assert fastapi_response.headers["x-litellm-model-group"] == "gemini-2.5-flash"
+        assert fastapi_response.headers["x-token-iq-response-cost"] == "0.0004521"
+        assert fastapi_response.headers["x-token-iq-model-group"] == "gemini-2.5-flash"
         recompute.assert_not_called()
 
     @pytest.mark.asyncio
@@ -5225,7 +5225,7 @@ class TestResponseCostHeaderForTypedDictResponses:
 
         response = SimpleNamespace(
             _hidden_params={
-                "additional_headers": {"x-litellm-model-group": "gemini-2.5-flash"},
+                "additional_headers": {"x-token-iq-model-group": "gemini-2.5-flash"},
             }
         )
         recompute = MagicMock(return_value=999.0)
@@ -5241,7 +5241,7 @@ class TestResponseCostHeaderForTypedDictResponses:
             route_type="agenerate_content",
         )
 
-        assert "x-litellm-response-cost" not in fastapi_response.headers
+        assert "x-token-iq-response-cost" not in fastapi_response.headers
         recompute.assert_not_called()
 
     @pytest.mark.asyncio
@@ -5262,7 +5262,7 @@ class TestResponseCostHeaderForTypedDictResponses:
             route_type="acompletion",
         )
 
-        assert fastapi_response.headers["x-litellm-response-cost"] == "0.009"
+        assert fastapi_response.headers["x-token-iq-response-cost"] == "0.009"
         recompute.assert_not_called()
 
     @pytest.mark.asyncio
@@ -5283,7 +5283,7 @@ class TestResponseCostHeaderForTypedDictResponses:
             route_type="acompletion",
         )
 
-        assert "x-litellm-response-cost" not in fastapi_response.headers
+        assert "x-token-iq-response-cost" not in fastapi_response.headers
         recompute.assert_not_called()
 
     @pytest.mark.asyncio
@@ -5327,7 +5327,7 @@ class TestResponseCostHeaderForTypedDictResponses:
 
         assert "_hidden_params" not in result
         assert fastapi_response.headers["x-ratelimit-limit-input-tokens"] == "25"
-        assert fastapi_response.headers["x-litellm-response-cost"] == "0.00123"
+        assert fastapi_response.headers["x-token-iq-response-cost"] == "0.00123"
 
 
 class TestCostHeadersForCallsPricedAtZero:
@@ -5418,7 +5418,7 @@ class TestCostHeadersForCallsPricedAtZero:
             route_type="aget_responses",
         )
 
-        assert fastapi_response.headers["x-litellm-response-cost"] == "0.0"
+        assert fastapi_response.headers["x-token-iq-response-cost"] == "0.0"
         for component in (
             "original",
             "discount-amount",
@@ -5428,7 +5428,7 @@ class TestCostHeadersForCallsPricedAtZero:
             "output",
             "tool-usage",
         ):
-            assert fastapi_response.headers[f"x-litellm-response-cost-{component}"] == "0.0"
+            assert fastapi_response.headers[f"x-token-iq-response-cost-{component}"] == "0.0"
 
     @pytest.mark.asyncio
     async def test_reading_a_background_response_keeps_its_real_cost(self, monkeypatch):
@@ -5439,7 +5439,7 @@ class TestCostHeadersForCallsPricedAtZero:
             route_type="aget_responses",
         )
 
-        assert float(fastapi_response.headers["x-litellm-response-cost"]) == pytest.approx(0.00042)
+        assert float(fastapi_response.headers["x-token-iq-response-cost"]) == pytest.approx(0.00042)
 
     @pytest.mark.asyncio
     async def test_an_inference_call_without_a_recorded_cost_still_omits_the_header(self, monkeypatch):
@@ -5452,7 +5452,7 @@ class TestCostHeadersForCallsPricedAtZero:
             route_type="acompletion",
         )
 
-        assert "x-litellm-response-cost" not in fastapi_response.headers
+        assert "x-token-iq-response-cost" not in fastapi_response.headers
 
     def test_cost_breakdown_reports_zero_components_for_a_call_priced_at_zero(self):
         breakdown = _get_cost_breakdown_from_logging_obj(

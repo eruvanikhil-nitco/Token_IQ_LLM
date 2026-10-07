@@ -280,7 +280,7 @@ def test_rag_query_returns_response_cost_header(client_internal_user):
         )
 
     assert response.status_code == 200, response.json()
-    assert response.headers.get("x-litellm-response-cost") == "3.45e-06"
+    assert response.headers.get("x-token-iq-response-cost") == "3.45e-06"
 
 
 def test_rag_query_stream_returns_event_stream(client_internal_user):

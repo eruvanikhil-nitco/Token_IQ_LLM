@@ -26,7 +26,7 @@ def test_add_fallback_headers_to_streaming_wrapper():
     assert result is response
     assert response._hidden_params["additional_headers"] == {
         "x-existing": "keep",
-        "x-litellm-attempted-fallbacks": 1,
+        "x-token-iq-attempted-fallbacks": 1,
     }
 
 
@@ -49,11 +49,11 @@ def test_add_fallback_headers_serializes_fallback_errors():
 
     assert result is response
     assert response._hidden_params["additional_headers"][
-        "x-litellm-attempted-fallbacks"
+        "x-token-iq-attempted-fallbacks"
     ] == 1
     assert (
         json.loads(
-            response._hidden_params["additional_headers"]["x-litellm-fallback-errors"]
+            response._hidden_params["additional_headers"]["x-token-iq-fallback-errors"]
         )
         == fallback_errors
     )
@@ -71,8 +71,8 @@ def test_add_retry_headers_to_streaming_wrapper():
     assert result is response
     assert response._hidden_params["additional_headers"] == {
         "x-existing": "keep",
-        "x-litellm-attempted-retries": 2,
-        "x-litellm-max-retries": 3,
+        "x-token-iq-attempted-retries": 2,
+        "x-token-iq-max-retries": 3,
     }
 
 
@@ -106,7 +106,7 @@ def test_add_fallback_headers_when_no_existing_additional_headers():
     result = add_fallback_headers_to_response(response=response, attempted_fallbacks=2)
 
     assert result is response
-    assert response._hidden_params["additional_headers"]["x-litellm-attempted-fallbacks"] == 2
+    assert response._hidden_params["additional_headers"]["x-token-iq-attempted-fallbacks"] == 2
 
 
 def test_add_fallback_headers_returns_none_when_response_is_none():
@@ -126,13 +126,13 @@ def test_add_fallback_headers_returns_unchanged_when_response_has_no_hidden_para
 
 def test_get_fallback_errors_from_headers_existing_list_passthrough():
     errors = [{"message": "err", "type": "T", "param": None, "code": "400"}]
-    result = get_fallback_errors_from_headers({"x-litellm-fallback-errors": errors})
+    result = get_fallback_errors_from_headers({"x-token-iq-fallback-errors": errors})
     assert result == errors
 
 
 def test_get_fallback_errors_from_headers_invalid_json_returns_empty():
     result = get_fallback_errors_from_headers(
-        {"x-litellm-fallback-errors": "not-valid-json-{"}
+        {"x-token-iq-fallback-errors": "not-valid-json-{"}
     )
     assert result == []
 
@@ -161,4 +161,4 @@ def test_add_fallback_headers_to_dict_response():
     result = add_fallback_headers_to_response(response=response, attempted_fallbacks=1)
 
     assert result is response
-    assert response["_hidden_params"]["additional_headers"]["x-litellm-attempted-fallbacks"] == 1
+    assert response["_hidden_params"]["additional_headers"]["x-token-iq-attempted-fallbacks"] == 1

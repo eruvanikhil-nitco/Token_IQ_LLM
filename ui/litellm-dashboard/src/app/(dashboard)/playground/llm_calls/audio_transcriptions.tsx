@@ -26,7 +26,7 @@ export async function makeOpenAIAudioTranscriptionRequest(
     apiKey: accessToken,
     baseURL: proxyBaseUrl,
     dangerouslyAllowBrowser: true,
-    defaultHeaders: tags && tags.length > 0 ? { "x-litellm-tags": tags.join(",") } : undefined,
+    defaultHeaders: tags && tags.length > 0 ? { "x-token-iq-tags": tags.join(",") } : undefined,
   });
 
   try {

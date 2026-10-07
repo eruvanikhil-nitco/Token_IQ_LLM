@@ -62,6 +62,7 @@ from token_iq.gateway.types.utils import (
     ImageUsage,
     ImageUsageInputTokensDetails,
 )
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
@@ -336,7 +337,7 @@ class OpenRouterImageEditConfig(BaseImageEditConfig):
                     model_response._hidden_params = {}
                 if "additional_headers" not in model_response._hidden_params:
                     model_response._hidden_params["additional_headers"] = {}
-                model_response._hidden_params["additional_headers"]["llm_provider-x-litellm-response-cost"] = float(
+                model_response._hidden_params["additional_headers"][compat.PROVIDER_COST_KEY] = float(
                     cost
                 )
 

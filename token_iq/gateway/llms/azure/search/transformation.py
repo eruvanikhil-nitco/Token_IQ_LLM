@@ -42,6 +42,7 @@ from token_iq.gateway.llms.base_llm.search.transformation import (
     SearchResult,
 )
 from token_iq.gateway.secret_managers.main import get_secret_str
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
@@ -58,7 +59,7 @@ ENTRA_SCOPE: Final = "https://ai.azure.com/.default"
 _RESPONSES_PATH: Final = "/openai/v1/responses"
 _SNIPPET_FALLBACK_LENGTH: Final = 300
 _UPSTREAM_ERROR_STATUS: Final = 502
-_RESPONSE_COST_HEADER: Final = "llm_provider-x-litellm-response-cost"
+_RESPONSE_COST_HEADER: Final = compat.PROVIDER_COST_KEY
 
 
 class _Annotation(BaseModel):

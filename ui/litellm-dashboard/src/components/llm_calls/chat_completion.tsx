@@ -59,7 +59,7 @@ export async function makeOpenAIChatCompletionRequest(
   // Prepare headers with tags and trace ID
   const headers: Record<string, string> = {};
   if (tags && tags.length > 0) {
-    headers["x-litellm-tags"] = tags.join(",");
+    headers["x-token-iq-tags"] = tags.join(",");
   }
 
   const client = new openai.OpenAI({
@@ -148,7 +148,7 @@ export async function makeOpenAIChatCompletionRequest(
           const nonStreamingResponse = await client.chat.completions
             .create({ ...requestBody, stream: false }, { signal })
             .withResponse();
-          servedFromResponseCache = nonStreamingResponse.response.headers.get("x-litellm-cache-key") !== null;
+          servedFromResponseCache = nonStreamingResponse.response.headers.get("x-token-iq-cache-key") !== null;
           return [completionAsSingleChunk(nonStreamingResponse.data)];
         })();
 

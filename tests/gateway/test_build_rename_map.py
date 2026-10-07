@@ -68,7 +68,7 @@ def test_a_name_without_the_old_name_in_it_is_left_alone() -> None:
         # phase, because renaming it in phase 6 breaks that installation on upgrade.
         ("LITELLM_MASTER_KEY", ("token_iq/gateway/proxy/proxy_server.py",), "env var"),
         ("litellm_settings", ("token_iq/gateway/proxy/proxy_server.py",), "config key"),
-        ("x-litellm-model-id", ("token_iq/gateway/proxy/common_utils/http_parsing_utils.py",), "request header"),
+        ("x-token-iq-model-id", ("token_iq/gateway/proxy/common_utils/http_parsing_utils.py",), "request header"),
         ("LiteLLM_TeamTable", ("schema.prisma",), "database model"),
         ("litellm_requests_metric", ("token_iq/gateway/integrations/prometheus.py",), "metric name"),
         ("LiteLLMRoutes", ("token_iq/gateway/proxy/_types.py",), "identifier"),

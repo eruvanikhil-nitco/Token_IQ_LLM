@@ -6,7 +6,7 @@ import WorkflowRuns from "./WorkflowRuns";
 
 vi.mock("@/components/networking", () => ({
   proxyBaseUrl: "",
-  getGlobalLitellmHeaderName: () => "x-litellm-api-key",
+  getGlobalLitellmHeaderName: () => "x-token-iq-api-key",
 }));
 
 interface FakeRun {
@@ -92,7 +92,7 @@ describe("WorkflowRuns (migrated onto shared DataTable)", () => {
 
     await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(3));
     for (const [url, init] of fetchSpy.mock.calls as [string, RequestInit][]) {
-      expect(init.headers, url).toEqual({ "x-litellm-api-key": "Bearer tok" });
+      expect(init.headers, url).toEqual({ "x-token-iq-api-key": "Bearer tok" });
     }
   });
 });

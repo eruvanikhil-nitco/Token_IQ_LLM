@@ -1678,7 +1678,7 @@ def get_end_user_id_from_request_body(request_body: dict, request_headers: dict 
     return None
 
 
-MODEL_ROUTING_HEADER_NAME: Final = "x-litellm-model"
+MODEL_ROUTING_HEADER_NAME: Final = "x-token-iq-model"
 _MODEL_ROUTING_ROUTE_MARKERS: Final = (
     "/files",
     "/batches",

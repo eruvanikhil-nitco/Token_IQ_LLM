@@ -519,7 +519,7 @@ def test_gateway_gateway_from_sdk_with_response_cost_in_additional_headers():
 
     # Create mock response object
     mock_response = MagicMock()
-    mock_response.headers = {"x-litellm-response-cost": "120"}
+    mock_response.headers = {"x-token-iq-response-cost": "120"}
     mock_response.parse.return_value = gateway.ModelResponse(
         **{
             "id": "chatcmpl-BEkxQvRGp9VAushfAsOZCbhMFLsoy",

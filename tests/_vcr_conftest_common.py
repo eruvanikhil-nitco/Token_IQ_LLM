@@ -54,7 +54,7 @@ SAFE_BODY_MATCHER_NAME = "safe_body"
 KEY_FINGERPRINT_MATCHER_NAME = "key_fingerprint"
 TOLERANT_QUERY_MATCHER_NAME = "tolerant_query"
 TOLERANT_PATH_MATCHER_NAME = "tolerant_path"
-KEY_FINGERPRINT_HEADER = "x-litellm-key-fp"
+KEY_FINGERPRINT_HEADER = "x-token-iq-key-fp"
 
 VCR_DIAG_DIR_ENV = "LITELLM_VCR_DIAG_DIR"
 VCR_DIAG_DIR_DEFAULT = "test-results/vcr-diagnostics"

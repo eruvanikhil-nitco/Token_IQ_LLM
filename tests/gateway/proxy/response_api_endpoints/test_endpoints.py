@@ -182,14 +182,14 @@ class TestResponsesAPIEndpoints(unittest.TestCase):
         assert response.status_code == 200
 
         # Verify x-litellm-key-spend header includes current request cost
-        assert "x-litellm-key-spend" in response.headers
-        key_spend_value = float(response.headers["x-litellm-key-spend"])
+        assert "x-token-iq-key-spend" in response.headers
+        key_spend_value = float(response.headers["x-token-iq-key-spend"])
         expected_spend = 0.001 + 0.0005  # Initial spend + current request cost
         assert key_spend_value == pytest.approx(expected_spend, abs=1e-10)
 
         # Verify x-litellm-response-cost header is present
-        assert "x-litellm-response-cost" in response.headers
-        response_cost_value = float(response.headers["x-litellm-response-cost"])
+        assert "x-token-iq-response-cost" in response.headers
+        response_cost_value = float(response.headers["x-token-iq-response-cost"])
         assert response_cost_value == pytest.approx(0.0005, abs=1e-10)
 
 

@@ -168,8 +168,8 @@ def test_get_custom_headers_includes_model_id():
     )
 
     # Verify model_id is in headers
-    assert "x-litellm-model-id" in headers
-    assert headers["x-litellm-model-id"] == "test-model-123"
+    assert "x-token-iq-model-id" in headers
+    assert headers["x-token-iq-model-id"] == "test-model-123"
 
 
 def test_get_custom_headers_without_model_id():
@@ -196,8 +196,8 @@ def test_get_custom_headers_without_model_id():
     )
 
     # x-litellm-model-id should not be in headers (or should be empty/None)
-    if "x-litellm-model-id" in headers:
-        assert headers["x-litellm-model-id"] in [None, ""]
+    if "x-token-iq-model-id" in headers:
+        assert headers["x-token-iq-model-id"] in [None, ""]
 
 
 class _FakeLoggingObj:
@@ -228,8 +228,8 @@ def test_get_custom_headers_includes_deployment_model_name(metadata_key):
         litellm_logging_obj=logging_obj,
     )
 
-    assert headers["x-litellm-model-name"] == "azure/gpt-4o-2024-08-06"
-    assert headers["x-litellm-model-id"] == "deployment-uuid"
+    assert headers["x-token-iq-model-name"] == "azure/gpt-4o-2024-08-06"
+    assert headers["x-token-iq-model-id"] == "deployment-uuid"
 
 
 def test_get_custom_headers_omits_model_name_when_deployment_missing():
@@ -251,7 +251,7 @@ def test_get_custom_headers_omits_model_name_when_deployment_missing():
         litellm_logging_obj=logging_obj,
     )
 
-    assert "x-litellm-model-name" not in headers
+    assert "x-token-iq-model-name" not in headers
 
 
 def test_get_custom_headers_with_empty_string_model_id():
@@ -278,5 +278,5 @@ def test_get_custom_headers_with_empty_string_model_id():
     )
 
     # x-litellm-model-id should not be in headers (or should be empty)
-    if "x-litellm-model-id" in headers:
-        assert headers["x-litellm-model-id"] == ""
+    if "x-token-iq-model-id" in headers:
+        assert headers["x-token-iq-model-id"] == ""

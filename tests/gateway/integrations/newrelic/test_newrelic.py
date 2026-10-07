@@ -448,7 +448,7 @@ class TestExtractAllMessagesRespectsGatewayRedaction:
 
         kwargs = make_kwargs(messages=[{"role": "user", "content": "user prompt"}])
         kwargs["litellm_params"]["metadata"]["headers"] = {
-            "x-litellm-enable-message-redaction": True,
+            "x-token-iq-enable-message-redaction": True,
         }
         self._assert_no_content(logger, kwargs)
 

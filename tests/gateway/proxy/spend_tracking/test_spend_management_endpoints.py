@@ -3414,7 +3414,7 @@ async def test_view_spend_logs_bounds_row_count(client, monkeypatch):
             captured_find_many_kwargs[-1].get("take")
             == spend_management_endpoints.SPEND_LOGS_PAGINATION_COUNT_CAP
         )
-        assert "x-litellm-spend-logs-truncated" not in response.headers
+        assert "x-token-iq-spend-logs-truncated" not in response.headers
 
         response = client.get(
             "/spend/logs",
@@ -3453,7 +3453,7 @@ async def test_view_spend_logs_bounds_row_count(client, monkeypatch):
         )
         assert response.status_code == 200
         assert len(response.json()) == spend_management_endpoints.SPEND_LOGS_PAGINATION_COUNT_CAP
-        assert response.headers["x-litellm-spend-logs-truncated"] == "true"
+        assert response.headers["x-token-iq-spend-logs-truncated"] == "true"
     finally:
         app.dependency_overrides.pop(ps.user_api_key_auth, None)
 

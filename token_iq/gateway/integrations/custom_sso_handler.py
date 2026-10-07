@@ -4,6 +4,7 @@ from fastapi import Request
 from fastapi_sso.sso.base import OpenID
 
 from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway import compat
 
 
 class CustomSSOLoginHandler(CustomLogger):
@@ -33,8 +34,8 @@ class CustomSSOLoginHandler(CustomLogger):
 
         request_headers_dict: Final = dict(request.headers)
         return OpenID(
-            id=request_headers_dict.get("x-litellm-user-id"),
-            email=request_headers_dict.get("x-litellm-user-email"),
+            id=compat.header(request_headers_dict, "x-token-iq-user-id"),
+            email=compat.header(request_headers_dict, "x-token-iq-user-email"),
             first_name="Test",
             last_name="Test",
             display_name="Test",

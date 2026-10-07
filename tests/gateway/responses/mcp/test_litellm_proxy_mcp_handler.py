@@ -599,7 +599,7 @@ async def test_execute_tool_calls_exposes_sanitized_client_headers_to_logging(mo
         tool_server_map={tool_name: "deepwiki"},
         tool_calls=[{"id": "call-1", "function": {"name": tool_name, "arguments": "{}"}}],
         user_api_key_auth=None,
-        raw_headers={"x-nuid": "nuid-1", "x-litellm-api-key": "sk-proxy", "cookie": "s=1"},
+        raw_headers={"x-nuid": "nuid-1", "x-token-iq-api-key": "sk-proxy", "cookie": "s=1"},
     )
 
     expected = {"x-nuid": "nuid-1", "cookie": "***REDACTED***"}

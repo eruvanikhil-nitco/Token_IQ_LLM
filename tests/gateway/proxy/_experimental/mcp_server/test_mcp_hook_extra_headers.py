@@ -1472,7 +1472,7 @@ class TestPreCallToolCheckExposesClientHeaders:
                         user_api_key_auth=None,
                         proxy_logging_obj=proxy_logging,
                         server=server,
-                        raw_headers={"x-nuid": "nuid-1", "x-litellm-api-key": "sk-proxy"},
+                        raw_headers={"x-nuid": "nuid-1", "x-token-iq-api-key": "sk-proxy"},
                     )
 
         assert captured["headers"] == {"x-nuid": "nuid-1"}

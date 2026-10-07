@@ -370,7 +370,7 @@ async def test_create__model_from_header(harness):
         },
     )
 
-    await call_create(harness, headers={"x-litellm-model": "vertex-model"})
+    await call_create(harness, headers={"x-token-iq-model": "vertex-model"})
 
     harness.creds_resolver.assert_called_once_with(model_id="vertex-model")
     harness.router_acreate.assert_not_called()
@@ -408,7 +408,7 @@ async def test_create__body_model_beats_header_and_query(harness):
 
     await call_create(
         harness,
-        headers={"x-litellm-model": "vertex-model"},
+        headers={"x-token-iq-model": "vertex-model"},
         query={"model": "vertex-model"},
     )
 

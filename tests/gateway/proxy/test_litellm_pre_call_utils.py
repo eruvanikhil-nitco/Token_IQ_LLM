@@ -1597,7 +1597,7 @@ async def test_add_gateway_data_to_request_honors_header_tags():
     request_mock.query_params = {}
     request_mock.headers = {
         "Content-Type": "application/json",
-        "x-litellm-tags": "production,ab-test",
+        "x-token-iq-tags": "production,ab-test",
     }
     request_mock.client = MagicMock()
     request_mock.client.host = "127.0.0.1"
@@ -1684,7 +1684,7 @@ async def test_add_gateway_data_to_request_unions_caller_header_tags_with_static
     request_mock.query_params = {}
     request_mock.headers = {
         "Content-Type": "application/json",
-        "x-litellm-tags": "tenant:1681",
+        "x-token-iq-tags": "tenant:1681",
     }
     request_mock.client = MagicMock()
     request_mock.client.host = "127.0.0.1"
@@ -1730,7 +1730,7 @@ async def test_add_gateway_data_to_request_unions_caller_header_tags_with_static
     request_mock.query_params = {}
     request_mock.headers = {
         "Content-Type": "application/json",
-        "x-litellm-tags": "tenant:42",
+        "x-token-iq-tags": "tenant:42",
     }
     request_mock.client = MagicMock()
     request_mock.client.host = "127.0.0.1"
@@ -1777,7 +1777,7 @@ async def test_add_gateway_data_to_request_unions_dedups_overlapping_caller_and_
     request_mock.query_params = {}
     request_mock.headers = {
         "Content-Type": "application/json",
-        "x-litellm-tags": "env:prod,tenant:7",
+        "x-token-iq-tags": "env:prod,tenant:7",
     }
     request_mock.client = MagicMock()
     request_mock.client.host = "127.0.0.1"
@@ -2400,7 +2400,7 @@ def test_get_num_retries_from_request():
     Test LiteLLMProxyRequestSetup._get_num_retries_from_request method
     """
     # Test case 1: Header is present with valid integer string
-    headers_with_retries = {"x-litellm-num-retries": "3"}
+    headers_with_retries = {"x-token-iq-num-retries": "3"}
     result = GatewayProxyRequestSetup._get_num_retries_from_request(
         headers_with_retries
     )
@@ -2419,12 +2419,12 @@ def test_get_num_retries_from_request():
     assert result is None
 
     # Test case 4: Header present with zero value
-    headers_with_zero = {"x-litellm-num-retries": "0"}
+    headers_with_zero = {"x-token-iq-num-retries": "0"}
     result = GatewayProxyRequestSetup._get_num_retries_from_request(headers_with_zero)
     assert result == 0
 
     # Test case 5: Header present with large number
-    headers_with_large_number = {"x-litellm-num-retries": "100"}
+    headers_with_large_number = {"x-token-iq-num-retries": "100"}
     result = GatewayProxyRequestSetup._get_num_retries_from_request(
         headers_with_large_number
     )
@@ -2433,24 +2433,24 @@ def test_get_num_retries_from_request():
     # Test case 6: Multiple headers with num retries header
     headers_multiple = {
         "Content-Type": "application/json",
-        "x-litellm-num-retries": "5",
+        "x-token-iq-num-retries": "5",
         "Authorization": "Bearer token",
     }
     result = GatewayProxyRequestSetup._get_num_retries_from_request(headers_multiple)
     assert result == 5
 
     # Test case 7: Header present with invalid value (should raise ValueError when int() is called)
-    headers_with_invalid = {"x-litellm-num-retries": "invalid"}
+    headers_with_invalid = {"x-token-iq-num-retries": "invalid"}
     with pytest.raises(ValueError, match='invalid literal for int\\(\\) with base'):
         GatewayProxyRequestSetup._get_num_retries_from_request(headers_with_invalid)
 
     # Test case 8: Header present with float string (should raise ValueError when int() is called)
-    headers_with_float = {"x-litellm-num-retries": "3.5"}
+    headers_with_float = {"x-token-iq-num-retries": "3.5"}
     with pytest.raises(ValueError, match='invalid literal for int\\(\\) with base'):
         GatewayProxyRequestSetup._get_num_retries_from_request(headers_with_float)
 
     # Test case 9: Header present with negative number
-    headers_with_negative = {"x-litellm-num-retries": "-1"}
+    headers_with_negative = {"x-token-iq-num-retries": "-1"}
     result = GatewayProxyRequestSetup._get_num_retries_from_request(
         headers_with_negative
     )
@@ -2462,7 +2462,7 @@ def test_get_keepalive_seconds_from_request():
     Test LiteLLMProxyRequestSetup._get_keepalive_seconds_from_request method
     """
     # Header present with valid float string
-    headers_with_keepalive = {"x-litellm-keepalive-seconds": "15"}
+    headers_with_keepalive = {"x-token-iq-keepalive-seconds": "15"}
     result = GatewayProxyRequestSetup._get_keepalive_seconds_from_request(
         headers_with_keepalive
     )
@@ -2480,7 +2480,7 @@ def test_get_keepalive_seconds_from_request():
 
     # Header present with a fractional value
     result = GatewayProxyRequestSetup._get_keepalive_seconds_from_request(
-        {"x-litellm-keepalive-seconds": "1.5"}
+        {"x-token-iq-keepalive-seconds": "1.5"}
     )
     assert result == 1.5
 
@@ -2488,7 +2488,7 @@ def test_get_keepalive_seconds_from_request():
     # x-litellm-* numeric header helpers (_get_timeout_from_request, etc.)
     with pytest.raises(ValueError, match="could not convert string to float: 'not-a-number"):
         GatewayProxyRequestSetup._get_keepalive_seconds_from_request(
-            {"x-litellm-keepalive-seconds": "not-a-number"}
+            {"x-token-iq-keepalive-seconds": "not-a-number"}
         )
 
 
@@ -2499,7 +2499,7 @@ def test_add_gateway_data_for_backend_llm_call_merges_keepalive_seconds_header()
     the same way x-litellm-timeout/x-litellm-num-retries already are.
     """
     result = GatewayProxyRequestSetup.add_gateway_data_for_backend_llm_call(
-        headers={"x-litellm-keepalive-seconds": "20"},
+        headers={"x-token-iq-keepalive-seconds": "20"},
         request_data={},
         user_api_key_dict=UserAPIKeyAuth(api_key="sk-test"),
     )
@@ -2762,8 +2762,8 @@ def test_add_headers_to_llm_call_by_model_group(
     try:
         # Mock the add_headers_to_llm_call method to return expected headers
         expected_returned_headers = {
-            "X-LiteLLM-User": "test-user",
-            "X-LiteLLM-Org": "test-org",
+            "x-token-iq-user": "test-user",
+            "x-token-iq-org": "test-org",
         }
 
         with patch.object(
@@ -2869,7 +2869,7 @@ def test_add_headers_to_llm_call_by_model_group_existing_headers_in_data():
     gateway.model_group_settings = mock_settings
 
     try:
-        new_headers = {"X-LiteLLM-User": "test-user"}
+        new_headers = {"x-token-iq-user": "test-user"}
 
         with patch.object(
             GatewayProxyRequestSetup,
@@ -2939,7 +2939,7 @@ async def test_add_gateway_metadata_from_request_headers():
     try:
         # Prepare test data (ensure no streaming, add mock_response and api_key to route to litellm.acompletion)
         headers = {
-            "x-litellm-spend-logs-metadata": '{"user_id": "12345", "project_id": "proj_abc", "request_type": "chat_completion", "timestamp": "2025-09-02T10:30:00Z"}'
+            "x-token-iq-spend-logs-metadata": '{"user_id": "12345", "project_id": "proj_abc", "request_type": "chat_completion", "timestamp": "2025-09-02T10:30:00Z"}'
         }
         data = {
             "model": "gpt-4",
@@ -3036,7 +3036,7 @@ async def test_add_gateway_metadata_from_request_headers():
 
         SPEND_LOGS_METADATA = standard_logging_obj["metadata"]["spend_logs_metadata"]
         assert SPEND_LOGS_METADATA == dict(
-            json.loads(headers["x-litellm-spend-logs-metadata"])
+            json.loads(headers["x-token-iq-spend-logs-metadata"])
         ), "spend_logs_metadata should be the same as the headers"
     finally:
         gateway.callbacks = original_callbacks
@@ -3134,8 +3134,8 @@ async def test_anthropic_messages_standard_logging_object_matches_fixture():
 
 
 def test_add_gateway_metadata_from_request_headers_x_gateway_trace_id_sets_chain_id():
-    """x-litellm-trace-id sets both metadata and top-level litellm_session_id/litellm_trace_id for call chaining."""
-    headers = {"x-litellm-trace-id": "foo"}
+    """x-token-iq-trace-id sets both metadata and top-level litellm_session_id/litellm_trace_id for call chaining."""
+    headers = {"x-token-iq-trace-id": "foo"}
     data = {"metadata": {}}
     GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers=headers, data=data, _metadata_variable_name="metadata"
@@ -3147,8 +3147,8 @@ def test_add_gateway_metadata_from_request_headers_x_gateway_trace_id_sets_chain
 
 
 def test_add_gateway_metadata_from_request_headers_x_gateway_session_id_sets_chain_id():
-    """x-litellm-session-id sets both metadata and top-level litellm_session_id/litellm_trace_id for call chaining."""
-    headers = {"x-litellm-session-id": "bar"}
+    """x-token-iq-session-id sets both metadata and top-level litellm_session_id/litellm_trace_id for call chaining."""
+    headers = {"x-token-iq-session-id": "bar"}
     data = {"metadata": {}}
     GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers=headers, data=data, _metadata_variable_name="metadata"
@@ -3162,8 +3162,8 @@ def test_add_gateway_metadata_from_request_headers_x_gateway_session_id_sets_cha
 def test_add_gateway_metadata_from_request_headers_both_headers_trace_id_precedence():
     """When both x-litellm-trace-id and x-litellm-session-id are present, trace-id takes precedence for chain_id."""
     headers = {
-        "x-litellm-trace-id": "trace-value",
-        "x-litellm-session-id": "session-value",
+        "x-token-iq-trace-id": "trace-value",
+        "x-token-iq-session-id": "session-value",
     }
     data = {"metadata": {}}
     GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
@@ -3227,7 +3227,7 @@ def test_add_gateway_metadata_from_headers_session_id_beats_anthropic_user_id():
         }
     }
     GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
-        headers={"x-litellm-session-id": "header-session-id"},
+        headers={"x-token-iq-session-id": "header-session-id"},
         data=data,
         _metadata_variable_name="metadata",
     )
@@ -3245,7 +3245,7 @@ def test_add_gateway_metadata_from_headers_session_id_beats_anthropic_user_id_di
         }
     }
     GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
-        headers={"x-litellm-session-id": "header-session-id"},
+        headers={"x-token-iq-session-id": "header-session-id"},
         data=data,
         _metadata_variable_name="metadata",
     )
@@ -3292,7 +3292,7 @@ def test_add_gateway_metadata_from_anthropic_user_id_dict_ignores_invalid_sessio
 def test_add_gateway_metadata_from_request_headers_explicit_header_beats_generic():
     """Explicit x-litellm-trace-id wins over a generic x-*-session-id header."""
     headers = {
-        "x-litellm-trace-id": "explicit-trace-id-value",
+        "x-token-iq-trace-id": "explicit-trace-id-value",
         "x-claude-code-session-id": "e96634a3-fa28-4083-b354-55542e2dca01",
     }
     data = {"metadata": {}}
@@ -3320,7 +3320,7 @@ def test_get_chain_id_from_headers_generic_vendor_session_id():
     assert (
         get_chain_id_from_headers(
             {
-                "x-litellm-trace-id": "explicit-id-value",
+                "x-token-iq-trace-id": "explicit-id-value",
                 "x-claude-code-session-id": "e96634a3-fa28-4083-b354-55542e2dca01",
             }
         )
@@ -3428,7 +3428,7 @@ def test_get_chain_id_from_headers_explicit_beats_codex_header():
         get_chain_id_from_headers(
             {
                 "user-agent": CODEX_USER_AGENT,
-                "x-litellm-trace-id": "explicit-id-value",
+                "x-token-iq-trace-id": "explicit-id-value",
                 "session-id": CODEX_SESSION_UUID,
             }
         )
@@ -3566,7 +3566,7 @@ def test_add_gateway_metadata_from_request_headers_explicit_trace_id_beats_trace
     """x-litellm-trace-id must win over a traceparent header carrying a
     different trace-id - explicit litellm headers are always highest priority."""
     headers = {
-        "x-litellm-trace-id": "explicit-trace-id-value",
+        "x-token-iq-trace-id": "explicit-trace-id-value",
         "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
     }
     data = {"metadata": {}}
@@ -4998,22 +4998,22 @@ def test_clean_headers_preserves_x_api_key_when_byok_enabled():
     headers = Headers(
         {
             "x-api-key": "sk-ant-api03-client-key",
-            "x-litellm-api-key": "sk-proxy-virtual-key",
+            "x-token-iq-api-key": "sk-proxy-virtual-key",
             "content-type": "application/json",
         }
     )
 
     result = clean_headers(
         headers=headers,
-        litellm_key_header_name="x-litellm-api-key",
+        litellm_key_header_name="x-token-iq-api-key",
         forward_llm_provider_auth_headers=True,
-        authenticated_with_header="x-litellm-api-key",
+        authenticated_with_header="x-token-iq-api-key",
     )
 
     # x-api-key must be preserved for BYOK
     assert result.get("x-api-key") == "sk-ant-api03-client-key"
     # x-litellm-api-key must NOT leak to the upstream
-    assert "x-litellm-api-key" not in result
+    assert "x-token-iq-api-key" not in result
 
 
 def test_clean_headers_strips_x_api_key_when_byok_disabled():
@@ -5025,15 +5025,15 @@ def test_clean_headers_strips_x_api_key_when_byok_disabled():
     headers = Headers(
         {
             "x-api-key": "sk-ant-api03-client-key",
-            "x-litellm-api-key": "sk-proxy-virtual-key",
+            "x-token-iq-api-key": "sk-proxy-virtual-key",
         }
     )
 
     result = clean_headers(
         headers=headers,
-        litellm_key_header_name="x-litellm-api-key",
+        litellm_key_header_name="x-token-iq-api-key",
         forward_llm_provider_auth_headers=False,
-        authenticated_with_header="x-litellm-api-key",
+        authenticated_with_header="x-token-iq-api-key",
     )
 
     assert "x-api-key" not in result
@@ -5055,7 +5055,7 @@ def test_clean_headers_strips_x_api_key_when_byok_enabled_but_x_api_key_was_auth
 
     result = clean_headers(
         headers=headers,
-        litellm_key_header_name="x-litellm-api-key",
+        litellm_key_header_name="x-token-iq-api-key",
         forward_llm_provider_auth_headers=True,
         authenticated_with_header="x-api-key",
     )
@@ -5238,7 +5238,7 @@ class TestApplyClientTagPolicyPreAuth:
 
     def test_merges_header_tags_into_metadata(self):
         request_mock = _build_request_mock_with_headers(
-            {"x-litellm-tags": "tenant:acme,env:prod"}
+            {"x-token-iq-tags": "tenant:acme,env:prod"}
         )
         data = {"model": "gpt-3.5-turbo"}
         user_api_key_dict = UserAPIKeyAuth(
@@ -5257,7 +5257,7 @@ class TestApplyClientTagPolicyPreAuth:
 
     def test_unions_header_tags_with_existing_metadata_tags(self):
         request_mock = _build_request_mock_with_headers(
-            {"x-litellm-tags": "tenant:acme,env:prod"}
+            {"x-token-iq-tags": "tenant:acme,env:prod"}
         )
         data = {
             "model": "gpt-3.5-turbo",
@@ -5284,7 +5284,7 @@ class TestApplyClientTagPolicyPreAuth:
         # it sees in request_data, including body tags. The helper only
         # adds header tags to metadata.tags.
         request_mock = _build_request_mock_with_headers(
-            {"x-litellm-tags": "tenant:acme"}
+            {"x-token-iq-tags": "tenant:acme"}
         )
         data = {
             "model": "gpt-3.5-turbo",
@@ -5313,7 +5313,7 @@ class TestApplyClientTagPolicyPreAuth:
 
     def test_uses_gateway_metadata_when_present(self):
         request_mock = _build_request_mock_with_headers(
-            {"x-litellm-tags": "tenant:acme"}
+            {"x-token-iq-tags": "tenant:acme"}
         )
         data = {
             "model": "gpt-3.5-turbo",
@@ -5358,7 +5358,7 @@ class TestApplyClientTagPolicyPreAuth:
         # metadata can arrive as a JSON string (multipart/form-data, extra_body).
         # The pre-auth merge must parse it so an over-budget body tag isn't
         # silently dropped when a within-budget header tag is also present.
-        request_mock = _build_request_mock_with_headers({"x-litellm-tags": "free"})
+        request_mock = _build_request_mock_with_headers({"x-token-iq-tags": "free"})
         data = {
             "model": "gpt-3.5-turbo",
             "metadata": '{"tags": ["paid"]}',
@@ -5386,7 +5386,7 @@ class TestApplyClientTagPolicyPreAuth:
         from token_iq.gateway.proxy.auth.auth_checks import _tag_max_budget_check
         from token_iq.gateway.proxy.utils import ProxyLogging
 
-        request_mock = _build_request_mock_with_headers({"x-litellm-tags": "free"})
+        request_mock = _build_request_mock_with_headers({"x-token-iq-tags": "free"})
         data = {
             "model": "gpt-3.5-turbo",
             "metadata": '{"tags": ["paid"]}',
@@ -5447,7 +5447,7 @@ class TestApplyClientTagPolicyPreAuth:
         from token_iq.gateway.proxy.utils import ProxyLogging
 
         request_mock = _build_request_mock_with_headers(
-            {"x-litellm-tags": "tenant:acme"}
+            {"x-token-iq-tags": "tenant:acme"}
         )
         data = {"model": "gpt-3.5-turbo"}
         user_api_key_dict = UserAPIKeyAuth(
@@ -5522,7 +5522,7 @@ class TestApplyClientTagPolicyPreAuth:
         from token_iq.gateway.proxy.utils import ProxyLogging
 
         request_mock = _build_request_mock_with_headers(
-            {"x-litellm-tags": "tenant:acme"}
+            {"x-token-iq-tags": "tenant:acme"}
         )
         data = {"model": "us.anthropic.claude-sonnet-4-6"}
         valid_token = UserAPIKeyAuth(
@@ -6089,7 +6089,7 @@ async def test_add_gateway_data_to_request_unions_metadata_tags_with_header_tags
     request_mock.query_params = {}
     request_mock.headers = {
         "Content-Type": "application/json",
-        "x-litellm-tags": "header-tag",
+        "x-token-iq-tags": "header-tag",
     }
     request_mock.client = MagicMock()
     request_mock.client.host = "127.0.0.1"
@@ -6474,7 +6474,7 @@ async def test_add_gateway_data_to_request_redacts_oauth_header_from_logging_cop
             "Content-Type": "application/json",
             "anthropic-version": "2023-06-01",
             "Authorization": _OAUTH_TOKEN,
-            "x-litellm-api-key": "Bearer sk-virtual-key",
+            "x-token-iq-api-key": "Bearer sk-virtual-key",
         },
     )
 
@@ -6520,7 +6520,7 @@ async def test_add_gateway_data_to_request_keeps_every_forwarded_credential_out_
         "/v1/chat/completions",
         {
             "Content-Type": "application/json",
-            "x-litellm-api-key": "Bearer sk-virtual-key",
+            "x-token-iq-api-key": "Bearer sk-virtual-key",
             **secrets,
         },
     )
@@ -6582,7 +6582,7 @@ async def test_add_gateway_data_to_request_debug_log_does_not_print_credentials(
         {
             "Content-Type": "application/json",
             "Ocp-Apim-Subscription-Key": "apim-plaintext-token-lit5108",
-            "x-litellm-api-key": "Bearer sk-virtual-key",
+            "x-token-iq-api-key": "Bearer sk-virtual-key",
         },
     )
 
@@ -6909,7 +6909,7 @@ class TestPromotedTraceControlFields:
         updated = await self._run(
             "/v1/responses",
             {"model": "gpt-4.1-mini", "input": "say resp", "metadata": {"session_id": "from-body"}},
-            headers={"x-litellm-session-id": "from-header-12345678"},
+            headers={"x-token-iq-session-id": "from-header-12345678"},
         )
 
         assert updated["litellm_metadata"]["session_id"] == "from-header-12345678"
@@ -7010,7 +7010,7 @@ async def test_add_gateway_data_to_request_inherited_tags_survives_pre_auth_head
     request_mock.url.__str__.return_value = "http://localhost/v1/chat/completions"
     request_mock.method = "POST"
     request_mock.query_params = {}
-    request_mock.headers = {"Content-Type": "application/json", "x-litellm-tags": "caller-invented-tag"}
+    request_mock.headers = {"Content-Type": "application/json", "x-token-iq-tags": "caller-invented-tag"}
     request_mock.client = MagicMock()
     request_mock.client.host = "127.0.0.1"
 
@@ -7106,7 +7106,7 @@ async def test_add_gateway_data_to_request_caller_tags_includes_header_tags():
     request_mock.url.__str__.return_value = "http://localhost/v1/chat/completions"
     request_mock.method = "POST"
     request_mock.query_params = {}
-    request_mock.headers = {"Content-Type": "application/json", "x-litellm-tags": "header-tag"}
+    request_mock.headers = {"Content-Type": "application/json", "x-token-iq-tags": "header-tag"}
     request_mock.client = MagicMock()
     request_mock.client.host = "127.0.0.1"
 
@@ -7822,7 +7822,7 @@ async def test_missing_session_id_generate_reuses_traceparent_trace_id():
 @pytest.mark.parametrize("policy", ["generate", "reject"])
 async def test_missing_session_id_policy_keeps_client_supplied_session_id(policy: str):
     request = _request_for("/v1/chat/completions")
-    request.headers = {"x-litellm-session-id": "client-session-1"}
+    request.headers = {"x-token-iq-session-id": "client-session-1"}
 
     updated = await add_litellm_data_to_request(
         data={"model": "gpt-4o", "messages": []},

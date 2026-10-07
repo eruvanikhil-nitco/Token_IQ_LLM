@@ -149,7 +149,7 @@ async def test_basic_vertex_ai_pass_through_with_spendlog():
             response.status_code == 200
         ), f"vertex pass-through call failed: {response.status_code} {response.text}"
 
-        call_id = response.headers.get("x-litellm-call-id")
+        call_id = response.headers.get("x-token-iq-call-id")
         assert call_id, "proxy response missing x-litellm-call-id header"
 
         for _ in range(poll_seconds // poll_interval):

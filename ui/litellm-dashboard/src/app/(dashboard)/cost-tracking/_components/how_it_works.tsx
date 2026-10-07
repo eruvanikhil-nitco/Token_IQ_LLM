@@ -69,19 +69,19 @@ const HowItWorks: React.FC = () => {
         <div className="space-y-1.5">
           <div className="flex items-start gap-3">
             <code className="whitespace-nowrap rounded-sm bg-muted px-2 py-1 font-mono text-xs text-foreground">
-              x-litellm-response-cost
+              x-token-iq-response-cost
             </code>
             <p className="text-xs text-muted-foreground">Final cost after discount</p>
           </div>
           <div className="flex items-start gap-3">
             <code className="whitespace-nowrap rounded-sm bg-muted px-2 py-1 font-mono text-xs text-foreground">
-              x-litellm-response-cost-original
+              x-token-iq-response-cost-original
             </code>
             <p className="text-xs text-muted-foreground">Original cost before discount</p>
           </div>
           <div className="flex items-start gap-3">
             <code className="whitespace-nowrap rounded-sm bg-muted px-2 py-1 font-mono text-xs text-foreground">
-              x-litellm-response-cost-discount-amount
+              x-token-iq-response-cost-discount-amount
             </code>
             <p className="text-xs text-muted-foreground">Amount discounted</p>
           </div>
@@ -96,7 +96,7 @@ const HowItWorks: React.FC = () => {
         <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <Label htmlFor="response-cost" className="mb-1 block text-xs">
-              Response Cost (x-litellm-response-cost)
+              Response Cost (x-token-iq-response-cost)
             </Label>
             <Input
               id="response-cost"
@@ -108,7 +108,7 @@ const HowItWorks: React.FC = () => {
           </div>
           <div>
             <Label htmlFor="discount-amount" className="mb-1 block text-xs">
-              Discount Amount (x-litellm-response-cost-discount-amount)
+              Discount Amount (x-token-iq-response-cost-discount-amount)
             </Label>
             <Input
               id="discount-amount"

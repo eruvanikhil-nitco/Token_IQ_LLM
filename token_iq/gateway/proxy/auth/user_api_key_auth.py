@@ -105,6 +105,7 @@ from token_iq.gateway.proxy.utils import (
 from token_iq.gateway.repositories.table_repositories import TeamMembershipRepository
 from token_iq.gateway.secret_managers.main import get_secret_bool
 from token_iq.gateway.types.services import ServiceTypes
+from token_iq.gateway import compat
 
 try:
     from litellm_enterprise.proxy.auth.user_api_key_auth import (
@@ -2855,6 +2856,12 @@ async def user_api_key_auth(
     """
     Parent function to authenticate user api key / jwt token.
     """
+    # FastAPI's security dependency resolves one header name, so the spelling the key header used to have
+    # is read here instead and coalesced before anything below sees it. A caller whose client still sends
+    # the old name authenticates on exactly the same terms, and finds out once that the name has moved.
+    sent_key_header: Final = custom_gateway_key_header or compat.header(
+        request.headers, SpecialHeaders.custom_gateway_api_key.value
+    )
 
     # Create the SERVER span and stash it on request.state BEFORE reading the
     # body. _read_request_body can raise ProxyException for malformed JSON;
@@ -2879,7 +2886,7 @@ async def user_api_key_auth(
                 google_ai_studio_api_key_header=google_ai_studio_api_key_header,
                 azure_apim_header=azure_apim_header,
                 request_data=request_data,
-                custom_gateway_key_header=custom_gateway_key_header,
+                custom_gateway_key_header=sent_key_header,
             )
         except Exception:
             # The body was read first, so a caller who sent both a malformed body and

@@ -1840,7 +1840,7 @@ def test_get_team_id_from_header():
 
     # Valid team in allowed list
     result = JWTAuthManager.get_team_id_from_header(
-        request_headers={"x-litellm-team-id": "team-1"},
+        request_headers={"x-token-iq-team-id": "team-1"},
         allowed_team_ids={"team-1", "team-2"},
     )
     assert result == "team-1"
@@ -1855,7 +1855,7 @@ def test_get_team_id_from_header():
     # Invalid team raises 403
     with pytest.raises(HTTPException) as exc_info:
         JWTAuthManager.get_team_id_from_header(
-            request_headers={"x-litellm-team-id": "invalid-team"},
+            request_headers={"x-token-iq-team-id": "invalid-team"},
             allowed_team_ids={"team-1", "team-2"},
         )
     assert exc_info.value.status_code == 403
@@ -1923,7 +1923,7 @@ async def test_auth_builder_uses_team_from_header_e2e():
             user_api_key_cache=user_api_key_cache,
             parent_otel_span=None,
             proxy_logging_obj=ProxyLogging(user_api_key_cache=user_api_key_cache),
-            request_headers={"x-litellm-team-id": "team-2"},
+            request_headers={"x-token-iq-team-id": "team-2"},
         )
 
         assert result["team_id"] == "team-2"
@@ -1994,7 +1994,7 @@ async def test_auth_builder_header_team_denies_auth_passthrough_without_allowlis
                 user_api_key_cache=user_api_key_cache,
                 parent_otel_span=None,
                 proxy_logging_obj=ProxyLogging(user_api_key_cache=user_api_key_cache),
-                request_headers={"x-litellm-team-id": "team-2"},
+                request_headers={"x-token-iq-team-id": "team-2"},
                 request_method="POST",
             )
 
@@ -2269,7 +2269,7 @@ async def test_auth_builder_admin_on_llm_route_honors_team_header():
             user_api_key_cache=user_api_key_cache,
             parent_otel_span=None,
             proxy_logging_obj=ProxyLogging(user_api_key_cache=user_api_key_cache),
-            request_headers={"x-litellm-team-id": "team-low"},
+            request_headers={"x-token-iq-team-id": "team-low"},
         )
 
         assert result["is_proxy_admin"] is True
@@ -2322,7 +2322,7 @@ async def test_auth_builder_admin_on_mgmt_route_ignores_team_header():
             user_api_key_cache=user_api_key_cache,
             parent_otel_span=None,
             proxy_logging_obj=ProxyLogging(user_api_key_cache=user_api_key_cache),
-            request_headers={"x-litellm-team-id": "totally-made-up-team"},
+            request_headers={"x-token-iq-team-id": "totally-made-up-team"},
         )
 
         assert result["is_proxy_admin"] is True
@@ -5152,7 +5152,7 @@ def test_get_team_id_from_header_defers_to_db_membership_only_without_jwt_claims
     When the JWT does carry team claims, the header must still be validated
     against them, and the flag-off behavior must keep rejecting unknown teams."""
     deferred = JWTAuthManager.get_team_id_from_header(
-        request_headers={"x-litellm-team-id": "team-from-db"},
+        request_headers={"x-token-iq-team-id": "team-from-db"},
         allowed_team_ids=set(),
         fallback_to_db_teams=True,
     )
@@ -5160,7 +5160,7 @@ def test_get_team_id_from_header_defers_to_db_membership_only_without_jwt_claims
 
     with pytest.raises(HTTPException) as exc_info:
         JWTAuthManager.get_team_id_from_header(
-            request_headers={"x-litellm-team-id": "team-x"},
+            request_headers={"x-token-iq-team-id": "team-x"},
             allowed_team_ids={"team-1", "team-2"},
             fallback_to_db_teams=True,
         )
@@ -5168,7 +5168,7 @@ def test_get_team_id_from_header_defers_to_db_membership_only_without_jwt_claims
 
     with pytest.raises(HTTPException):
         JWTAuthManager.get_team_id_from_header(
-            request_headers={"x-litellm-team-id": "team-from-db"},
+            request_headers={"x-token-iq-team-id": "team-from-db"},
             allowed_team_ids=set(),
             fallback_to_db_teams=False,
         )
@@ -5346,7 +5346,7 @@ async def test_auth_builder_db_team_fallback_when_jwt_has_no_team(
         fallback_to_db_teams=fallback_to_db_teams,
     )
 
-    request_headers = {"x-litellm-team-id": header_team_id} if header_team_id else None
+    request_headers = {"x-token-iq-team-id": header_team_id} if header_team_id else None
 
     async def fake_get_team(team_id, **kwargs):
         return LiteLLM_TeamTable(team_id=team_id)
@@ -5696,7 +5696,7 @@ async def _run_auth_builder_with_header_team(
             user_api_key_cache=None,
             parent_otel_span=None,
             proxy_logging_obj=None,
-            request_headers={"x-litellm-team-id": header_team_id},
+            request_headers={"x-token-iq-team-id": header_team_id},
         )
 
 
@@ -6523,7 +6523,7 @@ async def test_auth_builder_provisional_header_team_is_not_upserted():
             user_api_key_cache=None,
             parent_otel_span=None,
             proxy_logging_obj=None,
-            request_headers={"x-litellm-team-id": header_team},
+            request_headers={"x-token-iq-team-id": header_team},
         )
 
     assert result["team_id"] == header_team
@@ -6601,7 +6601,7 @@ async def test_auth_builder_header_cannot_override_rbac_team_under_db_fallback()
                 user_api_key_cache=None,
                 parent_otel_span=None,
                 proxy_logging_obj=None,
-                request_headers={"x-litellm-team-id": other_team},
+                request_headers={"x-token-iq-team-id": other_team},
             )
 
     assert exc_info.value.status_code == 403
@@ -6682,7 +6682,7 @@ async def test_auth_builder_header_team_enforces_team_allowed_routes_under_db_fa
                 user_api_key_cache=None,
                 parent_otel_span=None,
                 proxy_logging_obj=None,
-                request_headers={"x-litellm-team-id": header_team},
+                request_headers={"x-token-iq-team-id": header_team},
             )
 
     with pytest.raises(HTTPException) as exc_info:

@@ -30,9 +30,9 @@ def test_apply_fallback_hidden_params_copies_from_fallback_response():
     fallback_response = MagicMock()
     fallback_response._hidden_params = {
         "additional_headers": {
-            "x-litellm-attempted-fallbacks": 1,
-            "x-litellm-model-group": "fallback-model",
-            "x-litellm-fallback-errors": json.dumps(fallback_errors),
+            "x-token-iq-attempted-fallbacks": 1,
+            "x-token-iq-model-group": "fallback-model",
+            "x-token-iq-fallback-errors": json.dumps(fallback_errors),
         },
         "api_base": "https://fallback.example",
     }
@@ -48,9 +48,9 @@ def test_apply_fallback_hidden_params_copies_from_fallback_response():
     assert chunk._hidden_params["model_id"] == "chunk-model-id"
     assert chunk._hidden_params["additional_headers"] == {
         "x-existing-chunk-header": "keep",
-        "x-litellm-attempted-fallbacks": 1,
-        "x-litellm-model-group": "fallback-model",
-        "x-litellm-fallback-errors": json.dumps(fallback_errors),
+        "x-token-iq-attempted-fallbacks": 1,
+        "x-token-iq-model-group": "fallback-model",
+        "x-token-iq-fallback-errors": json.dumps(fallback_errors),
     }
 
 
@@ -102,14 +102,14 @@ def test_apply_fallback_hidden_params_to_item_no_existing_additional_headers():
         chunk,
         (
             {"api_base": "http://fallback.example"},
-            {"x-litellm-attempted-fallbacks": 1},
+            {"x-token-iq-attempted-fallbacks": 1},
         ),
     )
 
     assert chunk._hidden_params["api_base"] == "http://fallback.example"
     assert chunk._hidden_params["model_id"] == "test-id"
     assert chunk._hidden_params["additional_headers"] == {
-        "x-litellm-attempted-fallbacks": 1
+        "x-token-iq-attempted-fallbacks": 1
     }
 
 
@@ -130,7 +130,7 @@ async def test_set_response_headers_adds_model_group_to_streaming_wrapper():
     assert result is response
     assert response._hidden_params["additional_headers"] == {
         "x-existing": "keep",
-        "x-litellm-model-group": "fallback-model",
+        "x-token-iq-model-group": "fallback-model",
     }
 
 

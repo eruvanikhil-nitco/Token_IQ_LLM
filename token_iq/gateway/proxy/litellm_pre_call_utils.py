@@ -14,6 +14,7 @@ from pydantic import ValidationError as PydanticValidationError
 from starlette.datastructures import Headers
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger, verbose_proxy_logger
 from token_iq.gateway._service_logger import ServiceLogging
 from token_iq.gateway._uuid import uuid
@@ -72,7 +73,7 @@ _TRANSPORT_ONLY_CREDENTIAL_KEYS: Final = frozenset({"provider_specific_header", 
 # Matches any header of the form x-<something>-session-id (case-insensitive).
 # Excludes the two explicit litellm headers which are handled with higher priority.
 _GENERIC_SESSION_ID_HEADER_RE: Final = re.compile(r"^x-.+-session-id$", re.IGNORECASE)
-_EXPLICIT_SESSION_HEADERS: Final = frozenset({"x-litellm-trace-id", "x-litellm-session-id"})
+_EXPLICIT_SESSION_HEADERS: Final = frozenset(compat.both_spellings(("x-token-iq-trace-id", "x-token-iq-session-id")))
 # Codex carries its conversation uuid in unprefixed headers, so the
 # x-<vendor>-session-id convention above never matches it. Current builds send
 # ``session-id``/``thread-id``; builds before the codex-api split sent
@@ -689,8 +690,8 @@ def get_chain_id_from_headers(headers: dict[str, str] | None) -> str | None:
         return None
     normalized: Final = {k.lower(): v for k, v in headers.items() if isinstance(k, str)}
     return (
-        normalized.get("x-litellm-trace-id")
-        or normalized.get("x-litellm-session-id")
+        compat.header(normalized, "x-token-iq-trace-id")
+        or compat.header(normalized, "x-token-iq-session-id")
         or _extract_generic_session_id_from_headers(normalized)
         or _extract_codex_session_id_from_headers(normalized)
     )
@@ -751,7 +752,7 @@ def apply_missing_session_id_policy(
         case "reject":
             raise ProxyException(
                 message=(
-                    "Request has no session id. Send an `x-litellm-session-id` header or `metadata.session_id`. "
+                    "Request has no session id. Send an `x-token-iq-session-id` header or `metadata.session_id`. "
                     "Required by `general_settings.missing_session_id: reject`."
                 ),
                 type=ProxyErrorTypes.bad_request_error,
@@ -990,8 +991,8 @@ def clean_headers(
                 continue
             if header_lower == "authorization":
                 continue
-            # Never forward x-litellm-api-key (it's for proxy auth only)
-            if header_lower == "x-litellm-api-key":
+            # Never forward the virtual key header under either spelling (proxy auth only)
+            if header_lower in compat.API_KEY_HEADERS:
                 continue
             clean_headers[header] = value
         # Check if header should be excluded: either in special headers cache or matches custom litellm key
@@ -1047,7 +1048,7 @@ class GatewayProxyRequestSetup:
         });
         ```
         """
-        timeout_header: Final = headers.get("x-litellm-timeout", None)
+        timeout_header: Final = compat.header(headers, "x-token-iq-timeout", None)
         if timeout_header is not None:
             return float(timeout_header)
         return None
@@ -1057,7 +1058,7 @@ class GatewayProxyRequestSetup:
         """
         Get the `stream_timeout` from the request headers.
         """
-        stream_timeout_header: Final = headers.get("x-litellm-stream-timeout", None)
+        stream_timeout_header: Final = compat.header(headers, "x-token-iq-stream-timeout", None)
         if stream_timeout_header is not None:
             return float(stream_timeout_header)
         return None
@@ -1070,7 +1071,7 @@ class GatewayProxyRequestSetup:
         fields. Subject to the same deployment-level allow_client_keepalive_override
         gate as the request body field: see _resolve_keepalive_seconds.
         """
-        keepalive_seconds_header: Final = headers.get("x-litellm-keepalive-seconds", None)
+        keepalive_seconds_header: Final = compat.header(headers, "x-token-iq-keepalive-seconds", None)
         if keepalive_seconds_header is not None:
             return float(keepalive_seconds_header)
         return None
@@ -1080,7 +1081,7 @@ class GatewayProxyRequestSetup:
         """
         Workaround for client request from Vercel's AI SDK.
         """
-        num_retries_header: Final = headers.get("x-litellm-num-retries", None)
+        num_retries_header: Final = compat.header(headers, "x-token-iq-num-retries", None)
         if num_retries_header is not None:
             return int(num_retries_header)
         return None
@@ -1092,7 +1093,7 @@ class GatewayProxyRequestSetup:
         """
         from token_iq.gateway.core_utils.safe_json_loads import safe_json_loads
 
-        spend_logs_metadata_header: Final = headers.get("x-litellm-spend-logs-metadata", None)
+        spend_logs_metadata_header: Final = compat.header(headers, "x-token-iq-spend-logs-metadata", None)
         if spend_logs_metadata_header is not None:
             return safe_json_loads(spend_logs_metadata_header)
         return None
@@ -1205,11 +1206,11 @@ class GatewayProxyRequestSetup:
                 # to str and JSON-encode dict/list (e.g. user_api_key_spend is float,
                 # user_api_key_auth_metadata is dict). See #27458.
                 if isinstance(v, (dict, list)):
-                    returned_headers[f"x-litellm-{k}"] = json.dumps(v)
+                    returned_headers[f"x-token-iq-{k}"] = json.dumps(v)
                 elif isinstance(v, (str, bytes)):
-                    returned_headers[f"x-litellm-{k}"] = v
+                    returned_headers[f"x-token-iq-{k}"] = v
                 else:
-                    returned_headers[f"x-litellm-{k}"] = str(v)
+                    returned_headers[f"x-token-iq-{k}"] = str(v)
 
         return returned_headers
 
@@ -1335,7 +1336,7 @@ class GatewayProxyRequestSetup:
         # Finally update the requests metadata with the `metadata_from_headers`
         #########################################################################################
 
-        agent_id_from_header: Final = headers.get("x-litellm-agent-id")
+        agent_id_from_header: Final = compat.header(headers, "x-token-iq-agent-id")
         # Explicit litellm headers take precedence; fall back to any x-*-session-id header.
         chain_id: Final = get_chain_id_from_headers(dict(headers))
 
@@ -1598,12 +1599,11 @@ class GatewayProxyRequestSetup:
         tags = None
 
         # Check request headers for tags
-        if "x-litellm-tags" in headers:
-            if isinstance(headers["x-litellm-tags"], str):
-                _tags: Final = headers["x-litellm-tags"].split(",")
-                tags = [tag.strip() for tag in _tags]
-            elif isinstance(headers["x-litellm-tags"], list):
-                tags = headers["x-litellm-tags"]
+        sent: Final = compat.header(headers, "x-token-iq-tags")
+        if isinstance(sent, str):
+            tags = [tag.strip() for tag in sent.split(",")]
+        elif isinstance(sent, list):
+            tags = sent
         # Check request body for tags
         if "tags" in data and isinstance(data["tags"], list):
             tags = data["tags"]
@@ -1680,7 +1680,7 @@ class GatewayProxyRequestSetup:
         # into metadata.tags (see add_litellm_data_to_request). The pre-auth
         # merge mirrors that so _tag_max_budget_check sees the same tags.
         headers: Final = _safe_get_request_headers(request=request)
-        raw_header_tags: Final = headers.get("x-litellm-tags")
+        raw_header_tags: Final = compat.header(headers, "x-token-iq-tags")
         if not raw_header_tags:
             return
 
@@ -1793,9 +1793,10 @@ async def add_litellm_data_to_request(
     # Determine which header was used for authentication
     # This enables forwarding provider keys (e.g., x-api-key) when they weren't used for LiteLLM auth
     authenticated_with_header = None
-    if "x-litellm-api-key" in request.headers:
-        # If x-litellm-api-key is present, it was used for auth
-        authenticated_with_header = "x-litellm-api-key"
+    sent_key_header: Final = next((name for name in compat.API_KEY_HEADERS if name in request.headers), None)
+    if sent_key_header is not None:
+        # The virtual key header was present under one spelling or the other, so it authenticated
+        authenticated_with_header = sent_key_header
     elif "authorization" in request.headers:
         # Authorization header was used for auth
         authenticated_with_header = "authorization"

@@ -138,7 +138,7 @@ async def test_chat_completion_bad_model_with_spend_logs():
         response = client.post(url, headers=headers, json=payload)
 
         # Extract the litellm call ID from headers
-        litellm_call_id = response.headers.get("x-litellm-call-id")
+        litellm_call_id = response.headers.get("x-token-iq-call-id")
         print(f"Status code: {response.status_code}")
         print(f"Headers: {dict(response.headers)}")
         print(f"LiteLLM Call ID: {litellm_call_id}")

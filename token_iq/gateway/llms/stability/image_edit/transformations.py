@@ -21,6 +21,7 @@ from token_iq.gateway.types.llms.stability import (
 from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import FileTypes, ImageObject, ImageResponse
 from token_iq.gateway.utils import get_model_info
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
@@ -307,7 +308,7 @@ class StabilityImageEditConfig(BaseImageEditConfig):
         model_info: Final = get_model_info(model, custom_llm_provider="stability")
         cost_per_image: Final = model_info.get("output_cost_per_image", 0)
         if cost_per_image is not None:
-            model_response._hidden_params["additional_headers"]["llm_provider-x-litellm-response-cost"] = float(
+            model_response._hidden_params["additional_headers"][compat.PROVIDER_COST_KEY] = float(
                 cost_per_image
             )
         return model_response

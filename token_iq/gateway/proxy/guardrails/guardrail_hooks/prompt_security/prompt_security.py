@@ -448,7 +448,7 @@ class PromptSecurityGuardrail(CustomGuardrail):
     ) -> _SanitizeResult:
         headers: Final = {"APP-ID": self.api_key}
         if user_api_key_alias:
-            headers["X-LiteLLM-Key-Alias"] = user_api_key_alias
+            headers["x-token-iq-key-alias"] = user_api_key_alias
 
         self._log_api_request(
             method="POST",
@@ -730,7 +730,7 @@ class PromptSecurityGuardrail(CustomGuardrail):
     def _build_headers(self, user_api_key_alias: str | None = None) -> dict:
         headers: Final = {"APP-ID": self.api_key, "Content-Type": "application/json"}
         if user_api_key_alias:
-            headers["X-LiteLLM-Key-Alias"] = user_api_key_alias
+            headers["x-token-iq-key-alias"] = user_api_key_alias
         return headers
 
     @staticmethod

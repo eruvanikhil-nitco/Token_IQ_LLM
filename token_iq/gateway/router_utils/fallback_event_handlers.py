@@ -83,7 +83,7 @@ def _trigger_cooldown_for_failed_deployment(
         if kwargs.get("client_side_timeout") and cast_exception_status_to_int(exception_status) == 408:
             verbose_router_logger.debug(
                 "Not triggering cooldown for fallback deployment: a caller-supplied "
-                "x-litellm-timeout caused this 408, not deployment health."
+                "x-token-iq-timeout caused this 408, not deployment health."
             )
             return
 

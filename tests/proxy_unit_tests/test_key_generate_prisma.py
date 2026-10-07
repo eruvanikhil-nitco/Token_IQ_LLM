@@ -3016,7 +3016,7 @@ async def test_custom_api_key_header_name(prisma_client):
     setattr(
         gateway.proxy.proxy_server,
         "general_settings",
-        {"litellm_key_header_name": "x-litellm-key"},
+        {"litellm_key_header_name": "x-token-iq-key"},
     )
     await gateway.proxy.proxy_server.prisma_client.connect()
 

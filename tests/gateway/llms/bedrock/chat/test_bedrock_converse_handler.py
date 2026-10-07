@@ -116,7 +116,7 @@ def test_rust_true_serves_the_call_and_stamps_the_header():
     response = _run()
 
     assert response.choices[0].message.content == "hello from rust"
-    assert response._hidden_params["additional_headers"] == {"x-litellm-rust": "true"}
+    assert response._hidden_params["additional_headers"] == {"x-token-iq-rust": "true"}
     assert len(seen["call"]) == 1
 
 
@@ -254,7 +254,7 @@ async def test_the_async_path_serves_the_rust_response_without_the_fallback():
         )
 
     assert result.choices[0].message.content == "hello from rust"
-    assert result._hidden_params["additional_headers"] == {"x-litellm-rust": "true"}
+    assert result._hidden_params["additional_headers"] == {"x-token-iq-rust": "true"}
     assert not python_call.called
 
 

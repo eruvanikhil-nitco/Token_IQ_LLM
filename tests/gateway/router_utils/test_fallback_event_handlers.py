@@ -57,8 +57,8 @@ async def test_run_async_fallback_adds_errors_when_opted_in():
     )
 
     additional_headers = response._hidden_params["additional_headers"]
-    assert additional_headers["x-litellm-attempted-fallbacks"] == 1
-    assert json.loads(additional_headers["x-litellm-fallback-errors"]) == [
+    assert additional_headers["x-token-iq-attempted-fallbacks"] == 1
+    assert json.loads(additional_headers["x-token-iq-fallback-errors"]) == [
         {
             "message": "upstream limited request",
             "type": "RuntimeError",
@@ -80,8 +80,8 @@ async def test_run_async_fallback_omits_errors_without_opt_in():
     )
 
     additional_headers = response._hidden_params["additional_headers"]
-    assert additional_headers["x-litellm-attempted-fallbacks"] == 1
-    assert "x-litellm-fallback-errors" not in additional_headers
+    assert additional_headers["x-token-iq-attempted-fallbacks"] == 1
+    assert "x-token-iq-fallback-errors" not in additional_headers
 
 
 @pytest.mark.asyncio
@@ -156,7 +156,7 @@ async def test_run_async_fallback_skips_original_model_group():
         fallback_depth=0,
     )
 
-    assert response._hidden_params["additional_headers"]["x-litellm-attempted-fallbacks"] == 1
+    assert response._hidden_params["additional_headers"]["x-token-iq-attempted-fallbacks"] == 1
 
 
 class AttemptRecordingRouter:

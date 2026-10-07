@@ -299,9 +299,9 @@ async def plugin_proxy(
     user_id: Final = getattr(user_api_key_dict, "user_id", None)
     user_role: Final = getattr(user_api_key_dict, "user_role", None)
     if user_id:
-        forward_headers["x-litellm-user-id"] = str(user_id)
+        forward_headers["x-token-iq-user-id"] = str(user_id)
     if user_role:
-        forward_headers["x-litellm-user-role"] = str(user_role)
+        forward_headers["x-token-iq-user-role"] = str(user_role)
 
     handler: Final = get_async_httpx_client(llm_provider=httpxSpecialProvider.PassThroughEndpoint)
     try:

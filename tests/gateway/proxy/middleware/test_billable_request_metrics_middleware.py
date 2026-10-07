@@ -42,7 +42,7 @@ class FakeRecorder:
 
 def _make_app(recorder: Optional[FakeRecorder], status_code: int = 200, model_id: Optional[str] = None) -> Starlette:
     async def handler(request: Request) -> Response:
-        headers = {"x-litellm-model-id": model_id} if model_id else {}
+        headers = {"x-token-iq-model-id": model_id} if model_id else {}
         return JSONResponse({}, status_code=status_code, headers=headers)
 
     paths = [

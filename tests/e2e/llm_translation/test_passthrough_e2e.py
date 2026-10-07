@@ -90,7 +90,7 @@ def test_gemini_passthrough_returns_the_same_header_contract_as_the_managed_rout
         "native call cannot be reconciled against spend the way /chat/completions can"
     )
     assert result.response_cost > 0, (
-        f"x-litellm-response-cost must be a real cost, got {result.response_cost}"
+        f"x-token-iq-response-cost must be a real cost, got {result.response_cost}"
     )
 
     pacing = tuple(name for name in result.headers if name.startswith("x-ratelimit-"))

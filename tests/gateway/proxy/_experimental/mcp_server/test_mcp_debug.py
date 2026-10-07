@@ -28,7 +28,7 @@ class TestIsDebugEnabled:
         assert MCPDebug.is_debug_enabled({"other-header": "value"}) is False
 
     def test_case_insensitive_header_name(self):
-        assert MCPDebug.is_debug_enabled({"X-LiteLLM-MCP-Debug": "true"}) is True
+        assert MCPDebug.is_debug_enabled({"x-token-iq-mcp-debug": "true"}) is True
 
     def test_case_insensitive_value(self):
         assert MCPDebug.is_debug_enabled({MCP_DEBUG_REQUEST_HEADER: "TRUE"}) is True
@@ -80,7 +80,7 @@ class TestBuildDebugHeaders:
     def test_gateway_key_in_dedicated_header(self):
         headers = MCPDebug.build_debug_headers(
             inbound_headers={
-                "x-litellm-api-key": "Bearer sk-1234567890abcdef",
+                "x-token-iq-api-key": "Bearer sk-1234567890abcdef",
                 "host": "localhost",
             },
             oauth2_headers=None,
@@ -89,7 +89,7 @@ class TestBuildDebugHeaders:
             server_url="https://mcp.example.com",
             server_auth_type="oauth2",
         )
-        assert "x-litellm-api-key=" in headers["x-mcp-debug-inbound-auth"]
+        assert "x-token-iq-api-key=" in headers["x-mcp-debug-inbound-auth"]
         assert headers["x-mcp-debug-oauth2-token"] == "(none)"
 
     def test_same_key_flagged(self):
@@ -110,7 +110,7 @@ class TestBuildDebugHeaders:
         """When OAuth2 token is different from LiteLLM key."""
         headers = MCPDebug.build_debug_headers(
             inbound_headers={
-                "x-litellm-api-key": "Bearer sk-litellm-key-here",
+                "x-token-iq-api-key": "Bearer sk-litellm-key-here",
                 "authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.atlassian",
             },
             oauth2_headers={
@@ -126,7 +126,7 @@ class TestBuildDebugHeaders:
 
     def test_m2m_resolution(self):
         headers = MCPDebug.build_debug_headers(
-            inbound_headers={"x-litellm-api-key": "Bearer sk-key"},
+            inbound_headers={"x-token-iq-api-key": "Bearer sk-key"},
             oauth2_headers=None,
             litellm_api_key="Bearer sk-key",
             auth_resolution="m2m-client-credentials",

@@ -22,6 +22,7 @@ from token_iq.gateway.repositories.table_repositories import (
 )
 from token_iq.gateway.types.llms.openai import OpenAIFilesPurpose
 from token_iq.gateway.types.utils import SpecialEnums
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from fastapi import Request
@@ -335,7 +336,7 @@ def extract_model_from_sources(
     model_from_id: Final = decode_model_from_file_id(file_id)
 
     # Check other sources for model parameter
-    model_from_param = data.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+    model_from_param = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
 
     return model_from_id, model_from_param
 
@@ -1044,7 +1045,7 @@ def _extract_model_param(request: "Request", request_body: dict) -> str | None:
     2. Query parameter (?model=)
     3. Header (x-litellm-model)
     """
-    return request_body.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+    return request_body.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
 
 
 # ============================================================================

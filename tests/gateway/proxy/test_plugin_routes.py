@@ -192,7 +192,7 @@ def test_gateway_credential_header_names_covers_every_auth_header() -> None:
         "x-api-key",
         "x-goog-api-key",
         "ocp-apim-subscription-key",
-        "x-litellm-api-key",
+        "x-token-iq-api-key",
     }
 
 
@@ -208,7 +208,7 @@ def test_every_gateway_auth_header_is_stripped_before_forwarding() -> None:
         "X-Api-Key": "sk-litellm",
         "X-Goog-Api-Key": "sk-litellm",
         "Ocp-Apim-Subscription-Key": "sk-litellm",
-        "X-Litellm-Api-Key": "sk-litellm",
+        "x-token-iq-api-key": "sk-litellm",
         "Cookie": "litellm_session=abc",
         "Accept": "application/json",
         "X-Trace-Id": "t-1",

@@ -1996,7 +1996,7 @@ class TestNonStreamingResponseRedaction:
         )
 
         logging_obj.model_call_details["litellm_params"] = {
-            "metadata": {"headers": {"x-litellm-enable-message-redaction": True}}
+            "metadata": {"headers": {"x-token-iq-enable-message-redaction": True}}
         }
 
         redacted = redact_message_input_output_from_logging(

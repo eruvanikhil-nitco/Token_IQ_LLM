@@ -642,24 +642,24 @@ describe("testMCPToolsListRequest auth headers", () => {
   });
 
   it("sends the litellm key under a custom litellm_key_header_name even when an upstream OAuth token uses Authorization", async () => {
-    Networking.setGlobalLitellmHeaderName("x-litellm-key");
+    Networking.setGlobalLitellmHeaderName("x-token-iq-key");
     const mockFetch = captureFetch();
 
     await Networking.testMCPToolsListRequest("sk-key", {}, "upstream-oauth-token");
 
     const headers = sentHeaders(mockFetch);
-    expect(headers["x-litellm-key"]).toBe("Bearer sk-key");
+    expect(headers["x-token-iq-key"]).toBe("Bearer sk-key");
     expect(headers["Authorization"]).toBe("Bearer upstream-oauth-token");
   });
 
-  it("Bearer-prefixes x-litellm-api-key when it is the configured key header (raw values fail _get_bearer_token)", async () => {
-    Networking.setGlobalLitellmHeaderName("x-litellm-api-key");
+  it("Bearer-prefixes x-token-iq-api-key when it is the configured key header (raw values fail _get_bearer_token)", async () => {
+    Networking.setGlobalLitellmHeaderName("x-token-iq-api-key");
     const mockFetch = captureFetch();
 
     await Networking.testMCPToolsListRequest("sk-key", {}, "upstream-oauth-token");
 
     const headers = sentHeaders(mockFetch);
-    expect(headers["x-litellm-api-key"]).toBe("Bearer sk-key");
+    expect(headers["x-token-iq-api-key"]).toBe("Bearer sk-key");
     expect(headers["Authorization"]).toBe("Bearer upstream-oauth-token");
   });
 
@@ -670,7 +670,7 @@ describe("testMCPToolsListRequest auth headers", () => {
 
     const headers = sentHeaders(mockFetch);
     expect(headers["Authorization"]).toBe("Bearer upstream-oauth-token");
-    expect(headers["x-litellm-api-key"]).toBe("sk-key");
+    expect(headers["x-token-iq-api-key"]).toBe("sk-key");
   });
 
   it("sends the litellm key as the bearer on default deployments without an OAuth token", async () => {

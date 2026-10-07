@@ -41,8 +41,8 @@ def test_get_remaining_tokens_and_requests_from_request_data():
 
     expected_name = "openrouter-google-gemini-2.0-flash-001"
     assert headers == {
-        f"x-litellm-key-remaining-requests-{expected_name}": 100,
-        f"x-litellm-key-remaining-tokens-{expected_name}": 200,
+        f"x-token-iq-key-remaining-requests-{expected_name}": 100,
+        f"x-token-iq-key-remaining-tokens-{expected_name}": 200,
     }
 
 
@@ -184,9 +184,9 @@ def test_get_logging_caching_headers_merges_metadata_and_gateway_metadata():
 
     headers = get_logging_caching_headers(request_data)
 
-    assert headers["x-litellm-applied-policies"] == "global-baseline"
-    assert headers["x-litellm-applied-guardrails"] == "pii_blocker"
-    assert headers["x-litellm-policy-sources"] == "global-baseline=team_default"
+    assert headers["x-token-iq-applied-policies"] == "global-baseline"
+    assert headers["x-token-iq-applied-guardrails"] == "pii_blocker"
+    assert headers["x-token-iq-policy-sources"] == "global-baseline=team_default"
 
 
 def test_add_guardrail_scan_id_dedupes_and_becomes_response_header():
@@ -198,11 +198,11 @@ def test_add_guardrail_scan_id_dedupes_and_becomes_response_header():
     add_guardrail_scan_id(request_data=request_data, scan_id=None)
 
     assert request_data["litellm_metadata"]["guardrail_scan_ids"] == ("scan-1", "scan-2")
-    assert get_logging_caching_headers(request_data)["x-litellm-guardrail-scan-id"] == "scan-1,scan-2"
+    assert get_logging_caching_headers(request_data)["x-token-iq-guardrail-scan-id"] == "scan-1,scan-2"
 
 
 def test_get_logging_caching_headers_omits_scan_id_header_without_scans():
-    assert "x-litellm-guardrail-scan-id" not in get_logging_caching_headers({"litellm_metadata": {}})
+    assert "x-token-iq-guardrail-scan-id" not in get_logging_caching_headers({"litellm_metadata": {}})
 
 
 def test_initialize_callbacks_on_proxy_instantiates_compression_interception(

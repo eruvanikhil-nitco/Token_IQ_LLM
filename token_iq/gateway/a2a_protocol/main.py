@@ -468,9 +468,9 @@ async def asend_message(
         if api_base is None:
             raise ValueError("Either a2a_client or api_base is required for standard A2A flow")
         trace_id = trace_id or str(uuid.uuid4())
-        extra_headers: Final[dict[str, str]] = {"X-LiteLLM-Trace-Id": trace_id}
+        extra_headers: Final[dict[str, str]] = {"x-token-iq-trace-id": trace_id}
         if agent_id:
-            extra_headers["X-LiteLLM-Agent-Id"] = agent_id
+            extra_headers["x-token-iq-agent-id"] = agent_id
         # Overlay agent-level headers (agent headers take precedence over LiteLLM internal ones)
         if agent_extra_headers:
             extra_headers.update(agent_extra_headers)
@@ -690,9 +690,9 @@ async def asend_message_streaming(
             raise ValueError("Either a2a_client or api_base is required for standard A2A flow")
         logging_trace_id: Final = getattr(logging_obj, "litellm_trace_id", None) if logging_obj else None
         trace_id: Final = logging_trace_id or (str(request.id) if request.id else str(uuid.uuid4()))
-        extra_headers: Final[dict[str, str]] = {"X-LiteLLM-Trace-Id": trace_id}
+        extra_headers: Final[dict[str, str]] = {"x-token-iq-trace-id": trace_id}
         if agent_id:
-            extra_headers["X-LiteLLM-Agent-Id"] = agent_id
+            extra_headers["x-token-iq-agent-id"] = agent_id
         if agent_extra_headers:
             extra_headers.update(agent_extra_headers)
         a2a_client = await create_a2a_client(

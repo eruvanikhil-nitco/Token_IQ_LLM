@@ -237,7 +237,7 @@ class ChatMcpClient:
         just-created server and key propagate asynchronously. The LiteLLM key
         rides x-litellm-api-key so the gateway binds the token to that user.
         Returns the upstream tool names the dance listed, proof the token works."""
-        headers = {"x-litellm-api-key": f"Bearer {key}"}
+        headers = {"x-token-iq-api-key": f"Bearer {key}"}
         storage = InMemoryTokenStorage()
         deadline = time.monotonic() + self.proxy.poll_timeout
         last_error: Exception | None = None

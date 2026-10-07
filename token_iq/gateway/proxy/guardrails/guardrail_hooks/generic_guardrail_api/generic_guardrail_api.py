@@ -30,6 +30,7 @@ from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.generic_guardrail_a
     GuardrailToolParam,
 )
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
@@ -37,7 +38,9 @@ if TYPE_CHECKING:
 
 GUARDRAIL_NAME: Final = "generic_guardrail_api"
 
-# Headers whose values are forwarded as-is (case-insensitive). Glob patterns supported (e.g. x-stainless-*, x-litellm*).
+# Headers whose values are forwarded as-is (case-insensitive). Glob patterns supported
+# (e.g. x-stainless-*, x-token-iq-*). Both spellings of the engine's own prefix are listed, so a
+# caller whose client has not been updated has its headers forwarded on the same terms.
 _HEADER_VALUE_ALLOWLIST: Final = frozenset(
     {
         "host",
@@ -47,9 +50,9 @@ _HEADER_VALUE_ALLOWLIST: Final = frozenset(
         "content-type",
         "user-agent",
         "x-stainless-*",
-        "x-litellm-*",
         "content-length",
     }
+    | set(compat.both_spellings(("x-token-iq-*",)))
 )
 
 # Placeholder for headers that exist but are not on the allowlist (we don't expose their value).

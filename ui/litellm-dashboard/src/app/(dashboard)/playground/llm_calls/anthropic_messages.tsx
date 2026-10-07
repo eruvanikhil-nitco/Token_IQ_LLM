@@ -41,7 +41,7 @@ export async function makeAnthropicMessagesRequest(
   // Prepare headers with tags and trace ID
   const headers: Record<string, string> = {};
   if (tags && tags.length > 0) {
-    headers["x-litellm-tags"] = tags.join(",");
+    headers["x-token-iq-tags"] = tags.join(",");
   }
 
   const client = new Anthropic({

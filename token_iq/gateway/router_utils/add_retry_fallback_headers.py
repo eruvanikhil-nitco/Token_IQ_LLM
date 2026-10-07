@@ -2,6 +2,7 @@ import json
 from typing import Any, Final, Protocol, TypedDict, cast
 
 from pydantic import BaseModel
+from token_iq.gateway import compat
 
 
 class FallbackErrorInfo(TypedDict):
@@ -69,11 +70,11 @@ def apply_quality_router_decision_headers(
     if not isinstance(decision, dict):
         return
     quality_header_fields: Final = (
-        ("routed_model", "x-litellm-quality-router-model"),
-        ("quality_tier", "x-litellm-quality-router-tier"),
-        ("routed_via", "x-litellm-quality-router-via"),
-        ("matched_keyword", "x-litellm-quality-router-keyword"),
-        ("complexity_tier", "x-litellm-quality-router-complexity"),
+        ("routed_model", "x-token-iq-quality-router-model"),
+        ("quality_tier", "x-token-iq-quality-router-tier"),
+        ("routed_via", "x-token-iq-quality-router-via"),
+        ("matched_keyword", "x-token-iq-quality-router-keyword"),
+        ("complexity_tier", "x-token-iq-quality-router-complexity"),
     )
     for field, header in quality_header_fields:
         if decision.get(field) is not None:
@@ -166,7 +167,7 @@ def _coerce_error_dicts(items: list[object]) -> list[dict[str, object]]:
 def get_fallback_errors_from_headers(
     additional_headers: dict[str, object],
 ) -> list[dict[str, object]]:
-    existing_errors: Final = additional_headers.get("x-litellm-fallback-errors")
+    existing_errors: Final = compat.header(additional_headers, "x-token-iq-fallback-errors")
     if isinstance(existing_errors, list):
         return _coerce_error_dicts(cast("list[object]", existing_errors))
     if isinstance(existing_errors, str):
@@ -211,10 +212,10 @@ def add_retry_headers_to_response(
     Add retry headers to the request
     """
     retry_headers: Final[dict[str, object]] = {
-        "x-litellm-attempted-retries": attempted_retries,
+        "x-token-iq-attempted-retries": attempted_retries,
     }
     if max_retries is not None:
-        retry_headers["x-litellm-max-retries"] = max_retries
+        retry_headers["x-token-iq-max-retries"] = max_retries
 
     return _add_headers_to_response(response, retry_headers)
 
@@ -238,7 +239,7 @@ def add_fallback_headers_to_response(
     Want to avoid bloat in the response headers for performance.
     """
     fallback_headers: Final[dict[str, object]] = {
-        "x-litellm-attempted-fallbacks": attempted_fallbacks,
+        "x-token-iq-attempted-fallbacks": attempted_fallbacks,
     }
     response = _add_headers_to_response(response, fallback_headers)
     if fallback_errors is None or response is None:
@@ -249,7 +250,7 @@ def add_fallback_headers_to_response(
     merged_errors: Final = get_fallback_errors_from_headers(additional_headers) + [
         cast("dict[str, object]", error) for error in fallback_errors
     ]
-    additional_headers["x-litellm-fallback-errors"] = json.dumps(merged_errors)
+    additional_headers["x-token-iq-fallback-errors"] = json.dumps(merged_errors)
     hidden_params["additional_headers"] = additional_headers
     _write_hidden_params(response, hidden_params)
     return response

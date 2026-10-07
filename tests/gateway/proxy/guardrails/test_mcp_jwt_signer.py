@@ -688,7 +688,7 @@ def test_optional_claims_not_injected_if_absent():
 
 @pytest.mark.asyncio
 async def test_debug_header_injected_when_enabled():
-    """x-litellm-mcp-debug header is injected when debug_headers=True."""
+    """x-token-iq-mcp-debug header is injected when debug_headers=True."""
     signer = _make_signer(debug_headers=True)
     user_dict = _make_user_api_key_dict()
     data = {"mcp_tool_name": "my_tool"}
@@ -701,8 +701,8 @@ async def test_debug_header_injected_when_enabled():
     )
 
     assert isinstance(result, dict)
-    assert "x-litellm-mcp-debug" in result["extra_headers"]
-    debug_val = result["extra_headers"]["x-litellm-mcp-debug"]
+    assert "x-token-iq-mcp-debug" in result["extra_headers"]
+    debug_val = result["extra_headers"]["x-token-iq-mcp-debug"]
     assert "v=1" in debug_val
     assert "kid=" in debug_val
     assert "sub=" in debug_val
@@ -710,7 +710,7 @@ async def test_debug_header_injected_when_enabled():
 
 @pytest.mark.asyncio
 async def test_debug_header_absent_when_disabled():
-    """x-litellm-mcp-debug is NOT injected when debug_headers=False (default)."""
+    """x-token-iq-mcp-debug is NOT injected when debug_headers=False (default)."""
     signer = _make_signer()
     user_dict = _make_user_api_key_dict()
     data = {"mcp_tool_name": "tool"}
@@ -723,7 +723,7 @@ async def test_debug_header_absent_when_disabled():
     )
 
     assert isinstance(result, dict)
-    assert "x-litellm-mcp-debug" not in result["extra_headers"]
+    assert "x-token-iq-mcp-debug" not in result["extra_headers"]
 
 
 # ---------------------------------------------------------------------------

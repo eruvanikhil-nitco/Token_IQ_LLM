@@ -4107,8 +4107,8 @@ export const testMCPSemanticFilter = async (accessToken: string, model: string, 
     });
 
     // Extract headers before checking response status
-    const filterHeader = response.headers.get("x-litellm-semantic-filter");
-    const toolsHeader = response.headers.get("x-litellm-semantic-filter-tools");
+    const filterHeader = response.headers.get("x-token-iq-semantic-filter");
+    const toolsHeader = response.headers.get("x-token-iq-semantic-filter-tools");
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -7014,7 +7014,7 @@ export const testMCPToolsListRequest = async (
       "Content-Type": "application/json",
     };
     if (accessToken) {
-      headers["x-litellm-api-key"] = accessToken;
+      headers["x-token-iq-api-key"] = accessToken;
       if (globalLitellmHeaderName.toLowerCase() !== "authorization") {
         headers[globalLitellmHeaderName] = `Bearer ${accessToken}`;
       }

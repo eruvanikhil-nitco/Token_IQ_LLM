@@ -145,11 +145,11 @@ export default function MCPSemanticFilterTestPanel({
               <p className="mb-2 block font-medium">Response headers to check:</p>
               <ul className="mt-0 mr-0 mb-3 ml-0 list-disc pl-5">
                 <li>
-                  <span>x-litellm-semantic-filter: shows total tools → selected tools</span>
+                  <span>x-token-iq-semantic-filter: shows total tools → selected tools</span>
                   <span className="block text-sm text-muted-foreground">Example: 10→3</span>
                 </li>
                 <li>
-                  <span>x-litellm-semantic-filter-tools: CSV of selected tool names</span>
+                  <span>x-token-iq-semantic-filter-tools: CSV of selected tool names</span>
                   <span className="block text-sm text-muted-foreground">
                     Example: wikipedia-fetch,github-search,slack-post
                   </span>

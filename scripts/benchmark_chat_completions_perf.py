@@ -293,7 +293,7 @@ def stop_proxy_process(process: subprocess.Popen) -> None:
 
 
 def extract_overhead_header(headers: aiohttp.typedefs.LooseHeaders) -> Optional[float]:
-    raw_value = headers.get("x-litellm-overhead-duration-ms")  # type: ignore[union-attr]
+    raw_value = headers.get("x-token-iq-overhead-duration-ms")  # type: ignore[union-attr]
     if raw_value is None:
         return None
     try:
@@ -599,7 +599,7 @@ def print_summary(
     print(f"Client-observed overhead p50: {client_overhead_p50:.2f} ms")
     print(f"Client-observed overhead p95: {client_overhead_p95:.2f} ms")
     print(
-        "x-litellm-overhead-duration-ms p50: "
+        "x-token-iq-overhead-duration-ms p50: "
         f"{format_optional_ms(proxy.overhead_header_p50_ms)} ms"
     )
     print(f"Streaming TTFT p50: {stream.p50_ms:.2f} ms")

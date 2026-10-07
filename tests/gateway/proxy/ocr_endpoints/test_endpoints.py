@@ -98,13 +98,13 @@ async def test_should_reject_unknown_req_format(body_format, headers):
 
 def test_should_return_native_payload_with_gateway_response_headers():
     fastapi_response = MagicMock()
-    fastapi_response.headers = {"x-litellm-response-cost": "0.0015"}
+    fastapi_response.headers = {"x-token-iq-response-cost": "0.0015"}
 
     native = _native_response(_ocr_response(AZURE_NATIVE_OPERATION), fastapi_response)
 
     assert native is not None
     assert orjson.loads(native.body) == AZURE_NATIVE_OPERATION
-    assert native.headers["x-litellm-response-cost"] == "0.0015"
+    assert native.headers["x-token-iq-response-cost"] == "0.0015"
 
 
 def test_should_return_normalized_response_when_no_native_payload():

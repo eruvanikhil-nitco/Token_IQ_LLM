@@ -8160,10 +8160,10 @@ def _get_streaming_fallback_metadata(
     if not isinstance(additional_headers, dict):
         return False, None, []
 
-    if not _is_positive_int_like(additional_headers.get("x-litellm-attempted-fallbacks")):
+    if not _is_positive_int_like(compat.header(additional_headers, "x-token-iq-attempted-fallbacks")):
         return False, None, []
 
-    fallback_model: Final = additional_headers.get("x-litellm-model-group")
+    fallback_model: Final = compat.header(additional_headers, "x-token-iq-model-group")
     fallback_errors: Final = get_fallback_errors_from_headers(additional_headers)
     if isinstance(fallback_model, str) and fallback_model:
         return True, fallback_model, fallback_errors
@@ -15254,7 +15254,7 @@ async def async_queue_request(
                 media_type="text/event-stream",
             )
 
-        fastapi_response.headers.update({"x-litellm-priority": str(data["priority"])})
+        fastapi_response.headers.update({"x-token-iq-priority": str(data["priority"])})
         return response
     except Exception as e:
         await proxy_logging_obj.post_call_failure_hook(

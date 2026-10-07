@@ -12,6 +12,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 from token_iq import gateway
 from token_iq.gateway.proxy._types import SpecialHeaders
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway import compat
 
 # Cache the header name at module level to avoid repeated enum attribute access
 _AUTHORIZATION_HEADER: Final = SpecialHeaders.openai_authorization.value  # "Authorization"
@@ -64,7 +65,7 @@ class PrometheusAuthMiddleware:
                         SpecialHeaders.google_ai_studio_authorization.value
                     ),
                     azure_apim_header=request.headers.get(SpecialHeaders.azure_apim_authorization.value) or "",
-                    custom_gateway_key_header=request.headers.get(SpecialHeaders.custom_gateway_api_key.value),
+                    custom_gateway_key_header=compat.header(request.headers, SpecialHeaders.custom_gateway_api_key.value),
                 )
             except Exception as e:
                 # Send 401 response directly via ASGI protocol

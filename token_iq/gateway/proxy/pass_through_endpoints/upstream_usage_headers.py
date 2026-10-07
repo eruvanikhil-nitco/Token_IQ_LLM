@@ -16,8 +16,8 @@ from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.types.utils import Usage
 
-UPSTREAM_RESPONSE_COST_HEADER: Final = "x-litellm-response-cost"
-UPSTREAM_TOTAL_TOKENS_HEADER: Final = "x-litellm-total-tokens"
+UPSTREAM_RESPONSE_COST_HEADER: Final = "x-token-iq-response-cost"
+UPSTREAM_TOTAL_TOKENS_HEADER: Final = "x-token-iq-total-tokens"
 
 # model_call_details key holding what the upstream reported, so later stages of
 # the success path can tell an upstream-reported cost apart from one LiteLLM

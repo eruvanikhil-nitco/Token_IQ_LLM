@@ -56,7 +56,7 @@ class VertexHeaders(Headers):
     # Only the litellm virtual key; the /vertex_ai passthrough mints the Vertex token
     # from the proxy's own service account (the deployment marked use_in_pass_through),
     # so no upstream Authorization bearer is sent from the client.
-    x_litellm_api_key: str = Field(serialization_alias="x-litellm-api-key")
+    x_litellm_api_key: str = Field(serialization_alias="x-token-iq-api-key")
     content_type: str = Field(
         default="application/json", serialization_alias="Content-Type"
     )

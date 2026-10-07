@@ -30,7 +30,7 @@ from fixture_bundle import RecordedRequest
 VOLATILE_HEADER_NAMES: Final[frozenset[str]] = frozenset(
     {
         "authorization",
-        "x-litellm-api-key",
+        "x-token-iq-api-key",
         "x-api-key",
         "x-goog-api-key",
         "x-request-id",

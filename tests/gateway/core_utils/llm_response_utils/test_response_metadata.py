@@ -295,8 +295,8 @@ class TestCallbackDurationInCustomHeaders:
             hidden_params=hidden_params,
         )
 
-        assert "x-litellm-callback-duration-ms" in headers
-        assert headers["x-litellm-callback-duration-ms"] == "7.25"
+        assert "x-token-iq-callback-duration-ms" in headers
+        assert headers["x-token-iq-callback-duration-ms"] == "7.25"
 
     def test_header_absent_when_no_callback_duration(self):
         user_api_key_dict = UserAPIKeyAuth(api_key="sk-test")
@@ -310,7 +310,7 @@ class TestCallbackDurationInCustomHeaders:
         )
 
         # Should be excluded because value is "None" which is in exclude_values
-        assert "x-litellm-callback-duration-ms" not in headers
+        assert "x-token-iq-callback-duration-ms" not in headers
 
 
 class TestDetailedTiming:
@@ -395,10 +395,10 @@ class TestDetailedTiming:
             hidden_params=hidden_params,
         )
 
-        assert headers["x-litellm-timing-llm-api-ms"] == "500.0"
-        assert headers["x-litellm-timing-pre-processing-ms"] == "20.0"
-        assert headers["x-litellm-timing-post-processing-ms"] == "10.0"
-        assert headers["x-litellm-timing-message-copy-ms"] == "2.5"
+        assert headers["x-token-iq-timing-llm-api-ms"] == "500.0"
+        assert headers["x-token-iq-timing-pre-processing-ms"] == "20.0"
+        assert headers["x-token-iq-timing-post-processing-ms"] == "10.0"
+        assert headers["x-token-iq-timing-message-copy-ms"] == "2.5"
 
     def test_detailed_timing_headers_absent_when_disabled(self, monkeypatch):
         """When LITELLM_DETAILED_TIMING is false, no timing headers emitted."""
@@ -417,8 +417,8 @@ class TestDetailedTiming:
             hidden_params=hidden_params,
         )
 
-        assert "x-litellm-timing-llm-api-ms" not in headers
-        assert "x-litellm-timing-pre-processing-ms" not in headers
+        assert "x-token-iq-timing-llm-api-ms" not in headers
+        assert "x-token-iq-timing-pre-processing-ms" not in headers
 
 
 class TestLoggingInitCallbackDuration:

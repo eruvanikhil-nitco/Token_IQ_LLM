@@ -77,7 +77,7 @@ async def test_async_completion_with_fallbacks_sets_attempted_fallbacks_header()
     hidden_params = getattr(response, "_hidden_params", None)
     assert isinstance(hidden_params, dict)
     headers = hidden_params.get("additional_headers") or {}
-    assert headers.get("x-litellm-attempted-fallbacks") == 1
+    assert headers.get("x-token-iq-attempted-fallbacks") == 1
 
 
 @pytest.mark.asyncio
@@ -106,7 +106,7 @@ async def test_async_completion_with_fallbacks_header_is_zero_when_primary_succe
     hidden_params = getattr(response, "_hidden_params", None)
     assert isinstance(hidden_params, dict)
     headers = hidden_params.get("additional_headers") or {}
-    assert headers.get("x-litellm-attempted-fallbacks") == 0
+    assert headers.get("x-token-iq-attempted-fallbacks") == 0
     assert response.choices[0].message.content == "primary-resp"
 
 
@@ -120,14 +120,14 @@ def test_process_response_headers_preserves_x_gateway_headers_when_internal():
     """
     result = process_response_headers(
         {
-            "x-litellm-attempted-fallbacks": 1,
-            "x-litellm-model-group": "gpt-4",
+            "x-token-iq-attempted-fallbacks": 1,
+            "x-token-iq-model-group": "gpt-4",
             "x-stainless-arch": "arm64",
         },
         preserve_gateway_internal_headers=True,
     )
-    assert result["x-litellm-attempted-fallbacks"] == 1
-    assert result["x-litellm-model-group"] == "gpt-4"
+    assert result["x-token-iq-attempted-fallbacks"] == 1
+    assert result["x-token-iq-model-group"] == "gpt-4"
     assert result["llm_provider-x-stainless-arch"] == "arm64"
 
 
@@ -141,11 +141,11 @@ def test_process_response_headers_prefixes_x_gateway_from_raw_provider():
     """
     result = process_response_headers(
         {
-            "x-litellm-attempted-fallbacks": 99,
+            "x-token-iq-attempted-fallbacks": 99,
             "x-stainless-arch": "arm64",
         }
     )
-    assert "x-litellm-attempted-fallbacks" not in result
+    assert "x-token-iq-attempted-fallbacks" not in result
     assert result["llm_provider-x-litellm-attempted-fallbacks"] == 99
     assert result["llm_provider-x-stainless-arch"] == "arm64"
 
@@ -160,10 +160,10 @@ def test_process_response_headers_ignores_preserve_flag_for_httpx_headers():
     """
     raw = httpx.Headers(
         {
-            "x-litellm-attempted-fallbacks": "1",
+            "x-token-iq-attempted-fallbacks": "1",
             "content-type": "application/json",
         }
     )
     result = process_response_headers(raw, preserve_gateway_internal_headers=True)
-    assert "x-litellm-attempted-fallbacks" not in result
+    assert "x-token-iq-attempted-fallbacks" not in result
     assert result["llm_provider-x-litellm-attempted-fallbacks"] == "1"

@@ -294,7 +294,7 @@ def test_prepare_mcp_server_headers_case_insensitive_extra_headers():
         mcp_auth_header=None,
         oauth2_headers=None,
         raw_headers={
-            "x-litellm-api-key": "Bearer sk-litellm-key",
+            "x-token-iq-api-key": "Bearer sk-litellm-key",
             "authorization": "Bearer token",
         },
     )
@@ -538,7 +538,7 @@ def _prepare_headers_in_scope(server: MCPServer, scope_servers):
         mcp_auth_header=None,
         oauth2_headers={"Authorization": "Bearer upstream-token"},
         raw_headers={
-            "x-litellm-api-key": "Bearer sk-litellm-key",
+            "x-token-iq-api-key": "Bearer sk-litellm-key",
             "authorization": "Bearer upstream-token",
         },
         user_api_key_auth=UserAPIKeyAuth(api_key="sk-litellm-key"),

@@ -20,6 +20,7 @@ from token_iq.gateway.types.llms.openai_evals import (
     Run,
     RunDeleteResponse,
 )
+from token_iq.gateway import compat
 
 router: Final = APIRouter()
 
@@ -78,7 +79,7 @@ async def create_eval(
 
     # Extract model for routing (header > query > body)
     # When using extra_body={"model": "..."}, the OpenAI SDK merges it into the body
-    model: Final = data.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
     if model:
         data["model"] = model
 
@@ -179,7 +180,7 @@ async def list_evals(
         data["order_by"] = order_by
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
     if model:
         data["model"] = model
 
@@ -267,7 +268,7 @@ async def get_eval(
     data["eval_id"] = eval_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
     if model:
         data["model"] = model
 
@@ -357,7 +358,7 @@ async def update_eval(
     data["eval_id"] = eval_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
     if model:
         data["model"] = model
 
@@ -445,7 +446,7 @@ async def delete_eval(
     data["eval_id"] = eval_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
     if model:
         data["model"] = model
 
@@ -533,7 +534,7 @@ async def cancel_eval(
     data["eval_id"] = eval_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
     if model:
         data["model"] = model
 
@@ -633,7 +634,7 @@ async def create_run(
 
     # Extract model for routing (header > query > body > completion.model)
     model: Final = (
-        request.headers.get("x-litellm-model")
+        compat.header(request.headers, "x-token-iq-model")
         or request.query_params.get("model")
         or data.get("model")
         or (data.get("completion", {}).get("model") if isinstance(data.get("completion"), dict) else None)
@@ -730,7 +731,7 @@ async def list_runs(
     }
 
     # Extract model for routing (header > query)
-    model: Final = request.headers.get("x-litellm-model") or request.query_params.get("model")
+    model: Final = compat.header(request.headers, "x-token-iq-model") or request.query_params.get("model")
     if model:
         data["model"] = model
 
@@ -817,7 +818,7 @@ async def get_run(
     }
 
     # Extract model for routing (header > query)
-    model: Final = request.headers.get("x-litellm-model") or request.query_params.get("model")
+    model: Final = compat.header(request.headers, "x-token-iq-model") or request.query_params.get("model")
     if model:
         data["model"] = model
 
@@ -906,7 +907,7 @@ async def cancel_run(
     data["run_id"] = run_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
     if model:
         data["model"] = model
 
@@ -995,7 +996,7 @@ async def delete_run(
     data["run_id"] = run_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or request.headers.get("x-litellm-model")
+    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
     if model:
         data["model"] = model
 

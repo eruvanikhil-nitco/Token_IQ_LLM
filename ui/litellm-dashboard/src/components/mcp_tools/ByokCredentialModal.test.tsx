@@ -32,7 +32,7 @@ beforeEach(() => {
 
 describe("ByokCredentialModal", () => {
   it("saves the credential with the session's configured litellm key header, not a hardcoded Authorization", async () => {
-    registerAuthHeaderNameGetter(() => "x-litellm-api-key");
+    registerAuthHeaderNameGetter(() => "x-token-iq-api-key");
     fetchSpy.mockResolvedValue(jsonResponse({ server_id: "srv-1", has_credential: true }));
     const onSuccess = vi.fn();
     const user = userEvent.setup();
@@ -44,7 +44,7 @@ describe("ByokCredentialModal", () => {
     const request = fetchSpy.mock.calls[0][0];
     expect(request.method).toBe("POST");
     expect(new URL(request.url).pathname).toBe("/v1/mcp/server/srv-1/user-credential");
-    expect(request.headers.get("x-litellm-api-key")).toBe("Bearer sk-session");
+    expect(request.headers.get("x-token-iq-api-key")).toBe("Bearer sk-session");
     expect(request.headers.get("Authorization")).toBeNull();
     expect(await request.json()).toEqual({ credential: "linear-key", save: true });
   });

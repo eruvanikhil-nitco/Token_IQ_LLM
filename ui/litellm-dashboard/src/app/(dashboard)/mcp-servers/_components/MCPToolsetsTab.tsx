@@ -335,7 +335,7 @@ function ToolsetUsageGuide() {
   "mcpServers": {
     "my-toolset": {
       "url": "${proxyBaseUrl}/toolset/<toolset-name>/mcp",
-      "headers": { "x-litellm-api-key": "Bearer <your-api-key>" }
+      "headers": { "x-token-iq-api-key": "Bearer <your-api-key>" }
     }
   }
 }`;

@@ -74,6 +74,7 @@ from .auth_checks import (
     get_team_object_by_alias,
     get_user_object,
 )
+from token_iq.gateway import compat
 
 
 class NoMatchingJWTPublicKeyError(Exception):
@@ -1833,7 +1834,7 @@ class JWTAuthManager:
 
         # Normalize headers to lowercase for case-insensitive lookup
         normalized_headers: Final = {k.lower(): v for k, v in request_headers.items()}
-        header_team_id: Final = normalized_headers.get("x-litellm-team-id")
+        header_team_id: Final = compat.header(normalized_headers, "x-token-iq-team-id")
 
         if not header_team_id:
             return None
@@ -1842,10 +1843,10 @@ class JWTAuthManager:
         if not defer_to_db_membership and header_team_id not in allowed_team_ids:
             raise HTTPException(
                 status_code=403,
-                detail=f"Team '{header_team_id}' from x-litellm-team-id header is not in your JWT's allowed teams. Allowed teams: {list(allowed_team_ids)}",
+                detail=f"Team '{header_team_id}' from x-token-iq-team-id header is not in your JWT's allowed teams. Allowed teams: {list(allowed_team_ids)}",
             )
 
-        verbose_proxy_logger.debug("Using team_id from x-litellm-team-id header: %s", header_team_id)
+        verbose_proxy_logger.debug("Using team_id from x-token-iq-team-id header: %s", header_team_id)
         return header_team_id
 
     @staticmethod
@@ -1989,7 +1990,7 @@ class JWTAuthManager:
         are enforced when admins act on behalf of a team. Admin management
         routes ignore the header to preserve pre-existing bypass behavior.
         """
-        header_team_id: Final = request_headers.get("x-litellm-team-id") if request_headers else None
+        header_team_id: Final = compat.header(request_headers, "x-token-iq-team-id") if request_headers else None
         if not header_team_id or not RouteChecks.is_llm_api_route(route=route):
             return
         try:
@@ -2202,7 +2203,7 @@ class JWTAuthManager:
         """
         raise HTTPException(
             status_code=403,
-            detail=(f"Team '{team_id}' (from x-litellm-team-id header) is not in your team memberships."),
+            detail=(f"Team '{team_id}' (from x-token-iq-team-id header) is not in your team memberships."),
         )
 
     @staticmethod
@@ -2503,7 +2504,7 @@ class JWTAuthManager:
                 raise HTTPException(
                     status_code=403,
                     detail=(
-                        f"Team '{team_id}' (from x-litellm-team-id header) is not allowed to access route '{route}'."
+                        f"Team '{team_id}' (from x-token-iq-team-id header) is not allowed to access route '{route}'."
                     ),
                 )
 

@@ -37,7 +37,7 @@ class Headers(BaseModel):
 class AuthHeaders(Headers):
     # litellm accepts either; set whichever the call needs, leave the other None.
     authorization: str | None = None
-    x_litellm_api_key: str | None = Field(default=None, alias="x-litellm-api-key")
+    x_litellm_api_key: str | None = Field(default=None, alias="x-token-iq-api-key")
 
 
 class AnthropicHeaders(AuthHeaders):
@@ -458,7 +458,7 @@ def probe(
 
 
 def _parse_response_cost(resp: requests.Response) -> float | None:
-    raw = _hdr(resp, "x-litellm-response-cost")
+    raw = _hdr(resp, "x-token-iq-response-cost")
     if raw is None or raw == "":
         return None
     try:
@@ -468,7 +468,7 @@ def _parse_response_cost(resp: requests.Response) -> float | None:
 
 
 def _streaming_outcome(resp: requests.Response, stream: bool) -> StreamingResponse:
-    call_id = _hdr(resp, "x-litellm-call-id")
+    call_id = _hdr(resp, "x-token-iq-call-id")
     response_cost = _parse_response_cost(resp)
     content_type = _hdr(resp, "content-type")
     headers = {name.lower(): value for name, value in resp.headers.items()}
@@ -613,7 +613,7 @@ def stream_binary(
         return BinaryStream(status_code=-1, error_body=str(exc)[:300])
     with resp:
         content_type = _hdr(resp, "content-type")
-        call_id = _hdr(resp, "x-litellm-call-id")
+        call_id = _hdr(resp, "x-token-iq-call-id")
         transfer_encoding = _hdr(resp, "transfer-encoding")
         content_length = _hdr(resp, "content-length")
         if not (200 <= resp.status_code < 300):
@@ -649,7 +649,7 @@ def download(
         return StreamingResponse(status_code=-1, body=str(exc))
     return StreamingResponse(
         status_code=resp.status_code,
-        call_id=_hdr(resp, "x-litellm-call-id"),
+        call_id=_hdr(resp, "x-token-iq-call-id"),
         content_type=_hdr(resp, "content-type"),
         body=resp.text,
     )

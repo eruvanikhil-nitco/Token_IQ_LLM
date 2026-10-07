@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Final
 
 from fastapi import Request
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -17,7 +18,7 @@ def get_gateway_virtual_key(request: Request) -> str:
     Vertex JS SDK uses `Authorization` header, we use `x-litellm-api-key` to pass litellm virtual key
 
     """
-    litellm_api_key: Final = request.headers.get("x-litellm-api-key")
+    litellm_api_key: Final = compat.header(request.headers, "x-token-iq-api-key")
     if litellm_api_key:
         return f"Bearer {litellm_api_key}"
     return request.headers.get("Authorization", "")

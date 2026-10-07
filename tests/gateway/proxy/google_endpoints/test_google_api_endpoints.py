@@ -145,11 +145,11 @@ def test_google_generate_content_forwards_call_id_header():
         client.post(
             "/v1beta/models/test-model:generateContent",
             json={"contents": [{"role": "user", "parts": [{"text": "Hello"}]}]},
-            headers={"x-litellm-call-id": "trace-abc-123"},
+            headers={"x-token-iq-call-id": "trace-abc-123"},
         )
 
         forwarded_request = mock_base.call_args.kwargs["request"]
-        assert forwarded_request.headers.get("x-litellm-call-id") == "trace-abc-123"
+        assert forwarded_request.headers.get("x-token-iq-call-id") == "trace-abc-123"
 
 
 def test_google_count_tokens_unchanged():

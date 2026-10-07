@@ -63,7 +63,7 @@ class TestShouldRedactMessageLogging:
         """x-litellm-enable-message-redaction header should enable redaction
         even when litellm_metadata is None (proxy path)."""
         details = _make_model_call_details(
-            metadata_headers={"x-litellm-enable-message-redaction": "true"},
+            metadata_headers={"x-token-iq-enable-message-redaction": "true"},
             litellm_metadata=None,
         )
         assert should_redact_message_logging(details) is True
@@ -100,7 +100,7 @@ class TestShouldRedactMessageLogging:
         """Headers inside litellm_metadata (SDK direct call) should work."""
         details = _make_model_call_details(
             litellm_metadata={
-                "headers": {"x-litellm-enable-message-redaction": "true"}
+                "headers": {"x-token-iq-enable-message-redaction": "true"}
             },
         )
         assert should_redact_message_logging(details) is True
@@ -138,7 +138,7 @@ class TestShouldRedactMessageLogging:
     def test_dynamic_param_false_overrides_header(self):
         """Dynamic turn_off_message_logging=False should take precedence over enable header."""
         details = _make_model_call_details(
-            metadata_headers={"x-litellm-enable-message-redaction": "true"},
+            metadata_headers={"x-token-iq-enable-message-redaction": "true"},
             litellm_metadata=None,
             standard_callback_dynamic_params={"turn_off_message_logging": False},
         )

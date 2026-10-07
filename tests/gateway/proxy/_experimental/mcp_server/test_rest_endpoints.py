@@ -792,7 +792,7 @@ class TestTestToolsList:
             raising=False,
         )
 
-        request = _build_request({"authorization": "Bearer incoming", "x-litellm-api-key": "sk-admission"})
+        request = _build_request({"authorization": "Bearer incoming", "x-token-iq-api-key": "sk-admission"})
         payload = NewMCPServerRequest(
             server_name="example",
             url="https://example.com",
@@ -846,7 +846,7 @@ class TestTestToolsList:
             raising=False,
         )
 
-        request = _build_request({"authorization": "Bearer upstream-token", "x-litellm-api-key": "sk-admission"})
+        request = _build_request({"authorization": "Bearer upstream-token", "x-token-iq-api-key": "sk-admission"})
         payload = NewMCPServerRequest(
             server_name="example",
             url="https://example.com",

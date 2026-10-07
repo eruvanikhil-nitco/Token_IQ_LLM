@@ -380,7 +380,7 @@ async def test_custom_auth_honors_key_level_model_access_restriction_allowed_wit
 @pytest.mark.asyncio
 async def test_custom_auth_enforces_key_model_access_from_file_route_header_with_opt_in():
     valid_token = UserAPIKeyAuth(token="test_token", models=["allowed-model"])
-    request = _RoutingRequest(headers={"x-litellm-model": "restricted-model"})
+    request = _RoutingRequest(headers={"x-token-iq-model": "restricted-model"})
 
     with (
         patch(

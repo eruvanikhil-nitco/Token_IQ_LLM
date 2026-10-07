@@ -3959,7 +3959,7 @@ class Router:
             try:
                 _response: Final = await self.acompletion(model=model, messages=messages, stream=stream, **kwargs)
                 _response._hidden_params.setdefault("additional_headers", {})
-                _response._hidden_params["additional_headers"].update({"x-litellm-request-prioritization-used": True})
+                _response._hidden_params["additional_headers"].update({"x-token-iq-request-prioritization-used": True})
                 return _response
             except Exception as e:
                 setattr(e, "priority", priority)
@@ -4021,7 +4021,7 @@ class Router:
                 if isinstance(_response._hidden_params, dict):
                     _response._hidden_params.setdefault("additional_headers", {})
                     _response._hidden_params["additional_headers"].update(
-                        {"x-litellm-request-prioritization-used": True}
+                        {"x-token-iq-request-prioritization-used": True}
                     )
                 return _response
             except Exception as e:
@@ -10764,7 +10764,7 @@ class Router:
             return response
 
         additional_headers: Final = ensure_response_additional_headers(response)
-        additional_headers["x-litellm-model-group"] = model_group
+        additional_headers["x-token-iq-model-group"] = model_group
         apply_quality_router_decision_headers(additional_headers, request_kwargs)
 
         if model_group is not None:

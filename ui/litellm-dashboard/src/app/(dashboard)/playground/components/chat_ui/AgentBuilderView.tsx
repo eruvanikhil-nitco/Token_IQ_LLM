@@ -92,7 +92,7 @@ function ConnectTabContent({
       : `Bearer ${createdKeyValue}`
     : "Bearer sk-1234";
   const curlExample = `curl -L -X POST '${baseUrl}/v1/chat/completions' \\
--H 'x-litellm-api-key: ${apiKeyForCurl}' \\
+-H 'x-token-iq-api-key: ${apiKeyForCurl}' \\
 -d '{
   "model": "${agentName}",
   "stream": true,

@@ -70,7 +70,7 @@ class TestGoogleNativeGenerateContent:
             "generateContent returned no x-litellm-response-cost header; "
             "google-native traffic cannot be reconciled against spend without it"
         )
-        assert result.response_cost > 0, f"x-litellm-response-cost must be a real cost, got {result.response_cost}"
+        assert result.response_cost > 0, f"x-token-iq-response-cost must be a real cost, got {result.response_cost}"
 
     @pytest.mark.covers("llm.google_native.gemini.basic.stream.works")
     def test_stream_generate_content_frames_sse_the_way_google_sdks_expect(

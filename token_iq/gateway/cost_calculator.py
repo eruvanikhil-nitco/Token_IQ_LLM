@@ -130,6 +130,7 @@ from token_iq.gateway.utils import (
     _cached_get_model_info_helper,
     token_counter,
 )
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (
@@ -1785,11 +1786,12 @@ def get_response_cost_from_hidden_params(
         _hidden_params_dict = hidden_params
 
     additional_headers: Final = _hidden_params_dict.get("additional_headers", {})
-    if additional_headers and "llm_provider-x-litellm-response-cost" in additional_headers:
-        response_cost: Final = additional_headers["llm_provider-x-litellm-response-cost"]
-        if response_cost is None:
-            return None
-        return float(additional_headers["llm_provider-x-litellm-response-cost"])
+    if not additional_headers:
+        return None
+    for key in compat.PROVIDER_COST_KEYS:
+        if key in additional_headers:
+            reported: Final = additional_headers[key]
+            return None if reported is None else float(reported)
     return None
 
 

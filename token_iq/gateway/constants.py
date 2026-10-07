@@ -95,7 +95,7 @@ REDACTED_TOOL_CALL_ARGUMENTS_PLACEHOLDER: Final = "{}"
 MAX_STRING_LENGTH_STDOUT_LOG: Final = get_env_int("MAX_STRING_LENGTH_STDOUT_LOG", 4096)
 
 # When true, adds detailed per-phase timing breakdown headers to responses.
-# Headers: x-litellm-timing-{pre-processing,llm-api,post-processing,message-copy}-ms
+# Headers: x-token-iq-timing-{pre-processing,llm-api,post-processing,message-copy}-ms
 LITELLM_DETAILED_TIMING: Final = compat.env("TOKEN_IQ_DETAILED_TIMING", "false").lower() == "true"
 
 # Model cost map validation constants
@@ -184,13 +184,15 @@ MCP_STDIO_ALLOWED_COMMANDS: Final[frozenset] = frozenset(
 # MCP OAuth2 Token Exchange (OBO) Defaults
 MCP_TOKEN_EXCHANGE_CACHE_MAX_SIZE: Final = int(os.getenv("MCP_TOKEN_EXCHANGE_CACHE_MAX_SIZE", "500"))
 
+# Response headers the dashboard is allowed to read. The new names only: a response carries one
+# spelling, and that is what lets the old one be dropped.
 LITELLM_UI_ALLOW_HEADERS: Final = [
-    "x-litellm-semantic-filter",
-    "x-litellm-semantic-filter-tools",
-    "x-litellm-adaptive-router-model",
-    "x-litellm-applied-guardrails",
-    "x-litellm-guardrail-scan-id",
-    "x-litellm-cache-key",
+    "x-token-iq-semantic-filter",
+    "x-token-iq-semantic-filter-tools",
+    "x-token-iq-adaptive-router-model",
+    "x-token-iq-applied-guardrails",
+    "x-token-iq-guardrail-scan-id",
+    "x-token-iq-cache-key",
 ]
 
 # Gemini model-specific minimal thinking budget constants
@@ -1444,7 +1446,7 @@ MCP_TOOL_NAME_PREFIX: Final = "mcp_tool"
 MAXIMUM_TRACEBACK_LINES_TO_LOG: Final = int(os.getenv("MAXIMUM_TRACEBACK_LINES_TO_LOG", 100))
 
 # Headers to control callbacks
-X_GATEWAY_DISABLE_CALLBACKS: Final = "x-litellm-disable-callbacks"
+X_GATEWAY_DISABLE_CALLBACKS: Final = "x-token-iq-disable-callbacks"
 LITELLM_METADATA_FIELD: Final = "litellm_metadata"
 OLD_GATEWAY_METADATA_FIELD: Final = "metadata"
 RETURN_RAW_MODEL_NAME_METADATA_KEY: Final = "_complexity_router_return_raw_model_name"
@@ -1469,10 +1471,7 @@ LITELLM_TRUNCATION_STDOUT_SAFEGUARD_NOTE: Final = (
 
 # Standard headers that are always checked for customer/end-user ID (no configuration required)
 # These headers work out-of-the-box for tools like Claude Code that support custom headers
-STANDARD_CUSTOMER_ID_HEADERS: Final = [
-    "x-litellm-customer-id",
-    "x-litellm-end-user-id",
-]
+STANDARD_CUSTOMER_ID_HEADERS: Final = compat.both_spellings(("x-token-iq-customer-id", "x-token-iq-end-user-id"))
 MAX_SPENDLOG_ROWS_TO_QUERY: Final = int(
     os.getenv("MAX_SPENDLOG_ROWS_TO_QUERY", 1_000_000)
 )  # if spendLogs has more than 1M rows, do not query the DB

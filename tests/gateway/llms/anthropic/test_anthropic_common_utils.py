@@ -632,14 +632,14 @@ class TestProxyOAuthHeaderForwarding:
         cleaned = clean_headers(
             raw_headers,
             forward_llm_provider_auth_headers=True,
-            authenticated_with_header="x-litellm-api-key",
+            authenticated_with_header="x-token-iq-api-key",
         )
 
         # x-api-key should be forwarded (it's a provider key, not used for auth)
         assert "x-api-key" in cleaned
         assert cleaned["x-api-key"] == "sk-ant-api03-client-key"
         # x-litellm-api-key should be excluded (special header)
-        assert "x-litellm-api-key" not in cleaned
+        assert "x-token-iq-api-key" not in cleaned
         assert cleaned["content-type"] == "application/json"
 
     def test_clean_headers_excludes_x_api_key_when_used_for_auth(self):
@@ -726,7 +726,7 @@ class TestProxyOAuthHeaderForwarding:
         cleaned = clean_headers(
             raw_headers,
             forward_llm_provider_auth_headers=True,
-            authenticated_with_header="x-litellm-api-key",
+            authenticated_with_header="x-token-iq-api-key",
         )
 
         # x-api-key should be forwarded (provider key, not used for auth)
@@ -736,7 +736,7 @@ class TestProxyOAuthHeaderForwarding:
         assert "x-goog-api-key" in cleaned
         assert cleaned["x-goog-api-key"] == "google-key-123"
         # x-litellm-api-key should be excluded (special header)
-        assert "x-litellm-api-key" not in cleaned
+        assert "x-token-iq-api-key" not in cleaned
         assert cleaned["content-type"] == "application/json"
 
     def test_clean_headers_authorization_not_forwarded_when_used_for_gateway_auth(
@@ -800,14 +800,14 @@ class TestProxyOAuthHeaderForwarding:
             cleaned = clean_headers(
                 raw_headers,
                 forward_llm_provider_auth_headers=True,
-                authenticated_with_header="x-litellm-api-key",
+                authenticated_with_header="x-token-iq-api-key",
             )
 
         # OAuth Authorization should be forwarded (not used for proxy auth)
         assert "authorization" in cleaned
         assert cleaned["authorization"] == oauth_token
         # Proxy key must be stripped
-        assert "x-litellm-api-key" not in cleaned
+        assert "x-token-iq-api-key" not in cleaned
 
 
 class TestGetAnthropicHeadersWithAuthToken:

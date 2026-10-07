@@ -50,12 +50,12 @@ describe("typed api client middleware", () => {
 
   it("injects the bearer token under the registered auth header name", async () => {
     registerAuthTokenGetter(() => "sk-test");
-    registerAuthHeaderNameGetter(() => "x-litellm-key");
+    registerAuthHeaderNameGetter(() => "x-token-iq-key");
     const { fetch, requests } = capturingFetch(jsonResponse(200, { data: [] }));
 
     await fetchClient.GET("/model_group/info", { fetch });
 
-    expect(requests[0].headers.get("x-litellm-key")).toBe("Bearer sk-test");
+    expect(requests[0].headers.get("x-token-iq-key")).toBe("Bearer sk-test");
     expect(requests[0].headers.get("Authorization")).toBeNull();
   });
 

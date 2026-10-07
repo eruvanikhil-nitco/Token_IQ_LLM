@@ -86,7 +86,7 @@ def test_cors_exposes_cache_key_header_to_browser_js():
 
     cors_middleware = next(m for m in app.user_middleware if m.cls is CORSMiddleware)
     assert cors_middleware.kwargs["expose_headers"] is LITELLM_UI_ALLOW_HEADERS
-    assert "x-litellm-cache-key" in cors_middleware.kwargs["expose_headers"]
+    assert "x-token-iq-cache-key" in cors_middleware.kwargs["expose_headers"]
 
 
 def test_login_v2_returns_redirect_url_and_sets_cookie(monkeypatch):

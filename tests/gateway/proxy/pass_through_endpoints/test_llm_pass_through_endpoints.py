@@ -647,7 +647,7 @@ class TestVertexAIPassThroughHandler:
         """
         # Mock dependencies
         mock_request = Mock()
-        mock_request.headers = {"x-litellm-api-key": "test-key-123"}
+        mock_request.headers = {"x-token-iq-api-key": "test-key-123"}
         mock_request.method = "POST"
         mock_response = Mock()
 
@@ -1345,7 +1345,7 @@ class TestVertexAIDiscoveryPassThroughHandler:
         """
         # Mock dependencies
         mock_request = Mock()
-        mock_request.headers = {"x-litellm-api-key": "test-key-123"}
+        mock_request.headers = {"x-token-iq-api-key": "test-key-123"}
         mock_request.method = "POST"
         mock_response = Mock()
 
@@ -2370,7 +2370,7 @@ class TestGigachatProxyRoute:
             new=_fake_route_request,
         ), patch(  # test-quality-ok: patching litellm internal for unit test isolation
             "token_iq.gateway.proxy.common_request_processing.ProxyBaseLLMRequestProcessing.get_custom_headers",
-            return_value={"x-litellm-call-id": "call-123"},
+            return_value={"x-token-iq-call-id": "call-123"},
         ):
             result = await processor.base_passthrough_process_llm_request(
                 request=mock_request,
@@ -2390,7 +2390,7 @@ class TestGigachatProxyRoute:
         assert result.headers["content-type"] == "text/event-stream; charset=utf-8"
         assert result.headers["x-request-id"] == "req-123"
         assert result.headers["x-ratelimit-remaining-requests"] == "77"
-        assert result.headers["x-litellm-call-id"] == "call-123"
+        assert result.headers["x-token-iq-call-id"] == "call-123"
         assert result.headers["x-test-callback-header"] == "callback-value"
         assert "transfer-encoding" not in result.headers
         assert "content-encoding" not in result.headers
@@ -2441,7 +2441,7 @@ class TestForwardHeaders:
 
         # Custom headers that should be merged with user headers
         custom_headers = {
-            "x-litellm-header": "litellm-value",
+            "x-token-iq-header": "litellm-value",
         }
 
         target_url = "https://api.example.com/v1/test"
@@ -2506,7 +2506,7 @@ class TestForwardHeaders:
             assert sent_headers["content-type"] == "application/json"
 
             # Verify custom headers were included
-            assert sent_headers["x-litellm-header"] == "litellm-value"
+            assert sent_headers["x-token-iq-header"] == "litellm-value"
 
             # Verify content-length and host were NOT forwarded
             assert "content-length" not in sent_headers
@@ -2542,7 +2542,7 @@ class TestForwardHeaders:
 
         # Only these custom headers should be sent
         custom_headers = {
-            "x-litellm-header": "litellm-value",
+            "x-token-iq-header": "litellm-value",
             "authorization": "Bearer litellm-token",
         }
 
@@ -2601,7 +2601,7 @@ class TestForwardHeaders:
             sent_headers = call_args[1]["headers"]
 
             # Verify only custom headers were sent
-            assert sent_headers["x-litellm-header"] == "litellm-value"
+            assert sent_headers["x-token-iq-header"] == "litellm-value"
             assert sent_headers["authorization"] == "Bearer litellm-token"
 
             # Verify user headers were NOT forwarded
@@ -3921,7 +3921,7 @@ class TestVertexCredentiallessPassthroughVirtualKeyLeak:
         assert raised is None
         assert forwarded is not None
         assert forwarded.get("authorization") == "Bearer ya29.google-oauth-token"
-        assert "x-litellm-api-key" not in forwarded
+        assert "x-token-iq-api-key" not in forwarded
         assert self.VKEY not in " ".join(f"{name}:{value}" for name, value in forwarded.items())
 
     @pytest.mark.asyncio
@@ -3951,7 +3951,7 @@ class TestVertexCredentiallessPassthroughVirtualKeyLeak:
         assert raised is None
         assert forwarded is not None
         assert forwarded.get("x-goog-api-key") == "AIza-google-api-key"
-        assert "x-litellm-api-key" not in forwarded
+        assert "x-token-iq-api-key" not in forwarded
         assert self.VKEY not in " ".join(f"{name}:{value}" for name, value in forwarded.items())
 
     @pytest.mark.asyncio
@@ -3971,7 +3971,7 @@ class TestVertexCredentiallessPassthroughVirtualKeyLeak:
         assert forwarded.get("authorization") == "Bearer ya29.google-oauth-token"
         assert "api-key" not in forwarded
         assert "x-api-key" not in forwarded
-        assert "x-litellm-api-key" not in forwarded
+        assert "x-token-iq-api-key" not in forwarded
         forwarded_blob = " ".join(f"{name}:{value}" for name, value in forwarded.items())
         assert self.VKEY not in forwarded_blob
         assert "azure-style-caller-secret" not in forwarded_blob
@@ -3982,7 +3982,7 @@ class TestVertexCredentiallessPassthroughVirtualKeyLeak:
         "credential_header",
         sorted(
             SpecialHeaders.gateway_credential_header_names()
-            - {"authorization", "x-goog-api-key", "x-litellm-api-key"}
+            - {"authorization", "x-goog-api-key", "x-token-iq-api-key"}
         ),
     )
     async def test_every_non_google_credential_header_is_dropped_by_name(self, monkeypatch, credential_header):
@@ -3999,7 +3999,7 @@ class TestVertexCredentiallessPassthroughVirtualKeyLeak:
         assert forwarded is not None
         assert forwarded.get("x-goog-api-key") == "AIza-real-google-api-key"
         assert credential_header not in forwarded
-        assert "x-litellm-api-key" not in forwarded
+        assert "x-token-iq-api-key" not in forwarded
         forwarded_blob = " ".join(f"{name}:{value}" for name, value in forwarded.items())
         assert self.VKEY not in forwarded_blob
         assert "some-distinct-caller-secret-value" not in forwarded_blob
@@ -4208,7 +4208,7 @@ class TestVertexCredentiallessPassthroughVirtualKeyLeak:
         assert raised is None, f"a Google JWT that is not the one that authenticated must keep flowing: {raised}"
         assert forwarded is not None
         assert forwarded.get("authorization") == f"Bearer {self.GOOGLE_SERVICE_ACCOUNT_JWT}"
-        assert "x-litellm-api-key" not in forwarded
+        assert "x-token-iq-api-key" not in forwarded
 
     @pytest.mark.asyncio
     async def test_master_key_in_authorization_alone_is_rejected(self, monkeypatch):

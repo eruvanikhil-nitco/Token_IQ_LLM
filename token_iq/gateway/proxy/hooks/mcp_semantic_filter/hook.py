@@ -441,7 +441,7 @@ class SemanticToolFilterHook(CustomLogger):
         if not filter_stats:
             return None
 
-        headers: Final = {"x-litellm-semantic-filter": filter_stats}
+        headers: Final = {"x-token-iq-semantic-filter": filter_stats}
 
         # Add CSV of filtered tool names (nginx-safe length)
         tool_names_csv: Final = metadata.get("litellm_semantic_filter_tools", "")
@@ -450,7 +450,7 @@ class SemanticToolFilterHook(CustomLogger):
             max_length=MAX_MCP_SEMANTIC_FILTER_TOOLS_HEADER_LENGTH,
         )
         if header_safe_csv:
-            headers["x-litellm-semantic-filter-tools"] = header_safe_csv
+            headers["x-token-iq-semantic-filter-tools"] = header_safe_csv
 
         return headers
 

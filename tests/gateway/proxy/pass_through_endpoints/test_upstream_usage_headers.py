@@ -20,8 +20,8 @@ def test_parse_reads_both_totals():
     reported = parse_upstream_reported_usage(
         _headers(
             **{
-                "x-litellm-response-cost": "0.000415",
-                "x-litellm-total-tokens": "1874",
+                "x-token-iq-response-cost": "0.000415",
+                "x-token-iq-total-tokens": "1874",
             }
         )
     )
@@ -35,7 +35,7 @@ def test_parse_returns_none_when_upstream_does_not_speak_the_contract():
 
 def test_parse_accepts_explicit_zero_totals():
     reported = parse_upstream_reported_usage(
-        _headers(**{"x-litellm-response-cost": "0", "x-litellm-total-tokens": "0"})
+        _headers(**{"x-token-iq-response-cost": "0", "x-token-iq-total-tokens": "0"})
     )
 
     assert reported == UpstreamReportedUsage(response_cost=0.0, total_tokens=0)
@@ -47,7 +47,7 @@ def test_parse_accepts_explicit_zero_totals():
 )
 def test_parse_rejects_unusable_cost_but_keeps_tokens(raw_cost: str):
     reported = parse_upstream_reported_usage(
-        _headers(**{"x-litellm-response-cost": raw_cost, "x-litellm-total-tokens": "12"})
+        _headers(**{"x-token-iq-response-cost": raw_cost, "x-token-iq-total-tokens": "12"})
     )
 
     assert reported == UpstreamReportedUsage(response_cost=None, total_tokens=12)
@@ -56,17 +56,17 @@ def test_parse_rejects_unusable_cost_but_keeps_tokens(raw_cost: str):
 @pytest.mark.parametrize("raw_tokens", ["1.5", "twelve", "-3", ""])
 def test_parse_rejects_unusable_tokens_but_keeps_cost(raw_tokens: str):
     reported = parse_upstream_reported_usage(
-        _headers(**{"x-litellm-response-cost": "1.25", "x-litellm-total-tokens": raw_tokens})
+        _headers(**{"x-token-iq-response-cost": "1.25", "x-token-iq-total-tokens": raw_tokens})
     )
 
     assert reported == UpstreamReportedUsage(response_cost=1.25, total_tokens=None)
 
 
 def test_parse_reports_missing_counterpart_header():
-    assert parse_upstream_reported_usage(_headers(**{"x-litellm-response-cost": "2.5"})) == UpstreamReportedUsage(
+    assert parse_upstream_reported_usage(_headers(**{"x-token-iq-response-cost": "2.5"})) == UpstreamReportedUsage(
         response_cost=2.5, total_tokens=None
     )
-    assert parse_upstream_reported_usage(_headers(**{"x-litellm-total-tokens": "7"})) == UpstreamReportedUsage(
+    assert parse_upstream_reported_usage(_headers(**{"x-token-iq-total-tokens": "7"})) == UpstreamReportedUsage(
         response_cost=None, total_tokens=7
     )
 
@@ -91,8 +91,8 @@ def test_apply_records_reported_totals():
         logging_obj=logging_obj,
         headers=_headers(
             **{
-                "x-litellm-response-cost": "0.000415",
-                "x-litellm-total-tokens": "1874",
+                "x-token-iq-response-cost": "0.000415",
+                "x-token-iq-total-tokens": "1874",
             }
         ),
     )
@@ -121,7 +121,7 @@ def test_apply_only_overwrites_what_upstream_reported():
 
     apply_upstream_reported_usage(
         logging_obj=logging_obj,
-        headers=_headers(**{"x-litellm-response-cost": "0.5"}),
+        headers=_headers(**{"x-token-iq-response-cost": "0.5"}),
     )
 
     assert logging_obj.model_call_details["response_cost"] == 0.5

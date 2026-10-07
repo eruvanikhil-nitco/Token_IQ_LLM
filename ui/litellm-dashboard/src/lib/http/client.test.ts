@@ -23,7 +23,7 @@ describe("createApiClient", () => {
     const fetchImpl = vi.fn(async () => okResponse({ ok: true }));
     const client = createApiClient({
       getBaseUrl: () => "https://proxy.example",
-      getAuthHeaderName: () => "x-litellm-key",
+      getAuthHeaderName: () => "x-token-iq-key",
       fetchImpl,
     });
 
@@ -36,7 +36,7 @@ describe("createApiClient", () => {
     expect(init).toMatchObject({ method: "GET" });
     expect(init.headers).toEqual({
       "Content-Type": "application/json",
-      "x-litellm-key": "Bearer sk-123",
+      "x-token-iq-key": "Bearer sk-123",
     });
     expect(init.body).toBeUndefined();
   });

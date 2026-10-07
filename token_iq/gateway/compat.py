@@ -187,10 +187,12 @@ both have to know the old prefix for as long as the old prefix still authenticat
 
 OLD_API_KEY_HEADER: Final = f"{OLD_HEADER_PREFIX}api-key"
 NEW_API_KEY_HEADER: Final = f"{NEW_HEADER_PREFIX}api-key"
+API_KEY_HEADERS: Final = frozenset({NEW_API_KEY_HEADER, OLD_API_KEY_HEADER})
 """Named, unlike the other 90, because FastAPI wants a header name at import time rather than a lookup.
 
 `APIKeyHeader(name=...)` builds a security dependency per name, so accepting both spellings of the key
-header means two dependencies, and each needs its literal.
+header means two dependencies, and each needs its literal. The set is for the places that ask whether
+a header authenticates the caller, which decide whether to forward it to a provider or an agent.
 """
 
 
@@ -240,6 +242,18 @@ def header(
 
     _warn_once(old, name.lower(), warn or _say)
     return legacy
+
+
+PROVIDER_PREFIX: Final = "llm_provider-"
+PROVIDER_COST_KEY: Final = f"{PROVIDER_PREFIX}{NEW_HEADER_PREFIX}response-cost"
+PROVIDER_COST_KEYS: Final = (PROVIDER_COST_KEY, f"{PROVIDER_PREFIX}{OLD_HEADER_PREFIX}response-cost")
+"""Where a cost an upstream reported lands once `process_response_headers` has prefixed it.
+
+A hop to another Token IQ proxy arrives as a raw provider response, so its `…-response-cost` header is
+prefixed rather than kept bare, and the key depends on which release that proxy is running. The engine
+writes the first and reads both, so a fleet part-way through an upgrade still counts the cost its
+upstream reported instead of silently falling back to its own estimate.
+"""
 
 
 def both_spellings(names: Iterable[str]) -> tuple[str, ...]:

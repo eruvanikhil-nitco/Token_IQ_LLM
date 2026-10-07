@@ -1226,7 +1226,7 @@ async def test_set_response_headers_dict_anthropic_messages_response(model_list)
 
     assert "_hidden_params" in resp
     headers = resp["_hidden_params"]["additional_headers"]
-    assert headers["x-litellm-model-group"] == "io-itpm-strict"
+    assert headers["x-token-iq-model-group"] == "io-itpm-strict"
     assert headers["x-ratelimit-limit-input-tokens"] == 25
     assert headers["x-ratelimit-remaining-input-tokens"] == 20
     assert headers["x-ratelimit-remaining-output-tokens"] == 95
@@ -1257,7 +1257,7 @@ async def test_set_response_headers_wraps_bare_async_generator(model_list):
 
     assert hasattr(wrapped, "_hidden_params")
     headers = wrapped._hidden_params["additional_headers"]
-    assert headers["x-litellm-model-group"] == "io-itpm-strict"
+    assert headers["x-token-iq-model-group"] == "io-itpm-strict"
     assert headers["x-ratelimit-limit-input-tokens"] == 25
     assert headers["x-ratelimit-remaining-input-tokens"] == 20
 

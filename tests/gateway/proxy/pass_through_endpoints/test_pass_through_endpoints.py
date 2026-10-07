@@ -4235,7 +4235,7 @@ async def test_pass_through_request_relays_non_json_body_without_buffering():
 
             assert response.status_code == 200
             assert response.headers["x-upstream-marker"] == "batch-results"
-            assert "x-litellm-call-id" in response.headers
+            assert "x-token-iq-call-id" in response.headers
             assert "content-length" not in response.headers
 
             mock_success_handler.assert_called_once()
@@ -4537,8 +4537,8 @@ async def test_passthrough_records_cost_and_tokens_reported_by_upstream():
     """
     payloads, _ = await _run_upstream_reporting_passthrough(
         {
-            "x-litellm-response-cost": "0.000415",
-            "x-litellm-total-tokens": "1874",
+            "x-token-iq-response-cost": "0.000415",
+            "x-token-iq-total-tokens": "1874",
         }
     )
 
@@ -4550,7 +4550,7 @@ async def test_passthrough_records_cost_and_tokens_reported_by_upstream():
 @pytest.mark.asyncio
 async def test_passthrough_records_zero_when_upstream_reports_zero():
     payloads, _ = await _run_upstream_reporting_passthrough(
-        {"x-litellm-response-cost": "0", "x-litellm-total-tokens": "0"}
+        {"x-token-iq-response-cost": "0", "x-token-iq-total-tokens": "0"}
     )
 
     assert len(payloads) == 1
@@ -4578,8 +4578,8 @@ async def test_passthrough_records_upstream_reported_cost_on_error_response():
 
     _, mock_proxy_logging = await _run_upstream_reporting_passthrough(
         {
-            "x-litellm-response-cost": "0.00021",
-            "x-litellm-total-tokens": "930",
+            "x-token-iq-response-cost": "0.00021",
+            "x-token-iq-total-tokens": "930",
         },
         status_code=500,
     )
@@ -4615,8 +4615,8 @@ async def test_streaming_passthrough_records_cost_and_tokens_reported_by_upstrea
             status_code=200,
             headers={
                 "content-type": "text/event-stream",
-                "x-litellm-response-cost": "0.00312",
-                "x-litellm-total-tokens": "4021",
+                "x-token-iq-response-cost": "0.00312",
+                "x-token-iq-total-tokens": "4021",
             },
             stream=_RecordingUpstreamByteStream((b'data: {"delta": "hi"}\n\n',)),
         ),
@@ -4655,8 +4655,8 @@ async def test_upstream_reported_cost_survives_default_cost_per_request():
     """
     payloads, _ = await _run_upstream_reporting_passthrough(
         {
-            "x-litellm-response-cost": "0.000415",
-            "x-litellm-total-tokens": "1874",
+            "x-token-iq-response-cost": "0.000415",
+            "x-token-iq-total-tokens": "1874",
         },
         cost_per_request=0.0,
     )
@@ -4681,7 +4681,7 @@ async def test_unusable_upstream_cost_records_zero_not_the_flat_estimate():
     to a flat cost_per_request the upstream just contradicted.
     """
     payloads, _ = await _run_upstream_reporting_passthrough(
-        {"x-litellm-response-cost": "not-a-number", "x-litellm-total-tokens": "1874"},
+        {"x-token-iq-response-cost": "not-a-number", "x-token-iq-total-tokens": "1874"},
         cost_per_request=0.05,
     )
 

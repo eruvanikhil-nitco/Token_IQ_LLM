@@ -86,11 +86,11 @@ KEYWORD_HEAVY_SYSTEM_PROMPT = (
 
 
 class TaggedAuthHeaders(AuthHeaders):
-    x_litellm_tags: str | None = Field(default=None, serialization_alias="x-litellm-tags")
+    x_litellm_tags: str | None = Field(default=None, serialization_alias="x-token-iq-tags")
 
 
 class TaggedAnthropicHeaders(AnthropicHeaders):
-    x_litellm_tags: str | None = Field(default=None, serialization_alias="x-litellm-tags")
+    x_litellm_tags: str | None = Field(default=None, serialization_alias="x-token-iq-tags")
 
 
 class ResponsesTagMetadata(BaseModel):
