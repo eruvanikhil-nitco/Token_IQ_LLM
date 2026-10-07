@@ -342,7 +342,7 @@ def get_secret(
                     e,
                     traceback.format_exc(),
                 )
-                secret = os.getenv(secret_name)
+                secret = compat.env(secret_name)
             try:
                 if isinstance(secret, str):
                     secret_value_as_bool = ast.literal_eval(secret)
@@ -353,7 +353,11 @@ def get_secret(
             except Exception:
                 return secret
         else:
-            secret = os.environ.get(secret_name)
+            # Through `compat.env`: this is the path taken when no secret manager is configured, so it is
+            # the one that reads the master key. A caller asking for TOKEN_IQ_MASTER_KEY has to find an
+            # environment that still says LITELLM_MASTER_KEY, or an upgraded proxy starts with no master
+            # key at all, which refuses the admin UI and every management route.
+            secret = compat.env(secret_name)
             secret_value_as_bool = str_to_bool(secret) if secret is not None else None
             if secret_value_as_bool is not None and isinstance(secret_value_as_bool, bool):
                 return secret_value_as_bool

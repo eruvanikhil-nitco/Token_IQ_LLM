@@ -431,3 +431,70 @@ def test_secret_manager_would_be_consulted_is_false_without_a_client(monkeypatch
     monkeypatch.setattr(gateway, "secret_manager_client", None)
 
     assert secret_manager_would_be_consulted("os.environ/ANY_NAME") is False
+
+
+# --- The environment an operator has not renamed yet ---------------------------------------------
+#
+# This is the path a read takes when no secret manager is configured, which is most installations, and
+# it is the path the master key is read on. `proxy_server` asks for `TOKEN_IQ_MASTER_KEY`; an operator
+# upgrading still has `LITELLM_MASTER_KEY` set. Reading only the new name leaves the proxy with no
+# master key, which refuses the admin UI and every management route, and nothing else notices.
+
+
+@pytest.fixture(autouse=True)
+def _one_warning_at_a_time():
+    from token_iq.gateway import compat
+
+    compat.forget_warnings()
+
+
+def test_the_master_key_is_found_under_the_name_it_had_before_the_rename(monkeypatch):
+    monkeypatch.setattr(gateway, "secret_manager_client", None)
+    monkeypatch.delenv("TOKEN_IQ_MASTER_KEY", raising=False)
+    monkeypatch.setenv("LITELLM_MASTER_KEY", "sk-set-before-the-upgrade")
+
+    assert get_secret("TOKEN_IQ_MASTER_KEY") == "sk-set-before-the-upgrade"
+
+
+def test_the_new_name_wins_when_both_are_set(monkeypatch):
+    """An operator who has migrated must not be overridden by a variable they forgot to delete."""
+    monkeypatch.setattr(gateway, "secret_manager_client", None)
+    monkeypatch.setenv("TOKEN_IQ_MASTER_KEY", "sk-migrated")
+    monkeypatch.setenv("LITELLM_MASTER_KEY", "sk-set-before-the-upgrade")
+
+    assert get_secret("TOKEN_IQ_MASTER_KEY") == "sk-migrated"
+
+
+def test_a_boolean_read_of_an_old_name_is_still_a_boolean(monkeypatch):
+    """`get_secret` turns "true" into True, and the fallback has to happen before that, not instead."""
+    monkeypatch.setattr(gateway, "secret_manager_client", None)
+    monkeypatch.delenv("TOKEN_IQ_DISABLE_NO_REDIS_WARNING", raising=False)
+    monkeypatch.setenv("LITELLM_DISABLE_NO_REDIS_WARNING", "true")
+
+    assert get_secret("TOKEN_IQ_DISABLE_NO_REDIS_WARNING", False) is True
+
+
+def test_a_name_that_was_never_renamed_gets_no_fallback(monkeypatch):
+    """Guessing an old spelling for someone else's variable would invent a fallback nobody asked for."""
+    monkeypatch.setattr(gateway, "secret_manager_client", None)
+    monkeypatch.delenv("AWS_REGION_NAME", raising=False)
+    monkeypatch.setenv("LITELLM_REGION_NAME", "eu-west-1")
+
+    assert get_secret("AWS_REGION_NAME") is None
+
+
+def test_a_manager_that_errors_falls_back_to_the_old_name_too(monkeypatch):
+    """The other branch that ends up in the environment: a configured manager raised, and the read drops
+    back to the process environment. An operator mid-outage should not also lose their master key."""
+
+    class _Broken:
+        def get_secret(self, *_args, **_kwargs):
+            raise RuntimeError("the manager is down")
+
+    monkeypatch.setattr(gateway, "secret_manager_client", _Broken())
+    monkeypatch.setattr(gateway, "_key_management_system", KeyManagementSystem.CUSTOM)
+    monkeypatch.setattr(gateway, "_key_management_settings", KeyManagementSettings(access_mode="read_only"))
+    monkeypatch.delenv("TOKEN_IQ_MASTER_KEY", raising=False)
+    monkeypatch.setenv("LITELLM_MASTER_KEY", "sk-set-before-the-upgrade")
+
+    assert get_secret("TOKEN_IQ_MASTER_KEY") == "sk-set-before-the-upgrade"
