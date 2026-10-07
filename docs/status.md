@@ -1505,23 +1505,84 @@ on one line.
   when both are set
 - The dashboard compiles and type-checks with the renamed header names, build exit 0
 
-### What is left in phase 7
+## Phase 7 closes: deployment files and a generated changelog
 
-- **The packaged dashboard bundle.** `token_iq/gateway/proxy/_experimental/out` is a committed build
-  artifact that still reads `x-litellm-*` response headers, so the cost, cache-key and trace-id displays
-  are stale until it is rebuilt from `ui/litellm-dashboard`. The Docker image builds the UI from source
-  and is unaffected; this matters to anyone installing the wheel. The repo does not keep that bundle in
-  step per commit, 693 commits against 4,612 touching the source, so refreshing it is a release step
+### Deployment files
+
+86 environment variable names move across 25 files: the Terraform modules for AWS and GCP, the hardened
+compose file, the non-root Dockerfile, the CircleCI jobs, and the examples and READMEs beside each.
+
+The risk runs the other way from the one inside the engine. A deployment that sets a name nothing reads
+leaves a knob silently off while the file looks right, and no test anywhere fails. So a name only moves
+when the engine demonstrably asks for its new spelling, and the pass reads that list out of the engine's
+own source on every run rather than carrying a copy.
+
+25 names stay, each for one of four reasons, and `--audit` prints every one with where it was found:
+
+- the enterprise package reads it and is not in this repository, which is `LITELLM_LICENSE` and the
+  billing-metrics set. A test asserts `litellm.proxy.enterprise_billing.billing_metrics` is not importable
+- `litellm-proxy-extras` reads it and installs as its own distribution, so it cannot import the
+  compatibility helper. `LITELLM_MIGRATION_DIR`, which is phase 8's
+- Docker and CI shell read it, not the engine: the image, version and migration plumbing, which is
+  phase 9's
+- nothing reads it at all. `LITELLM_LOCAL_MODEL_COST_MAP` has been dead since the price map became always
+  the bundled one, and CI plus a dozen tests still set it
+
+`LITELLM_NON_ROOT` turned out to be the engine's after all, read at two places through the helper, so it
+moved; an earlier note here had it with the migrations package, which was wrong.
+
+`terraform/provider/` keeps its names. That is a Terraform provider written in Go, and `LITELLM_API_BASE`
+and its neighbours are its own interface to its users rather than the engine's.
+
+Nothing renamed is a cloud resource name or a Terraform variable. The pattern only matches the uppercase
+form, so the secret in Secrets Manager is still `${local.name}-master-key` and a customer's `.tfvars`
+still says `master_key`. In CircleCI all 27 changes are `-e NAME=value` or `export NAME=value` with a
+literal beside them, and `LITELLM_LICENSE=$LITELLM_LICENSE` reads a project secret this repository cannot
+rename, which is a second reason that one stays.
+
+`docs/` needed nothing: every old name under it is in the decision records, the plans or `status.md`.
+
+### The changelog
+
+Two scripts, because the map was an inventory of old names with the new ones left to the phase that
+decides them. `fill_rename_map.py` writes phase 7's answers into it, read out of the engine so a name the
+engine does not ask for cannot reach a customer's upgrade notes and send them to turn a working knob off.
+`write_upgrading_notes.py` generates the section between two markers, and `--check` says whether the file
+on disk still matches the map, which is what a test asserts.
+
+100 environment variables, two config keys and 83 headers have a new name. The other 187 inventoried
+variables keep an empty one, and clearing rather than leaving it is what makes a second run give the same
+map as the first.
+
+Two tests tie the document to the code rather than to the map: the config keys have to be the pair
+`compat.CONFIG_KEYS` accepts, and each of the 83 header pairs has to be the pair `compat.old_header_for`
+produces. A line in the notes the proxy disagrees with is worse than a line that is missing.
+
+The first generated draft opened by telling a customer to rename `LITELLM_` into `TOKEN_IQ_`: the
+inventory has a row for the bare prefix and the engine has that literal too.
+
+### The packaged dashboard, which is not swapped and why
+
+`token_iq/gateway/proxy/_experimental/out` is a committed build of the dashboard, and it still reads
+`x-litellm-*` response headers in 10 of its files. The proxy serves it for anyone installing the wheel;
+every Dockerfile deletes it and builds the UI from source, so images are unaffected.
+
+A fresh build was made to see how close the two are. It is clean of the old names and compiles and
+type-checks, so the source side is sound, and the toolchain matches: Next 16.2.11 in `package.json`, in
+`package-lock.json` and installed. But it is 992 files against the committed 1016, and the per-route files
+have a different layout, `__next.…txt` beside the route rather than `__next.…/__PAGE__.txt` under it. The
+committed bundle is from an older build than the current source produces, so swapping it changes more than
+the header names, and whether the swap serves correctly cannot be checked here: that needs the proxy, a
+database and a browser.
+
+So it is left for a release step, where the build happens in CI and a person can open the dashboard. Phase
+9 moves `ui/litellm-dashboard/` to `ui/dashboard/` and forces the rebuild anyway.
+
+### Still open
+
+- **The packaged dashboard bundle**, above
 - **The API JSON key names.** `LITELLM_UI_API_DOC_BASE_URL` is a key the dashboard reads out of
-  `/get/proxy_settings`, and renaming it means renaming it in the served bundle at the same time. Left
-  alone on purpose until the bundle is refreshed
-- **The provider name.** `litellm_proxy` is what a customer writes as `model: litellm_proxy/gpt-4o`,
-  which is why phase 6 left that directory alone
-- **Deployment files.** `.env.example`, `docker-compose.hardened.yml` and the Terraform variables. Only
-  three of the Terraform names, `MASTER_KEY`, `SALT_KEY` and `OTEL_V2`, are ones the engine asks for
-  under the new prefix; `LICENSE`, `INSECURE_SKIP_VERIFY`, the S3 config and the billing-metrics set are
-  not read by name anywhere in this repo, so renaming them would be guessing. `LITELLM_NON_ROOT` and
-  `LITELLM_MIGRATION_DIR` are read by `litellm-proxy-extras` and by shell, neither of which goes through
-  the compatibility seam, so they belong to phase 8
-- **A CHANGELOG** with an Upgrading section listing every renamed variable, key and header, generated
-  from the rename map
+  `/get/proxy_settings`. Renaming it means renaming it in the served bundle at the same time, so it waits
+  for that rebuild. The environment variable behind it already asks for the new name
+- **The provider name.** `litellm_proxy` is what a customer writes as `model: litellm_proxy/gpt-4o`, which
+  is a value rather than a setting, and the plan's phase 7 table does not list it
