@@ -648,7 +648,7 @@ def test_completion_with_function_tools_works_without_fastapi_installed():
 
         from token_iq import gateway
 
-        response = litellm.completion(
+        response = gateway.completion(
             model="openai/gpt-5.5",
             messages=[{"role": "user", "content": "What is the weather in SF?"}],
             tools=[
