@@ -19,8 +19,8 @@ from token_iq import gateway
 from token_iq.gateway.constants import LITELLM_PROXY_ADMIN_NAME, LITELLM_UI_SESSION_DURATION
 from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
 from token_iq.gateway.proxy._types import (
-    LiteLLM_UserTable,
     GatewayUserRoles,
+    LiteLLM_UserTable,
     ProxyErrorTypes,
     ProxyException,
     UpdateUserRequest,

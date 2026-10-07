@@ -14,11 +14,11 @@ from requests.auth import HTTPBasicAuth
 from typing_extensions import ReadOnly, TypedDict, Unpack
 
 from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
     log_guardrail_information,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
     httpxSpecialProvider,

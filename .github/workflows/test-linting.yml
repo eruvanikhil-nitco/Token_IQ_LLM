@@ -113,29 +113,17 @@ jobs:
       - name: Check ruff format
         if: steps.changes.outputs.decision != 'skip'
         run: |
-          git diff --name-only --diff-filter=ACMR "$GATE_BASE_SHA" HEAD -- 'token_iq/gateway/**/*.py' | grep -v '^litellm/enterprise/' > "$RUNNER_TEMP/ruff_format_files.txt" || true
+          git diff --name-only --diff-filter=ACMR "$GATE_BASE_SHA" HEAD -- 'token_iq/gateway/**/*.py' > "$RUNNER_TEMP/ruff_format_files.txt" || true
           if [ ! -s "$RUNNER_TEMP/ruff_format_files.txt" ]; then
-            echo "No changed litellm Python files to check with ruff format."
+            echo "No changed engine Python files to check with ruff format."
             exit 0
           fi
-          xargs uv run --no-sync ruff format --check --exclude '/enterprise/' < "$RUNNER_TEMP/ruff_format_files.txt"
-
-      - name: Debug - Check file state
-        if: steps.changes.outputs.decision != 'skip'
-        run: |
-          echo "Current branch:"
-          git branch --show-current
-          echo "Last 3 commits:"
-          git log --oneline -3
-          echo "File content around line 43:"
-          head -50 litellm/litellm_core_utils/custom_logger_registry.py | tail -10
+          xargs uv run --no-sync ruff format --check < "$RUNNER_TEMP/ruff_format_files.txt"
 
       - name: Run Ruff linting
         if: steps.changes.outputs.decision != 'skip'
         run: |
-          cd litellm
-          uv run --no-sync ruff check .
-          cd ..
+          uv run --no-sync ruff check token_iq/gateway
 
       - name: Run Ruff linting (test tree)
         if: steps.changes.outputs.decision != 'skip'
@@ -181,14 +169,12 @@ jobs:
       - name: Check for circular imports
         if: steps.changes.outputs.decision != 'skip'
         run: |
-          cd litellm
-          uv run --no-sync python ../tests/documentation_tests/test_circular_imports.py
-          cd ..
+          uv run --no-sync python tests/documentation_tests/test_circular_imports.py
 
       - name: Check import safety
         if: steps.changes.outputs.decision != 'skip'
         run: |
-          uv run --no-sync python -c "from litellm import *" || (echo '🚨 import failed, this means you introduced unprotected imports! 🚨'; exit 1)
+          uv run --no-sync python -c "from token_iq.gateway import *" || (echo 'import failed, this means you introduced unprotected imports'; exit 1)
 
   # Intentionally NON-GATING. This job turns red when a *-budget.json ceiling is
   # raised (or a rule/budget is dropped) so a loosening is obvious in review, but it

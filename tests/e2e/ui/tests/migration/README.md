@@ -10,7 +10,7 @@ the default mount and a non-root `SERVER_ROOT_PATH` mount.
 
 When a page's migration merges, add its route segment to
 `tests/e2e/ui/fixtures/migratedPages.ts` (keep it in lockstep with `MIGRATED_PAGES`
-in `ui/litellm-dashboard/src/utils/migratedPages.ts`). Both suites pick it up
+in `ui/dashboard/src/utils/migratedPages.ts`). Both suites pick it up
 automatically.
 
 ## Running

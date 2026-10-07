@@ -6,11 +6,11 @@ from typing import TYPE_CHECKING, Any, Final, Optional
 if TYPE_CHECKING:
     from fastapi import HTTPException
 
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.integrations.custom_guardrail import (
         CustomGuardrail,
         ModifyResponseException,
     )
-    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.types.llms.openai import AllMessageValues
 

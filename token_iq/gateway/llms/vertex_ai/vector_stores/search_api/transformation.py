@@ -5,8 +5,8 @@ import httpx
 from typing_extensions import ReadOnly, TypedDict
 
 from token_iq.gateway import get_model_info
-from token_iq.gateway.exceptions import BadRequestError
 from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
+from token_iq.gateway.exceptions import BadRequestError
 from token_iq.gateway.llms.base_llm.vector_store.transformation import BaseVectorStoreConfig
 from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 from token_iq.gateway.types.router import GenericGatewayParams

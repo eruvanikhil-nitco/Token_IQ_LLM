@@ -22,6 +22,7 @@ from fastapi.security.api_key import APIKeyHeader
 from starlette.exceptions import WebSocketException
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger, verbose_proxy_logger
 from token_iq.gateway._service_logger import ServiceLogging
 from token_iq.gateway.constants import (
@@ -31,10 +32,10 @@ from token_iq.gateway.constants import (
     LITELLM_PROXY_BUDGET_NAME,
     LITELLM_PROXY_MASTER_KEY_ALIAS,
 )
-from token_iq.gateway.integrations.otel.model.config import is_otel_v2_enabled
-from token_iq.gateway.integrations.otel.runtime import phase_span, seed_request_identity
 from token_iq.gateway.core_utils.dd_tracing import tracer
 from token_iq.gateway.core_utils.dot_notation_indexing import get_nested_value
+from token_iq.gateway.integrations.otel.model.config import is_otel_v2_enabled
+from token_iq.gateway.integrations.otel.runtime import phase_span, seed_request_identity
 from token_iq.gateway.proxy._types import *
 from token_iq.gateway.proxy.auth.auth_checks import (
     ExperimentalUIJWTToken,
@@ -105,7 +106,6 @@ from token_iq.gateway.proxy.utils import (
 from token_iq.gateway.repositories.table_repositories import TeamMembershipRepository
 from token_iq.gateway.secret_managers.main import get_secret_bool
 from token_iq.gateway.types.services import ServiceTypes
-from token_iq.gateway import compat
 
 try:
     from litellm_enterprise.proxy.auth.user_api_key_auth import (

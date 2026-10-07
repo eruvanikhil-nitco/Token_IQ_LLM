@@ -11,9 +11,9 @@ from typing import Final, TypeAlias
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.proxy._types import (
     UI_TEAM_ID,
+    GatewayUserRoles,
     LiteLLM_ObjectPermissionTable,
     LiteLLM_TeamTable,
-    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.repositories.table_repositories import AgentsRepository

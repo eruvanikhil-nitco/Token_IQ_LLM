@@ -11,9 +11,7 @@ from httpx import Response
 from pydantic import BaseModel
 
 from token_iq import gateway
-import token_iq.gateway._logging
-from token_iq import gateway
-from token_iq.gateway import verbose_logger
+from token_iq.gateway import compat, verbose_logger
 from token_iq.gateway.constants import (
     DEFAULT_MAX_LRU_CACHE_SIZE,
     DEFAULT_REPLICATE_GPU_PRICE_PER_SECOND,
@@ -130,7 +128,6 @@ from token_iq.gateway.utils import (
     _cached_get_model_info_helper,
     token_counter,
 )
-from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (

@@ -23,7 +23,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = REPO_ROOT / ".github" / "scripts" / "detect_changes.sh"
 CLASSIFIER = REPO_ROOT / ".circleci" / "scripts" / "classify_changes.sh"
 
-UI_FILE = "ui/litellm-dashboard/src/components/Teams.tsx"
+UI_FILE = "ui/dashboard/src/components/Teams.tsx"
 BACKEND_FILE = "token_iq/gateway/proxy/proxy_server.py"
 
 

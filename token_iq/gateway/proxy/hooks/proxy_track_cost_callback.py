@@ -7,13 +7,13 @@ from typing import TYPE_CHECKING, Any, Final, cast
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import BACKGROUND_INTERACTION_COST_POLLING_ENABLED
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.core_helpers import (
     _get_parent_otel_span_from_kwargs,
     get_litellm_metadata_from_kwargs,
 )
 from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
 from token_iq.gateway.core_utils.llm_cost_calc.guardrail_cost import guardrail_information_cost
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.auth_checks import (
     get_key_object,

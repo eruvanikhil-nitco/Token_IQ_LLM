@@ -65,7 +65,7 @@ component_management:
         - "token_iq/gateway/realtime_api/**"
         - "*/proxy/realtime_endpoints/**"
         - "*/llms/*/realtime/**"
-        - "litellm/litellm_core_utils/realtime_streaming.py"
+        - "token_iq/gateway/core_utils/realtime_streaming.py"
 comment:
   layout: "header, diff, flags, components"  # show component info in the PR comment
 

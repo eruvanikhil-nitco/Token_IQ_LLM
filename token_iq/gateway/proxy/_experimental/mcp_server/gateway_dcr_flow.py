@@ -876,7 +876,9 @@ class _SingleUseGuard:
         """Atomically claim ``key``. ``"first"`` iff this caller is the first (increment to 1),
         ``"replayed"`` on a replay (>1), and ``"unavailable"`` when the claim could not be recorded in
         the shared backend, which every caller treats as a refusal (fail closed)."""
-        from token_iq.gateway.proxy.proxy_server import redis_usage_cache  # noqa: PLC0415  # circular import at module load
+        from token_iq.gateway.proxy.proxy_server import (
+            redis_usage_cache,  # noqa: PLC0415  # circular import at module load
+        )
 
         # Resolve the shared authority HERE rather than trusting the injected cache: callers pass
         # user_api_key_cache, which only carries a redis_cache when enable_redis_auth_cache is set
@@ -904,7 +906,9 @@ class _SingleUseGuard:
         """Read-only view of a single-use marker, resolved against the same shared authority as
         :meth:`claim` so introspection observes exactly the record redemption and revocation wrote.
         A backend fault is ``"unavailable"`` (fail closed) rather than a guess either way."""
-        from token_iq.gateway.proxy.proxy_server import redis_usage_cache  # noqa: PLC0415  # circular import at module load
+        from token_iq.gateway.proxy.proxy_server import (
+            redis_usage_cache,  # noqa: PLC0415  # circular import at module load
+        )
 
         redis_cache: Final = redis_usage_cache or getattr(self._cache, "redis_cache", None)
         if redis_cache is not None:

@@ -5,14 +5,14 @@ from typing import TYPE_CHECKING, Any, Final
 from typing_extensions import override
 
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.integrations.opentelemetry_utils.base_otel_llm_obs_attributes import (
-    BaseLLMObsOTELAttributes,
-    safe_set_attribute,
-)
 from token_iq.gateway.core_utils.redact_messages import (
     should_redact_message_logging,
 )
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
+from token_iq.gateway.integrations.opentelemetry_utils.base_otel_llm_obs_attributes import (
+    BaseLLMObsOTELAttributes,
+    safe_set_attribute,
+)
 from token_iq.gateway.types.utils import CallTypes, StandardLoggingMCPToolCall, StandardLoggingPayload
 
 if TYPE_CHECKING:

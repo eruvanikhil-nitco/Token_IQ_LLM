@@ -18,11 +18,14 @@ from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.anthropic_interface import messages as anthropic_messages
 from token_iq.gateway.constants import LITELLM_WEB_SEARCH_TOOL_NAME
+from token_iq.gateway.core_utils.agentic_loop_settings import (
+    validated_max_agentic_loops,
+)
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.integrations.websearch_interception.tools import (
-    get_litellm_web_search_tool,
     get_gateway_web_search_tool_openai,
     get_gateway_web_search_tool_responses,
+    get_litellm_web_search_tool,
     is_anthropic_native_web_search_tool,
     is_web_search_tool,
     is_web_search_tool_chat_completion,
@@ -30,9 +33,6 @@ from token_iq.gateway.integrations.websearch_interception.tools import (
 )
 from token_iq.gateway.integrations.websearch_interception.transformation import (
     WebSearchTransformation,
-)
-from token_iq.gateway.core_utils.agentic_loop_settings import (
-    validated_max_agentic_loops,
 )
 from token_iq.gateway.llms.base_llm.search.transformation import SearchResponse
 from token_iq.gateway.types.integrations.custom_logger import (
@@ -870,7 +870,7 @@ class WebSearchInterceptionLogger(CustomLogger):
         response: object,
         anthropic_messages_provider_config: "BaseAnthropicMessagesConfig | None",
         anthropic_messages_optional_request_params: dict,
-        logging_obj: "LiteLLMLoggingObj | None",
+        logging_obj: "GatewayLoggingObj | None",
         stream: bool,
         kwargs: dict,
     ) -> "AnthropicMessagesResponse | AsyncIterator[object]":
@@ -904,7 +904,7 @@ class WebSearchInterceptionLogger(CustomLogger):
         response: object,
         anthropic_messages_provider_config: "BaseAnthropicMessagesConfig | None",
         anthropic_messages_optional_request_params: dict,
-        logging_obj: "LiteLLMLoggingObj | None",
+        logging_obj: "GatewayLoggingObj | None",
         stream: bool,
         kwargs: dict,
     ) -> AgenticLoopPlan:
@@ -1061,7 +1061,7 @@ class WebSearchInterceptionLogger(CustomLogger):
         messages: list[dict],
         response: object,
         optional_params: dict,
-        logging_obj: "LiteLLMLoggingObj | None",
+        logging_obj: "GatewayLoggingObj | None",
         stream: bool,
         kwargs: dict,
     ) -> "ModelResponse | CustomStreamWrapper":
@@ -1096,7 +1096,7 @@ class WebSearchInterceptionLogger(CustomLogger):
         messages: list[dict],
         response: object,
         optional_params: dict,
-        logging_obj: "LiteLLMLoggingObj | None",
+        logging_obj: "GatewayLoggingObj | None",
         stream: bool,
         kwargs: dict,
     ) -> AgenticLoopPlan:
@@ -1123,7 +1123,7 @@ class WebSearchInterceptionLogger(CustomLogger):
         messages: list[dict],
         response: object,
         optional_params: dict,
-        logging_obj: "LiteLLMLoggingObj | None",
+        logging_obj: "GatewayLoggingObj | None",
         stream: bool,
         kwargs: dict,
     ) -> AgenticLoopPlan:
@@ -1301,7 +1301,7 @@ class WebSearchInterceptionLogger(CustomLogger):
         tool_calls: list[dict],
         thinking_blocks: list[dict],
         anthropic_messages_optional_request_params: Mapping[str, object],
-        logging_obj: "LiteLLMLoggingObj | None",
+        logging_obj: "GatewayLoggingObj | None",
         stream: bool,
         kwargs: Mapping[str, object],
     ) -> "AnthropicMessagesResponse | AsyncIterator[object]":
@@ -1357,7 +1357,7 @@ class WebSearchInterceptionLogger(CustomLogger):
         tool_calls: list[dict],
         thinking_blocks: list[dict],
         anthropic_messages_optional_request_params: dict,
-        logging_obj: "LiteLLMLoggingObj | None",
+        logging_obj: "GatewayLoggingObj | None",
         kwargs: dict,
     ) -> tuple[AgenticLoopRequestPatch, list[SearchResponse | None]]:
         """
@@ -1677,7 +1677,7 @@ class WebSearchInterceptionLogger(CustomLogger):
         messages: list[dict],
         tool_calls: list[dict],
         optional_params: Mapping[str, object],
-        logging_obj: "LiteLLMLoggingObj | None",
+        logging_obj: "GatewayLoggingObj | None",
         stream: bool,
         kwargs: Mapping[str, object],
         response_format: str = "openai",

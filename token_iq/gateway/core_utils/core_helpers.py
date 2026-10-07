@@ -6,9 +6,9 @@ from typing import TYPE_CHECKING, Any, Final, Literal
 
 import httpx
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.types.llms.openai import AllMessageValues, OpenAIChatCompletionFinishReason
-from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from opentelemetry.trace import Span as _Span

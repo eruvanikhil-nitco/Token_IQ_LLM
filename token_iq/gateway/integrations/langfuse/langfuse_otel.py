@@ -5,12 +5,12 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any, Final, Optional
 
 from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.core_utils.safe_json_loads import safe_json_loads
 from token_iq.gateway.integrations.arize import _utils
 from token_iq.gateway.integrations.langfuse.langfuse_otel_attributes import (
     LangfuseLLMObsOTELAttributes,
 )
 from token_iq.gateway.integrations.opentelemetry import OpenTelemetry, OpenTelemetryConfig
-from token_iq.gateway.core_utils.safe_json_loads import safe_json_loads
 from token_iq.gateway.types.integrations.langfuse_otel import (
     LangfuseSpanAttributes,
 )
@@ -128,8 +128,8 @@ class LangfuseOtelLogger(OpenTelemetry):
     @staticmethod
     def _set_observation_output(span: Span, response_obj):
         """Helper to set observation output attributes."""
-        from token_iq.gateway.integrations.arize._utils import safe_set_attribute
         from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
+        from token_iq.gateway.integrations.arize._utils import safe_set_attribute
 
         if not response_obj or not hasattr(response_obj, "get"):
             return
@@ -228,8 +228,8 @@ class LangfuseOtelLogger(OpenTelemetry):
         values (lists/dicts) are serialised to JSON strings for OTEL
         compatibility.
         """
-        from token_iq.gateway.integrations.arize._utils import safe_set_attribute
         from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
+        from token_iq.gateway.integrations.arize._utils import safe_set_attribute
 
         dynamic_params: Final = kwargs.get("standard_callback_dynamic_params")
         langfuse_environment: Final = (

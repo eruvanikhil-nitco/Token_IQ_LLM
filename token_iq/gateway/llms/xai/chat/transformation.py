@@ -7,11 +7,11 @@ import httpx
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import XAI_API_BASE
-from token_iq.gateway.exceptions import AuthenticationError
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     filter_value_from_dict,
     strip_name_from_messages,
 )
+from token_iq.gateway.exceptions import AuthenticationError
 from token_iq.gateway.llms.xai.common_utils import XAIModelInfo, xai_reported_cost_in_usd
 from token_iq.gateway.llms.xai.cost_calculator import (
     apply_server_side_tool_usage_details_to_usage,

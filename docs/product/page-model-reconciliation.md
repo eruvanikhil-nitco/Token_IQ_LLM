@@ -5,7 +5,7 @@ exists. This records where they disagree, per discrepancy, rather than quietly m
 other.
 
 Generated from `page-model.json` and the folders under
-`ui/litellm-dashboard/src/app/(dashboard)/`, excluding `components/` and `hooks/`, which hold shared
+`ui/dashboard/src/app/(dashboard)/`, excluding `components/` and `hooks/`, which hold shared
 code rather than routes.
 
 ## What matches

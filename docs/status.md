@@ -1706,3 +1706,102 @@ of a real installation's database, and asking before merging. The 306 raw SQL qu
 Also outstanding from phase 8's own work: publishing `token-iq-migrations` to an index, since the root
 `pyproject.toml` now pins a distribution name that does not exist there yet. `build_and_publish.md` inside
 the package documents the steps.
+
+## 2026-10-08, phase 9: the CI and build paths phase 6 left behind
+
+The dashboard folder move needed `ui/litellm-dashboard` repointed everywhere, and checking the two CI path
+filters that decide whether UI jobs run turned up something larger. `classify_changes.sh` matches `ui/*` by
+prefix and was already right. `check-ui-api-types.yml` was not: half its filter still said
+`litellm/(proxy|types)/`, so the check that keeps the generated API types in step with the proxy had not run
+for an engine change since phase 6.
+
+Pulling that thread found the whole local and CI lint path broken. `make lint`, `make check`, `make format`
+and the lint job all ran `cd litellm` first. That directory has not existed since phase 6, so the recipe
+aborted on its first line and the `ruff check token_iq` line under it never ran at all. Nobody had been able
+to lint this codebase for four phases.
+
+With the paths fixed, `ruff check token_iq` reported 348 violations. Every one was phase 6 fallout rather
+than new debt, and the two families say why the break hid them:
+
+- 244 unsorted imports. The engine move rewrote `litellm.x` to `token_iq.gateway.x`, which changes
+  alphabetical order, so blocks that were sorted stopped being
+- 51 undefined names, all one symbol. Phase 6 renamed the import alias `Logging as LiteLLMLoggingObj` to
+  `GatewayLoggingObj` but not the quoted annotations `"LiteLLMLoggingObj | None"` under it, because a string
+  is invisible to an AST pass. Fixing those also cleared 20 of the 29 unused imports, since the aliases had
+  been unused while the annotations named the old spelling
+
+### The master key setting that stopped working
+
+Behind the single unused-variable finding was a real one. `load_config` still declared
+`global litellm_master_key_hash` while the module-level definition, the assignment under it and the reader in
+`internal_user_endpoints` had all become `gateway_master_key_hash`. So the assignment went to a function
+local, the module attribute stayed `None` for the life of the process, and
+`general_settings.disable_master_key_return` stopped hiding the master key from the keys a user-info call
+returns. The proxy started normally and every test passed, because the tests patch that attribute instead of
+exercising the wiring.
+
+An `ast.Global` node holds plain strings rather than `ast.Name` nodes, which is why the identifier pass
+walked past it. `tests/code_coverage_tests/test_global_declarations_resolve.py` is the gate for that shape:
+a name declared `global` has to be assigned somewhere in its module. It also caught two dead declarations,
+`user_detailed_debug` and `user_user_max_tokens`, that nothing assigns or reads.
+
+### A gate of mine that had been red since I widened it
+
+`test_patch_targets_resolve.py` was failing 71 of its checks on the committed branch, and every one of the 71
+was correct code. The widened half asked whether each `token_iq.`-prefixed dotted string in the test tree
+resolves, and the engine's own data is spelled exactly that way: span attributes like
+`token_iq.provider.error.code`, Datadog metrics like `token_iq.llm_api.request_count`, keys in the settings an
+API call returns like `token_iq.request_timeout`, and `call_type` values like `token_iq.completion`. None is a
+module and none ever will be.
+
+What a real import path has that none of those has is a second segment naming a package that is there, read
+from the tree rather than listed. That takes the failures to zero and keeps the case the widening was written
+for, `token_iq.gateway.afile_delete` in a `parametrize` list. The resolver also learned the `module:attribute`
+form, so `token_iq.gateway.proxy.proxy_server:app` is now checked rather than merely counted: a rename that
+misses an ASGI app spec fails at deploy and in nothing else.
+
+### The upgrade notes were wrong about the database
+
+They said nothing to do. Phase 8 renamed all 85 Prisma models and mapped each back to the table it already
+had, which means the generated Python client has to be rebuilt against the new schema. A shipped image does
+that at build time. A source checkout or a pip install does not, and until it runs `prisma generate` the
+client still answers to the old model names: the startup password migration is skipped with a warning and key
+lookups fail outright. This box was in exactly that state, and the notes now say so.
+
+### Verified
+
+- the proxy boots and serves: readiness `{"status":"healthy","db":"connected"}`, `ui/` returns 200,
+  `/v1/models` lists the configured models, and a chat completion reaches Anthropic's real API and comes back
+  with their own `request_id`. There is no provider key on this box, so the reply is their 401 rather than a
+  completion, which still proves the renamed engine resolves the provider, builds the request and relays the
+  answer
+- `python token_iq/gateway/proxy/proxy_cli.py --help` loads; the old path the launcher used says
+  `No such file or directory`
+- all 227 modules whose imports were reordered still import, before and after formatting
+- `ruff check token_iq`: 348 violations to none, with `from token_iq.gateway import *` still clean
+- the strict-rule, type-discipline and test-quality gates all within ceiling against this commit's parent,
+  and `ruff-strict-budget.json` ratcheted down 15
+- 9,652 tests passing across every suite this change touches
+- four mutations, each turning a test red: a stale ignore entry restored, `_holds` always saying yes, the
+  ignore-file branch removed from `question_for`, and the master-key global reverted
+
+### What this machine cannot check
+
+The basedpyright budget gate needs a separate venv that `uv sync` cannot build here, the same maturin
+blocker as before. basedpyright on the files this change authors is clean. `make` is not on PATH in the bash
+this session uses, so the repaired targets were read and their commands run directly rather than through
+`make`.
+
+### Left where it was found
+
+Five tests in `tests/gateway/core_utils/` fail identically at this commit's parent: two on audio pathlib
+input, two on `x-gateway` response-header prefixing, one on OpenRouter streaming cost reaching
+`hidden_params`. They are nothing to do with this change and want a slice of their own.
+
+`tests/gateway/test_repoint_build_paths.py` reads 49 `reportAny` against 35 before, for nine added tests.
+The floor is the dynamically loaded module being `Any`, which roughly twenty sibling `test_rename_*.py` files
+share. Typed aliases and a Pydantic model for the audit's rows took it from 65 to 49; going lower means one
+typed facade for all of them, deliberately, rather than per file.
+
+`litellm_proxy_admin_name` keeps its name. Unlike the master key hash it is self-consistent, declared and
+defined under the same spelling, so it is a phase 10 rename and not a bug.

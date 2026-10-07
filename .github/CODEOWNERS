@@ -2,8 +2,8 @@
 /token_iq/gateway/proxy/_experimental/out/ @yuneng-berri @ryan-crabbe-berri
 /ui/Dockerfile
 /ui/nginx.conf
-/ui/litellm-dashboard/src/lib/http/schema.d.ts
-/ui/litellm-dashboard/tsconfig.tsbuildinfo
+/ui/dashboard/src/lib/http/schema.d.ts
+/ui/dashboard/tsconfig.tsbuildinfo
 /model_prices_and_context_window.json @mateo-berri
 /litellm/model_prices_and_context_window_backup.json @mateo-berri
 /token-iq-migrations/token_iq_migrations/migrations/ @yuneng-berri @ryan-crabbe-berri

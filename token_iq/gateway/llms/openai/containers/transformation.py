@@ -5,6 +5,7 @@ import httpx
 from typing_extensions import ReadOnly, TypedDict
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway.core_utils.llm_cost_calc.tool_call_cost_tracking import (
     StandardBuiltInToolCostTracking,
 )
@@ -23,7 +24,6 @@ from token_iq.gateway.types.router import GenericGatewayParams
 
 from ...base_llm.containers.transformation import BaseContainerConfig
 from .utils import join_container_api_base_path
-from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj

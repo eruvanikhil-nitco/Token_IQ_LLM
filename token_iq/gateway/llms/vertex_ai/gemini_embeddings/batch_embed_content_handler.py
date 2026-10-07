@@ -293,7 +293,7 @@ class GoogleBatchEmbeddings(VertexLLM):
         use_embed_content: bool = False,
         api_key: str | None = None,
         optional_params: dict | None = None,
-        logging_obj: "LiteLLMLoggingObj | None" = None,
+        logging_obj: "GatewayLoggingObj | None" = None,
     ) -> EmbeddingResponse:
         if client is None:
             _params: Final = {}

@@ -50,9 +50,7 @@ from pydantic import BaseModel
 from tiktoken import Encoding
 from tokenizers import Tokenizer
 
-from token_iq import gateway
 import token_iq.gateway.core_utils
-from token_iq import gateway
 
 # audio_utils.utils is lazy-loaded - only imported when needed for transcription calls
 import token_iq.gateway.core_utils.json_validation_rule
@@ -256,7 +254,6 @@ from token_iq.gateway.types.utils import (
 _CALL_TYPE_ENUM_MAP: Final[dict] = {ct.value: ct for ct in CallTypes}
 
 
-
 try:
     # Python 3.9+
     with (
@@ -290,7 +287,6 @@ if TYPE_CHECKING:
         CachingHandlerResponse,
         LLMCachingHandler,
     )
-    from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     # Type stubs for lazy-loaded functions and classes
     from token_iq.gateway.core_utils.cached_imports import (
@@ -352,6 +348,7 @@ if TYPE_CHECKING:
     from token_iq.gateway.core_utils.rules import Rules
     from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
     from token_iq.gateway.core_utils.thread_pool_executor import executor
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
     from token_iq.gateway.llms.base_llm.anthropic_messages.transformation import (
         BaseAnthropicMessagesConfig,
     )
@@ -1084,11 +1081,11 @@ def function_setup(
             or call_type == CallTypes.agenerate_content_stream.value
         ):
             try:
-                from token_iq.gateway.google_genai.adapters.transformation import (
-                    GoogleGenAIAdapter,
-                )
                 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
                     get_last_user_message,
+                )
+                from token_iq.gateway.google_genai.adapters.transformation import (
+                    GoogleGenAIAdapter,
                 )
 
                 contents_param: Final = args[1] if len(args) > 1 else kwargs.get("contents")
@@ -1182,7 +1179,7 @@ async def _client_async_logging_helper(
 ):
     if (
         is_completion_with_fallbacks is False
-    ): # don't log the parent event litellm.completion_with_fallbacks as a'log_success_event', this will lead to double logging the same call
+    ):  # don't log the parent event litellm.completion_with_fallbacks as a'log_success_event', this will lead to double logging the same call
         print_verbose(
             f"Async Wrapper: Completed Call, calling async_success_handler: {logging_obj.async_success_handler}"
         )
@@ -4006,9 +4003,7 @@ def pre_process_non_default_params(
                 response_format=non_default_params["response_format"]
             )
 
-    if "tools" in non_default_params and isinstance(
-        non_default_params, list
-    ): # fixes
+    if "tools" in non_default_params and isinstance(non_default_params, list):  # fixes
         tools: Final = non_default_params["tools"]
         for tool in tools:  # clean out 'additionalProperties = False'. Causes vertexai/gemini OpenAI API Schema errors - https://github.com/langchain-ai/langchainjs/issues/5240
             tool_function = tool.get("function", {})
@@ -7939,7 +7934,9 @@ def validate_openai_optional_params(stop: str | list[str] | None = None, **kwarg
 @lru_cache(maxsize=1)
 def _get_bundled_model_cost_map() -> dict[str, Any]:
     try:
-        model_cost_path: Final = resources.files("token_iq.gateway").joinpath("model_prices_and_context_window_backup.json")
+        model_cost_path: Final = resources.files("token_iq.gateway").joinpath(
+            "model_prices_and_context_window_backup.json"
+        )
         return json.loads(model_cost_path.read_text())
     except Exception:
         return {}

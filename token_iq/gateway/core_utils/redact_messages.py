@@ -5,18 +5,18 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, Final
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway.constants import REDACTED_BY_GATEWAY
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.core_helpers import (
     get_metadata_variable_name_from_kwargs,
 )
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.llms.vertex_ai.common_utils import (
     redact_vertex_ai_metadata_from_gateway_params,
     redact_vertex_ai_metadata_from_logged_object,
 )
 from token_iq.gateway.secret_managers.main import str_to_bool
 from token_iq.gateway.types.utils import StandardCallbackDynamicParams
-from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (

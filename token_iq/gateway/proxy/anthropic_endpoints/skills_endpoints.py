@@ -7,6 +7,7 @@ from typing import Final
 import orjson
 from fastapi import APIRouter, Depends, Request, Response
 
+from token_iq.gateway import compat
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
@@ -19,7 +20,6 @@ from token_iq.gateway.types.llms.anthropic_skills import (
     ListSkillsResponse,
     Skill,
 )
-from token_iq.gateway import compat
 
 router: Final = APIRouter()
 
@@ -85,7 +85,9 @@ async def create_skill(
     data: Final = await convert_upload_files_to_file_data(form_data)
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    model: Final = (
+        data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    )
     if model:
         data["model"] = model
 
@@ -188,7 +190,9 @@ async def list_skills(
         data["before_id"] = before_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    model: Final = (
+        data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    )
     if model:
         data["model"] = model
 
@@ -285,7 +289,9 @@ async def get_skill(
     data["skill_id"] = skill_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    model: Final = (
+        data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    )
     if model:
         data["model"] = model
 
@@ -384,7 +390,9 @@ async def delete_skill(
     data["skill_id"] = skill_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    model: Final = (
+        data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    )
     if model:
         data["model"] = model
 

@@ -25,10 +25,10 @@ from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_clie
 from token_iq.gateway.proxy._types import (
     AUDIT_ACTIONS,
     CommonProxyErrors,
-    KeyManagementSystem,
-    LiteLLM_AuditLogs,
     GatewayTableNames,
     GatewayUserRoles,
+    KeyManagementSystem,
+    LiteLLM_AuditLogs,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth

@@ -13,8 +13,8 @@ from token_iq.gateway._uuid import uuid
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy._types import (
     AUDIT_ACTIONS,
-    LiteLLM_AuditLogs,
     GatewayTableNames,
+    LiteLLM_AuditLogs,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.repositories.table_repositories import AuditLogRepository

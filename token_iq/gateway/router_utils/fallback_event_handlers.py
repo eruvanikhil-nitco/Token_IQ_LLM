@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING, Any, Final
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_router_logger
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.core_helpers import get_metadata_variable_name_from_kwargs
 from token_iq.gateway.core_utils.sensitive_data_masker import mask_sensitive_structure
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.router_utils.add_retry_fallback_headers import (
     add_fallback_headers_to_response,
     get_fallback_error_info,

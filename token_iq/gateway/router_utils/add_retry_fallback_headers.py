@@ -2,6 +2,7 @@ import json
 from typing import Any, Final, Protocol, TypedDict, cast
 
 from pydantic import BaseModel
+
 from token_iq.gateway import compat
 
 

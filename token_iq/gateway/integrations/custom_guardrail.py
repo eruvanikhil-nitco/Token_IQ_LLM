@@ -9,12 +9,12 @@ from typing import TYPE_CHECKING, Any, ClassVar, Final, Literal, Optional, get_a
 from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.caching import DualCache
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.core_helpers import (
     get_metadata_variable_name_from_kwargs,
     get_or_create_metadata_bucket,
     redact_nested_match_and_regex_keys,
 )
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.secret_managers.main import str_to_bool
 from token_iq.gateway.types.guardrails import (
     DynamicGuardrailParams,

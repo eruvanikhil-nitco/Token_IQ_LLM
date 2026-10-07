@@ -9,16 +9,16 @@ from urllib.parse import unquote
 import httpx
 
 from token_iq.gateway import LlmProviders
-from token_iq.gateway.integrations.gcs_bucket.gcs_bucket_base import (
-    GCSBucketBase,
-    GCSLoggingConfig,
-)
 from token_iq.gateway.core_utils.cloud_storage_security import (
     VERTEX_AI_MANAGED_GCS_PREFIX,
     should_allow_legacy_cloud_file_ids,
     validate_managed_cloud_file_id,
 )
 from token_iq.gateway.core_utils.litellm_logging import Logging
+from token_iq.gateway.integrations.gcs_bucket.gcs_bucket_base import (
+    GCSBucketBase,
+    GCSLoggingConfig,
+)
 from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
 from token_iq.gateway.types.llms.openai import (
     FileContentRequest,

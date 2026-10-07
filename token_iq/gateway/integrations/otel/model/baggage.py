@@ -18,7 +18,7 @@ from collections.abc import Callable, Mapping
 from typing import Final
 
 from token_iq.gateway.integrations.otel.model.metadata import RequestIdentity
-from token_iq.gateway.integrations.otel.model.semconv import GenAI, Gateway
+from token_iq.gateway.integrations.otel.model.semconv import Gateway, GenAI
 
 # Attribute key -> value extractor over (identity, request_model,
 # team_metadata_keys). The single definition of what may be promoted and under

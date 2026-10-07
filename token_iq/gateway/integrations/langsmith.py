@@ -14,12 +14,12 @@ from pydantic import BaseModel
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
+from token_iq.gateway.core_utils.redact_messages import redact_user_api_key_info
 from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
 from token_iq.gateway.integrations.langsmith_mock_client import (
     create_mock_langsmith_client,
     should_use_langsmith_mock,
 )
-from token_iq.gateway.core_utils.redact_messages import redact_user_api_key_info
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
     httpxSpecialProvider,

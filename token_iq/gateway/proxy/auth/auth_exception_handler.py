@@ -11,8 +11,8 @@ from fastapi import HTTPException, Request, status
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger, verbose_proxy_stdout_logger
 from token_iq.gateway.constants import EMPTY_MAPPING
-from token_iq.gateway.integrations.otel.runtime import seed_request_identity
 from token_iq.gateway.core_utils.core_helpers import is_expected_client_error
+from token_iq.gateway.integrations.otel.runtime import seed_request_identity
 from token_iq.gateway.proxy._types import (
     GatewayUserRoles,
     ProxyErrorTypes,

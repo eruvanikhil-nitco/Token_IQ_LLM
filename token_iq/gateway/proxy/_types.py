@@ -46,10 +46,10 @@ from token_iq.gateway.types.utils import (
     CallTypes,
     CostBreakdown,
     EmbeddingResponse,
+    GatewayPydanticObjectBase,
     GenericBudgetConfigType,
     ImageResponse,
     InternalCallOrigin,
-    GatewayPydanticObjectBase,
     ModelResponse,
     ProviderField,
     StandardCallbackDynamicParams,
@@ -4049,10 +4049,10 @@ class CreatePassThroughEndpoint(GatewayPydanticObjectBase):
     headers: dict
 
 
+from token_iq.gateway import compat
 from token_iq.gateway.models.team_membership import (  # noqa: E402
     LiteLLM_TeamMembership as LiteLLM_TeamMembership,
 )
-from token_iq.gateway import compat
 
 #### Organization / Team Member Requests ####
 

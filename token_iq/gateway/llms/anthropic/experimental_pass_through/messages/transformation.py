@@ -3,9 +3,9 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq.gateway.exceptions import AuthenticationError
 from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.litellm_logging import verbose_logger
+from token_iq.gateway.exceptions import AuthenticationError
 from token_iq.gateway.llms.base_llm.anthropic_messages.transformation import (
     BaseAnthropicMessagesConfig,
 )

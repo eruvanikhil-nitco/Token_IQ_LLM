@@ -14,13 +14,13 @@ from token_iq.gateway.completion_extras.litellm_responses_transformation.transfo
     GatewayResponsesTransformationHandler,
 )
 from token_iq.gateway.constants import request_timeout
-from token_iq.gateway.integrations.anthropic_cache_control_hook import CARRY_UNMATCHED_MESSAGE_POINTS
 from token_iq.gateway.core_utils.asyncify import run_async_function
 from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     update_responses_input_with_model_file_ids,
     update_responses_tools_with_model_file_ids,
 )
+from token_iq.gateway.integrations.anthropic_cache_control_hook import CARRY_UNMATCHED_MESSAGE_POINTS
 from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
 from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 from token_iq.gateway.responses.litellm_completion_transformation.handler import (

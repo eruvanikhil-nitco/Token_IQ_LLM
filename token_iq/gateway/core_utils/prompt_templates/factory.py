@@ -12,10 +12,6 @@ from typing import Any, Final, TypedDict, cast, overload
 from jinja2.sandbox import ImmutableSandboxedEnvironment
 
 from token_iq import gateway
-import token_iq.gateway.types
-from token_iq import gateway
-import token_iq.gateway.types.llms
-from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.constants import REDACTED_BY_GATEWAY
@@ -3126,7 +3122,7 @@ def cohere_message_pt(messages: list):
 
 def amazon_titan_pt(
     messages: list,
-): # format
+):  # format
     """
     Amazon Titan uses 'User:' and 'Bot: in it's prompt template
     """
@@ -3197,7 +3193,6 @@ def _gemini_vision_convert_messages(messages: list):
             if isinstance(message["content"], str):
                 prompt += message["content"]
             elif isinstance(message["content"], list):
-
                 for element in message["content"]:
                     if isinstance(element, dict):
                         if element["type"] == "text":
@@ -3271,7 +3266,6 @@ def gemini_text_image_pt(messages: list):
         if isinstance(message["content"], str):
             prompt += message["content"]
         elif isinstance(message["content"], list):
-
             for element in message["content"]:
                 if isinstance(element, dict):
                     if element["type"] == "text":
@@ -3290,7 +3284,6 @@ def azure_text_pt(messages: list):
         if isinstance(message["content"], str):
             prompt += message["content"]
         elif isinstance(message["content"], list):
-
             for element in message["content"]:
                 if isinstance(element, dict):
                     if element["type"] == "text":

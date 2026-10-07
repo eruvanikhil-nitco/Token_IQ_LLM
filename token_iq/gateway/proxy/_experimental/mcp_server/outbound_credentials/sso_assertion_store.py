@@ -108,7 +108,9 @@ async def ema_assertion_retention_enabled() -> bool:
 
 
 async def persist_sso_identity_assertion(user_id: str, assertion: SSOIdentityAssertion) -> None:
-    from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import encrypt_value_helper  # noqa: PLC0415  # runtime global
+    from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import (
+        encrypt_value_helper,  # noqa: PLC0415  # runtime global
+    )
     from token_iq.gateway.proxy.proxy_server import prisma_client  # noqa: PLC0415  # runtime global
 
     if prisma_client is None:
@@ -132,7 +134,9 @@ async def persist_sso_identity_assertion(user_id: str, assertion: SSOIdentityAss
 async def fetch_sso_identity_assertion(user_id: str) -> SSOIdentityAssertion | None:
     """The stored assertion for ``user_id``, or ``None`` when absent, undecryptable (salt-key
     rotation), or unparseable. Expiry is not judged here; the reader owns that policy."""
-    from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import decrypt_value_helper  # noqa: PLC0415  # runtime global
+    from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import (
+        decrypt_value_helper,  # noqa: PLC0415  # runtime global
+    )
     from token_iq.gateway.proxy.proxy_server import prisma_client  # noqa: PLC0415  # runtime global
 
     if prisma_client is None:

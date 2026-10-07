@@ -1,11 +1,11 @@
 from typing import Final
 
 from token_iq.gateway.proxy._types import (
+    GatewayRoutes,
+    GatewayUserRoles,
     KeyManagementRoutes,
     LiteLLM_TeamTableCachedObj,
     LiteLLM_VerificationToken,
-    GatewayRoutes,
-    GatewayUserRoles,
     Member,
     ProxyErrorTypes,
     ProxyException,

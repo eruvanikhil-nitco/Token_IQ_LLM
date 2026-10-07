@@ -29,14 +29,14 @@ from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching import DualCache
 from token_iq.gateway.constants import BEDROCK_APPLY_GUARDRAIL_CHUNK_BUDGET_CHARS
-from token_iq.gateway.exceptions import ModifyResponseException
-from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.core_utils.api_route_to_call_types import get_call_types_for_route
 from token_iq.gateway.core_utils.core_helpers import redact_nested_match_and_regex_keys
 from token_iq.gateway.core_utils.litellm_logging import (
     _get_masked_values,  # pyright: ignore[reportPrivateUsage]  # the shared header-masking helper has no public name
 )
 from token_iq.gateway.core_utils.llm_cost_calc.guardrail_cost import bedrock_guardrail_cost
+from token_iq.gateway.exceptions import ModifyResponseException
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.llms.anthropic.chat.guardrail_translation.handler import AnthropicMessagesHandler
 from token_iq.gateway.llms.base_llm.guardrail_translation.utils import (
     effective_scan_only_tool_results_for_guardrail,
@@ -582,14 +582,14 @@ class BedrockGuardrail(CustomGuardrail, BaseAWSLLM):
         input_type: Literal["request", "response"],
     ) -> ApplyGuardrailMessageSelection:
         """
-        Decide which messages an apply_guardrail scan should cover.
+                Decide which messages an apply_guardrail scan should cover.
 
-        With ``experimental_use_latest_role_message_only`` enabled, request
-        scans must select by the ORIGINAL message roles. The flat `texts` list
-        has no role information, and wrapping it in role="user" mock messages
-        makes the latest-user filter degenerate to "latest text of any role",
-        leaking tool/assistant content to the INPUT scan
-.
+                With ``experimental_use_latest_role_message_only`` enabled, request
+                scans must select by the ORIGINAL message roles. The flat `texts` list
+                has no role information, and wrapping it in role="user" mock messages
+                makes the latest-user filter degenerate to "latest text of any role",
+                leaking tool/assistant content to the INPUT scan
+        .
         """
         mock_messages: list[AllMessageValues] = [ChatCompletionUserMessage(role="user", content=text) for text in texts]
 

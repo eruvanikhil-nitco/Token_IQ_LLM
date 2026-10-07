@@ -1310,7 +1310,9 @@ async def _resolve_persisted_dcr_client(
     the server-scoped store, while a rowless non-config server is a throwaway temp/session server with
     no persisted client. Returns (row_or_None, credentials_or_None); the row is only needed by the
     reuse path to refresh the registry for a DB-declared server."""
-    from token_iq.gateway.proxy._experimental.mcp_server.db import get_mcp_server  # noqa: PLC0415  # avoids circular import
+    from token_iq.gateway.proxy._experimental.mcp_server.db import (
+        get_mcp_server,  # noqa: PLC0415  # avoids circular import
+    )
     from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (  # noqa: PLC0415  # avoids circular import
         global_mcp_server_manager,
     )
@@ -1915,7 +1917,9 @@ async def authorize_complete(
     (``delivery=manual``). POST plus the per-flow HttpOnly cookie set at /authorize; an
     anonymous or bad-flow request just 400s. The native-client consent page adds
     ``decision`` (approve or deny) and the ``team_id`` the credential is attributed to."""
-    from token_iq.gateway.proxy.proxy_server import user_api_key_cache  # noqa: PLC0415  # circular import at module load
+    from token_iq.gateway.proxy.proxy_server import (
+        user_api_key_cache,  # noqa: PLC0415  # circular import at module load
+    )
 
     return await complete_connect_flow(
         request=request,

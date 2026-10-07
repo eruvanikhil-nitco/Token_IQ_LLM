@@ -12,8 +12,8 @@ from token_iq.gateway.llms.base_llm.guardrail_translation.utils import (
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
-    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
     from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.proxy.utils import ProxyLogging
 

@@ -49,10 +49,10 @@ if TYPE_CHECKING:
 
     from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.proxy._experimental.mcp_server.db import OAuthCredentialPayload
+from token_iq.gateway import compat
 from token_iq.gateway.proxy.common_utils.http_parsing_utils import _safe_get_request_headers
 from token_iq.gateway.types.mcp import MCPAuth
 from token_iq.gateway.types.utils import CallTypes
-from token_iq.gateway import compat
 
 MCP_AVAILABLE: bool = True
 try:
@@ -124,7 +124,7 @@ if MCP_AVAILABLE:
     ########################################################
     ############ MCP Server REST API Routes #################
     async def _safe_fire_mcp_tool_call_logging(
-        logging_obj: "LiteLLMLoggingObj | None",
+        logging_obj: "GatewayLoggingObj | None",
         result: "CallToolResult",
         start_time: datetime,
         end_time: datetime,

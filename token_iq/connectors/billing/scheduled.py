@@ -13,8 +13,8 @@ from collections.abc import Awaitable, Callable, Mapping
 from datetime import datetime, timezone
 from typing import Any, Final
 
-from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.connectors.billing.credential_purpose import is_billing_credential
+from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.types.provider_billing import BillingCredential
 
 LOCK_ID: Final = "provider_billing_ingestion"
@@ -54,7 +54,8 @@ async def _guarded(run: Callable[..., Awaitable[object]], now: datetime) -> None
 
 
 def build_billing_credentials_lookup(
-    *, prisma_client: Any  # any-ok: PrismaClient is an untyped runtime wrapper
+    *,
+    prisma_client: Any,  # any-ok: PrismaClient is an untyped runtime wrapper
 ) -> Callable[[str], Awaitable[tuple[BillingCredential, ...]]]:
     """Every stored credential marked for reading a provider's bill.
 
@@ -82,7 +83,9 @@ def build_billing_credentials_lookup(
 
 
 def build_provider_billing_job(
-    *, prisma_client: Any, proxy_logging_obj: Any  # any-ok: both are untyped runtime collaborators
+    *,
+    prisma_client: Any,
+    proxy_logging_obj: Any,  # any-ok: both are untyped runtime collaborators
 ) -> Callable[[], Awaitable[None]]:
     """Compose the repository, the registered connectors and the credential lookup."""
     from token_iq.connectors.billing.connector import registered_connectors

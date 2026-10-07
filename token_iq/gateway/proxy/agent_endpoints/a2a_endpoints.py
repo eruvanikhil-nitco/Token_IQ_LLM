@@ -22,6 +22,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import ValidationError
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.url_utils import SSRFError, validate_url
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
@@ -45,7 +46,6 @@ from token_iq.gateway.proxy.common_utils.sse_keepalive import (
 )
 from token_iq.gateway.proxy.utils import ProxyLogging, get_custom_url
 from token_iq.gateway.types.utils import all_litellm_params
-from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from a2a.compat.v0_3.types import MessageSendParams

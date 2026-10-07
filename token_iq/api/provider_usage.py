@@ -14,6 +14,9 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
+from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES
+from token_iq.connectors.billing.usage_summary import UsageSummary, build_usage_summary
 from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
@@ -24,9 +27,6 @@ from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
     ProviderUsageRawResponse,
     ProviderUsageSummaryResponse,
 )
-from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
-from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES
-from token_iq.connectors.billing.usage_summary import UsageSummary, build_usage_summary
 from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 from token_iq.types.provider_billing import ProviderUsageFact
 
@@ -81,8 +81,7 @@ def usage_summary_response(*, provider: str, days: int, summary: UsageSummary) -
         total_cost=_plain(summary.total_cost),
         facts=summary.facts,
         by_model=tuple(
-            ProviderModelSpend(model=spend.model, billed_cost=_plain(spend.billed_cost))
-            for spend in summary.by_model
+            ProviderModelSpend(model=spend.model, billed_cost=_plain(spend.billed_cost)) for spend in summary.by_model
         ),
         by_account=tuple(
             ProviderAccountSpend(credential_name=spend.credential_name, billed_cost=_plain(spend.billed_cost))

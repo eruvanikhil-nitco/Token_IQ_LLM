@@ -18,8 +18,6 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
-from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.api.types.seats import (
     SeatBody,
     SeatDeletedResponse,
@@ -29,6 +27,8 @@ from token_iq.api.types.seats import (
     UserCostListResponse,
     UserCostResponse,
 )
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.repositories.gateway_spend_repository import GatewaySpendRepository
 from token_iq.repositories.seat_repository import SeatRepository
 from token_iq.seats.user_cost import UserCost, user_costs

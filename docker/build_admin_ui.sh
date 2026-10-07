@@ -54,13 +54,13 @@ else
 fi || { echo "nvm checksum verification failed"; exit 1; }
 bash "$NVM_SCRIPT"
 source ~/.nvm/nvm.sh
-NODE_VERSION="$(cat ui/litellm-dashboard/.nvmrc)"
+NODE_VERSION="$(cat ui/dashboard/.nvmrc)"
 nvm install "v${NODE_VERSION}"
 nvm use "v${NODE_VERSION}"
 
 
-# cd in to /ui/litellm-dashboard
-cd ui/litellm-dashboard
+# cd in to /ui/dashboard
+cd ui/dashboard
 
 # ensure have access to build_ui.sh
 chmod +x ./build_ui.sh

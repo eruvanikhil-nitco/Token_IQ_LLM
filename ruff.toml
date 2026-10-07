@@ -47,6 +47,5 @@ lint.exclude = ["token_iq/gateway/__init__.py", "token_iq/gateway/proxy/example_
 "token_iq/gateway/caching/__init__.py" = ["F401"]
 "token_iq/gateway/llms/anthropic/chat/__init__.py" = ["F401"]
 "token_iq/gateway/llms/azure_ai/embed/__init__.py" = ["F401"]
-"litellm/llms/azure_ai/rerank/__init__.py" = ["F401"]
 "token_iq/gateway/llms/bedrock/chat/__init__.py" = ["F401"]
 "token_iq/gateway/proxy/utils.py" = ["F401"]

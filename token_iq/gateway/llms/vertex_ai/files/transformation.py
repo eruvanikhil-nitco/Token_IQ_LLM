@@ -16,7 +16,6 @@ from typing_extensions import ReadOnly, Required
 
 from token_iq import gateway
 from token_iq.gateway._uuid import uuid
-from token_iq.gateway.files.utils import FilesAPIUtils
 from token_iq.gateway.core_utils.cloud_storage_security import (
     VERTEX_AI_MANAGED_GCS_PREFIX,
     build_managed_cloud_object_name,
@@ -31,6 +30,7 @@ from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     extract_file_data,
     extract_file_metadata,
 )
+from token_iq.gateway.files.utils import FilesAPIUtils
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.files.transformation import (
     BaseFilesConfig,

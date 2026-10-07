@@ -20,8 +20,6 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
-from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.api.types.combined_usage import (
     ComparisonDay,
     ComparisonResponse,
@@ -31,6 +29,8 @@ from token_iq.api.types.combined_usage import (
 )
 from token_iq.attribution.gap_owner import AttributedGap, attribute
 from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.repositories.attribution_rule_repository import AttributionRuleRepository
 from token_iq.repositories.gap_repository import GapRepository
 from token_iq.repositories.gateway_spend_repository import (

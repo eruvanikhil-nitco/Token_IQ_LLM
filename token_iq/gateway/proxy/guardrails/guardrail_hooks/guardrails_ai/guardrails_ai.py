@@ -13,12 +13,12 @@ from fastapi import HTTPException
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.core_utils.prompt_templates.common_utils import (
+    get_content_from_model_response,
+)
 from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
     log_guardrail_information,
-)
-from token_iq.gateway.core_utils.prompt_templates.common_utils import (
-    get_content_from_model_response,
 )
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.types.guardrails import GuardrailEventHooks

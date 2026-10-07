@@ -20,8 +20,8 @@ from token_iq.gateway.a2a_protocol.litellm_completion_bridge.transformation impo
     A2AStreamingContext,
 )
 from token_iq.gateway.a2a_protocol.providers.config_manager import A2AProviderConfigManager
-from token_iq.gateway.interactions.agents.utils import merge_agent_headers
 from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
+from token_iq.gateway.interactions.agents.utils import merge_agent_headers
 from token_iq.gateway.types.utils import ModelResponse
 
 # litellm_params key carrying the authenticated principal (hashed virtual key) so

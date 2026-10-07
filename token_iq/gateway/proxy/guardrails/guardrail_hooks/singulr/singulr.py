@@ -6,13 +6,13 @@ import httpx
 import pydantic
 
 from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.core_utils.litellm_logging import (
+    Logging as GatewayLoggingObj,
+)
 from token_iq.gateway.exceptions import GuardrailRaisedException
 from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
     log_guardrail_information,
-)
-from token_iq.gateway.core_utils.litellm_logging import (
-    Logging as GatewayLoggingObj,
 )
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
@@ -191,7 +191,7 @@ class SingulrGuardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: str,
-        logging_obj: "LiteLLMLoggingObj | None" = None,
+        logging_obj: "GatewayLoggingObj | None" = None,
     ) -> GenericGuardrailAPIInputs:
         payload: Final = self._build_payload(request_data, inputs, input_type)
         if not payload:

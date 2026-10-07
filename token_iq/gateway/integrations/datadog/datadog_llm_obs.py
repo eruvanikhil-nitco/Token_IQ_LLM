@@ -16,11 +16,19 @@ from typing import Any, Final, Literal
 
 import httpx
 
-from token_iq.gateway import compat
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.constants import REDACTED_BY_GATEWAY
+from token_iq.gateway.core_utils.dd_tracing import tracer
+from token_iq.gateway.core_utils.prompt_templates.common_utils import (
+    convert_content_list_to_str,
+    handle_any_messages_to_chat_completion_str_messages_conversion,
+)
+from token_iq.gateway.core_utils.redact_messages import should_redact_message_logging
+from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
+from token_iq.gateway.core_utils.safe_json_loads import safe_json_loads
 from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
 from token_iq.gateway.integrations.datadog.datadog_handler import (
     get_datadog_base_url_from_env,
@@ -32,14 +40,6 @@ from token_iq.gateway.integrations.datadog.datadog_mock_client import (
     create_mock_datadog_client,
     should_use_datadog_mock,
 )
-from token_iq.gateway.core_utils.dd_tracing import tracer
-from token_iq.gateway.core_utils.prompt_templates.common_utils import (
-    convert_content_list_to_str,
-    handle_any_messages_to_chat_completion_str_messages_conversion,
-)
-from token_iq.gateway.core_utils.redact_messages import should_redact_message_logging
-from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
-from token_iq.gateway.core_utils.safe_json_loads import safe_json_loads
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
     httpxSpecialProvider,

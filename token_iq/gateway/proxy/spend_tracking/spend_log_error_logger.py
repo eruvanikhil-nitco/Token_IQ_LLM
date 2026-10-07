@@ -26,9 +26,9 @@ troubleshoot. The UI suppression follows the same gate.
 import logging
 from typing import Any, Final
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.secret_managers.main import str_to_bool
-from token_iq.gateway import compat
 
 SUPPRESS_SPEND_LOG_TRACEBACKS_ENV: Final = "TOKEN_IQ_SUPPRESS_SPEND_LOG_TRACEBACKS"
 

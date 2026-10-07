@@ -15,8 +15,6 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
-from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.api.types.overview import (
     FreshnessResponse,
     MatchStatus,
@@ -24,6 +22,8 @@ from token_iq.api.types.overview import (
     OverviewResponse,
     ProviderStandingResponse,
 )
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.overview.totals import Sources, Totals, totals_for
 from token_iq.recommendations.registry import evaluate
 from token_iq.repositories.overview_repository import OverviewRepository, ProviderStanding
@@ -149,8 +149,8 @@ async def overview(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> OverviewResponse:
     """What was spent, whether the bills matched, what nobody owns, and what to do about it."""
-    from token_iq.gateway.proxy.proxy_server import prisma_client
     from token_iq.api.recommendations import gather_rule_input
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     start: Final = _day_or_400(period_start, "period_start")

@@ -14,10 +14,6 @@ from packaging.version import Version
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import MAX_LANGFUSE_INITIALIZED_CLIENTS
-from token_iq.gateway.integrations.langfuse.langfuse_mock_client import (
-    create_mock_langfuse_client,
-    should_use_langfuse_mock,
-)
 from token_iq.gateway.core_utils.core_helpers import (
     filter_exceptions_from_params,
     reconstruct_model_name,
@@ -27,6 +23,10 @@ from token_iq.gateway.core_utils.initialize_dynamic_callback_params import (
     validate_langfuse_environment_value,
 )
 from token_iq.gateway.core_utils.redact_messages import redact_user_api_key_info
+from token_iq.gateway.integrations.langfuse.langfuse_mock_client import (
+    create_mock_langfuse_client,
+    should_use_langfuse_mock,
+)
 from token_iq.gateway.llms.custom_httpx.http_handler import _get_httpx_client
 from token_iq.gateway.secret_managers.main import str_to_bool
 from token_iq.gateway.types.integrations.langfuse import *

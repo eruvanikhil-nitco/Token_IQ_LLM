@@ -17,7 +17,7 @@ from pydantic import BaseModel, ValidationError
 from typing_extensions import NotRequired, TypedDict
 
 from token_iq import gateway
-from token_iq.gateway import verbose_logger
+from token_iq.gateway import compat, verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.core_utils.model_response_utils import (
     is_model_response_stream_empty,
@@ -44,7 +44,6 @@ from .core_helpers import map_finish_reason, process_response_headers
 from .exception_mapping_utils import exception_type
 from .llm_response_utils.get_api_base import get_api_base
 from .rules import Rules
-from token_iq.gateway import compat
 
 # Constants for special delta attribute names
 AUDIO_ATTRIBUTE: Final = "audio"
@@ -477,9 +476,7 @@ class CustomStreamWrapper:
 
         last_content: Final = self.chunks[-1].choices[0].delta.content
 
-        if (
-            last_content is None or not isinstance(last_content, str) or len(last_content) <= 2
-        ): # ignore empty content
+        if last_content is None or not isinstance(last_content, str) or len(last_content) <= 2:  # ignore empty content
             self._repeated_messages_count = 1
             return
 
@@ -869,9 +866,7 @@ class CustomStreamWrapper:
         if self.system_fingerprint is not None:
             model_response.system_fingerprint = self.system_fingerprint
 
-        if (
-            self.created is not None
-        ): # maintain same'created' across all chunks
+        if self.created is not None:  # maintain same'created' across all chunks
             model_response.created = self.created
         else:
             self.created = model_response.created

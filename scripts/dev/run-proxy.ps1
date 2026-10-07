@@ -71,7 +71,7 @@ for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
 
     Write-Host "Starting Token IQ on http://localhost:$port  (Ctrl+C to stop)" -ForegroundColor Cyan
     $startedAt = Get-Date
-    & $python "$repo\litellm\proxy\proxy_cli.py" --config "$repo\litellm\proxy\dev_config.yaml" --port $port
+    & $python "$repo\token_iq\gateway\proxy\proxy_cli.py" --config "$repo\token_iq\gateway\proxy\dev_config.yaml" --port $port
     $ranFor = (Get-Date) - $startedAt
 
     # A clean run lasts as long as you leave it open. Exiting within a minute means it never

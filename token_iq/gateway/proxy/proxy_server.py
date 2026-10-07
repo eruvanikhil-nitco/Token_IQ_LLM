@@ -81,19 +81,19 @@ from token_iq.gateway.proxy._types import (
     ConfigYAML,
     CoordinationRedisParams,
     FieldDetail,
+    Gateway_EntityType,
+    GatewayUserRoles,
     InvitationClaim,
     InvitationDelete,
     InvitationModel,
     InvitationNew,
     InvitationUpdate,
     LiteLLM_EndUserTable,
-    Gateway_EntityType,
     LiteLLM_JWTAuth,
     LiteLLM_TagTable,
     LiteLLM_TeamTable,
     LiteLLM_TeamTableCachedObj,
     LiteLLM_UserTable,
-    GatewayUserRoles,
     PassThroughGenericEndpoint,
     ProxyErrorTypes,
     ProxyException,
@@ -196,9 +196,33 @@ from collections import defaultdict
 from contextlib import asynccontextmanager
 from functools import lru_cache
 
-from token_iq import gateway
 import token_iq.gateway._redis
 from token_iq import gateway
+from token_iq.api.attribution import router as attribution_router
+from token_iq.api.audit_logs import (
+    router as audit_log_endpoints_router,
+)
+from token_iq.api.combined_usage import router as combined_usage_router
+from token_iq.api.ledger import router as ledger_router
+from token_iq.api.overview import (
+    router as overview_router,
+)
+from token_iq.api.projects import router as project_router
+from token_iq.api.provider_connections import (
+    router as provider_connections_router,
+)
+from token_iq.api.provider_reconciliation import (
+    router as provider_reconciliation_router,
+)
+from token_iq.api.provider_usage import router as provider_usage_router
+from token_iq.api.recommendations import router as recommendations_router
+from token_iq.api.seats import router as seats_router
+from token_iq.api.tool_connections import (
+    router as tool_connections_router,
+)
+from token_iq.connectors.billing.scheduled import INTERVAL_SECONDS as PROVIDER_BILLING_INTERVAL_SECONDS
+from token_iq.connectors.billing.scheduled import build_provider_billing_job
+from token_iq.connectors.billing.startup import register_billing_connectors
 from token_iq.gateway import Router
 from token_iq.gateway._logging import _redact_string, verbose_proxy_logger, verbose_router_logger
 from token_iq.gateway.caching.caching import DualCache, RedisCache
@@ -229,10 +253,6 @@ from token_iq.gateway.constants import (
     USER_SPEND_ALERTS_JOB_ID,
     WEEKLY_SPEND_REPORT_JOB_ID,
 )
-from token_iq.gateway.exceptions import RejectedRequestError
-from token_iq.gateway.integrations.custom_guardrail import ModifyResponseException
-from token_iq.gateway.integrations.custom_logger import CustomLogger
-from token_iq.gateway.integrations.SlackAlerting.slack_alerting import SlackAlerting
 from token_iq.gateway.core_utils.agentic_loop_settings import (
     validated_max_agentic_loops,
 )
@@ -252,6 +272,10 @@ from token_iq.gateway.core_utils.sensitive_data_masker import (
     SensitiveDataMasker,
     mask_sensitive_keys,
 )
+from token_iq.gateway.exceptions import RejectedRequestError
+from token_iq.gateway.integrations.custom_guardrail import ModifyResponseException
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.integrations.SlackAlerting.slack_alerting import SlackAlerting
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 from token_iq.gateway.proxy._lazy_features import attach_lazy_features
@@ -683,31 +707,6 @@ from token_iq.gateway.types.utils import (
 )
 from token_iq.gateway.types.utils import ModelInfo as ModelMapInfo
 from token_iq.gateway.utils import _add_custom_logger_callback_to_specific_event
-from token_iq.api.attribution import router as attribution_router
-from token_iq.api.audit_logs import (
-    router as audit_log_endpoints_router,
-)
-from token_iq.api.combined_usage import router as combined_usage_router
-from token_iq.api.ledger import router as ledger_router
-from token_iq.api.overview import (
-    router as overview_router,
-)
-from token_iq.api.projects import router as project_router
-from token_iq.api.provider_connections import (
-    router as provider_connections_router,
-)
-from token_iq.api.provider_reconciliation import (
-    router as provider_reconciliation_router,
-)
-from token_iq.api.provider_usage import router as provider_usage_router
-from token_iq.api.recommendations import router as recommendations_router
-from token_iq.api.seats import router as seats_router
-from token_iq.api.tool_connections import (
-    router as tool_connections_router,
-)
-from token_iq.connectors.billing.scheduled import INTERVAL_SECONDS as PROVIDER_BILLING_INTERVAL_SECONDS
-from token_iq.connectors.billing.scheduled import build_provider_billing_job
-from token_iq.connectors.billing.startup import register_billing_connectors
 from token_iq.policy.plan import PLAN_ENV, TokenIqPlan, require_plan
 
 try:
@@ -1169,11 +1168,11 @@ async def proxy_startup_event(app: FastAPI) -> AsyncGenerator[None, None]:
         if is_otel_v2_enabled():
             from opentelemetry import trace as _otel_trace
 
+            from token_iq.gateway.core_utils.litellm_logging import _in_memory_loggers
             from token_iq.gateway.integrations.otel.logger import (
                 OpenTelemetryV2,
                 publish_global_otel_v2_provider,
             )
-            from token_iq.gateway.core_utils.litellm_logging import _in_memory_loggers
 
             registered: Final = open_telemetry_logger if isinstance(open_telemetry_logger, OpenTelemetryV2) else None
             publish_global_otel_v2_provider(
@@ -5045,7 +5044,7 @@ class ProxyConfig:
             proxy_budget_rescheduler_max_time, \
             proxy_budget_rescheduler_min_time, \
             ui_access_mode, \
-            litellm_master_key_hash, \
+            gateway_master_key_hash, \
             proxy_batch_write_at, \
             disable_spend_logs, \
             prompt_injection_detection_obj, \
@@ -5422,10 +5421,10 @@ class ProxyConfig:
                     if key == "request_timeout":
                         gateway.request_timeout_explicitly_set = True
                     if key in {"s3_audit_callback_params", "s3_callback_params"}:
-                        from token_iq.gateway.integrations.s3_v2 import S3Logger as S3V2Logger
                         from token_iq.gateway.core_utils.litellm_logging import (
                             _in_memory_loggers,
                         )
+                        from token_iq.gateway.integrations.s3_v2 import S3Logger as S3V2Logger
                         from token_iq.gateway.proxy.management_helpers.audit_logs import (
                             reset_audit_log_callback_cache,
                         )
@@ -7946,8 +7945,6 @@ async def initialize(
         user_model, \
         user_api_base, \
         user_debug, \
-        user_detailed_debug, \
-        user_user_max_tokens, \
         user_request_timeout, \
         user_temperature, \
         user_telemetry, \

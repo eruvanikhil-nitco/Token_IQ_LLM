@@ -9,8 +9,6 @@ from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any, Final, cast
 
 from token_iq import gateway
-import token_iq.gateway.vector_stores
-from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.types.llms.openai import AllMessageValues, ChatCompletionUserMessage

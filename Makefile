@@ -85,7 +85,7 @@ install-dev:
 bootstrap:
 	$(UV) sync --inexact --frozen --extra proxy --group proxy-dev --group e2e-dev
 	$(UV_RUN) python scripts/prisma_generate_if_needed.py
-	cd ui/litellm-dashboard && ../../scripts/with_dashboard_node.sh npm install --no-audit --no-fund
+	cd ui/dashboard && ../../scripts/with_dashboard_node.sh npm install --no-audit --no-fund
 	@main_root=$$(git worktree list --porcelain | head -1 | sed 's/^worktree //'); \
 	if [ "$$main_root" != "$$(git rev-parse --show-toplevel)" ] && [ -f "$$main_root/.env" ] && [ ! -f .env ]; then \
 		cp "$$main_root/.env" .env && echo "bootstrap: copied .env from $$main_root"; \
@@ -117,12 +117,10 @@ install-hooks:
 # Wrap width is ruff.toml's single source of truth (line-length = 120), shared by the
 # formatter and the import sorter so there's no 88-vs-120 split to reconcile.
 format: install-dev
-	cd litellm && $(UV_RUN) ruff format --exclude '/enterprise/' . && cd ..
-	@if [ -d token_iq ]; then $(UV_RUN) ruff format token_iq; fi
+	$(UV_RUN) ruff format token_iq
 
 format-check: install-dev
-	cd litellm && $(UV_RUN) ruff format --check --exclude '/enterprise/' . && cd ..
-	@if [ -d token_iq ]; then $(UV_RUN) ruff format --check token_iq; fi
+	$(UV_RUN) ruff format --check token_iq
 
 # Single fetch of the PR base so the delta-based gates below share one network round
 # trip instead of each re-fetching when chained from `lint`.
@@ -139,22 +137,21 @@ lint-install:
 	$(UV_RUN) python scripts/prisma_generate_if_needed.py
 
 # Diff-scoped format check, mirroring test-linting.yml's "Check ruff format" step:
-# only the litellm Python files changed vs the base are checked, so a pre-existing
+# only the engine Python files changed vs the base are checked, so a pre-existing
 # format issue elsewhere doesn't block an unrelated commit. Git pathspecs match
 # recursively, so 'token_iq/gateway/*.py' covers nested modules and the top-level files that
 # CI's 'token_iq/gateway/**/*.py' skips, which makes this target a superset of the CI step.
 lint-format-check-changed: $(LINT_DEP_INSTALL) $(LINT_DEP_BASE)
-	@files=$$(git diff --name-only --diff-filter=ACMR origin/main...HEAD -- 'token_iq/gateway/*.py' | grep -v '^litellm/enterprise/' || true); \
+	@files=$$(git diff --name-only --diff-filter=ACMR origin/main...HEAD -- 'token_iq/gateway/*.py' || true); \
 	if [ -z "$$files" ]; then \
-		echo "No changed litellm Python files to format-check."; \
+		echo "No changed engine Python files to format-check."; \
 	else \
-		echo "$$files" | xargs $(UV_RUN) ruff format --check --exclude '/enterprise/'; \
+		echo "$$files" | xargs $(UV_RUN) ruff format --check; \
 	fi
 
 # Linting targets
 lint-ruff: $(LINT_DEP_INSTALL)
-	cd litellm && $(UV_RUN) ruff check . && cd ..
-	@if [ -d token_iq ]; then $(UV_RUN) ruff check token_iq; fi
+	$(UV_RUN) ruff check token_iq
 	$(UV_RUN) ruff check --config ruff-tests.toml tests
 
 # faster linter for developing ...
@@ -178,10 +175,8 @@ lint-format-changed: install-dev
 
 lint-ruff-dev: install-dev
 	@tmpfile=$$(mktemp /tmp/ruff-dev.XXXXXX) && \
-	cd litellm && \
-	($(UV_RUN) ruff check . --output-format=pylint || true) > "$$tmpfile" && \
-	$(UV_RUN) diff-quality --violations=pylint "$$tmpfile" --compare-branch=origin/main && \
-	cd .. ; \
+	($(UV_RUN) ruff check token_iq --output-format=pylint || true) > "$$tmpfile" && \
+	$(UV_RUN) diff-quality --violations=pylint "$$tmpfile" --compare-branch=origin/main ; \
 	rm -f "$$tmpfile"
 
 lint-ruff-FULL-dev: install-dev
@@ -234,10 +229,10 @@ lint-test-quality-budget-update: install-dev lint-fetch-base
 lint-budget-update: lint-ruff-budget-update lint-type-discipline-budget-update lint-test-quality-budget-update lint-basedpyright-budget-update
 
 check-circular-imports: $(LINT_DEP_INSTALL)
-	cd litellm && $(UV_RUN) python ../tests/documentation_tests/test_circular_imports.py && cd ..
+	$(UV_RUN) python tests/documentation_tests/test_circular_imports.py
 
 check-import-safety: $(LINT_DEP_INSTALL)
-	@$(UV_RUN) python -c "from litellm import *; print('[from litellm import *] OK! no issues!');" || (echo '🚨 import failed, this means you introduced unprotected imports! 🚨'; exit 1)
+	@$(UV_RUN) python -c "from token_iq.gateway import *; print('[from token_iq.gateway import *] OK, no issues');" || (echo 'import failed, this means you introduced unprotected imports'; exit 1)
 
 # Combined linting, isomorphic to test-linting.yml's lint job so a local pass means a
 # green CI lint: it installs the same env (proxy-dev + generated Prisma client) and then
@@ -314,8 +309,11 @@ test-proxy-unit-a: install-test-deps
 test-proxy-unit-b: install-test-deps
 	$(UV_RUN) pytest tests/proxy_unit_tests/test_[p-z]*.py --tb=short -vv -n 2 --durations=20
 
+# The -k "not test_litellm" that used to sit here excluded the tests/test_litellm/ directory. That
+# directory is gone, so the filter had stopped excluding a directory and was only skipping two files
+# whose names happen to contain it, test_litellm_logging.py among them.
 test-integration: install-test-deps
-	$(UV_RUN) pytest tests/ -k "not test_litellm"
+	$(UV_RUN) pytest tests/
 
 # LLM Translation testing targets
 test-llm-translation: install-test-deps

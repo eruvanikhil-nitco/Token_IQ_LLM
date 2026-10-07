@@ -14,7 +14,7 @@ from typing import Any, Final
 from pydantic import ValidationError
 
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.proxy._types import LiteLLM_TeamTable, GatewayUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, LiteLLM_TeamTable, UserAPIKeyAuth
 from token_iq.gateway.proxy.management_endpoints.common_utils import _is_user_team_admin
 
 CREDENTIAL_TEAM_KEY: Final = "team_id"
@@ -48,9 +48,7 @@ async def teams_user_administers(
     rows: Final = await prisma_client.db.teamtable.find_many()
     valid_teams: Final = (team for team in (_validated_team_row(row) for row in rows) if team is not None)
     return frozenset(
-        team.team_id
-        for team in valid_teams
-        if _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=team)
+        team.team_id for team in valid_teams if _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=team)
     )
 
 

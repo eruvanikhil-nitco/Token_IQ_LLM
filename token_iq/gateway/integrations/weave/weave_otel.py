@@ -9,6 +9,7 @@ from opentelemetry.trace import Status, StatusCode
 from typing_extensions import override
 
 from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 from token_iq.gateway.integrations._types.open_inference import (
     SpanAttributes as OpenInferenceSpanAttributes,
 )
@@ -18,7 +19,6 @@ from token_iq.gateway.integrations.opentelemetry_utils.base_otel_llm_obs_attribu
     BaseLLMObsOTELAttributes,
     safe_set_attribute,
 )
-from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 from token_iq.gateway.types.integrations.weave_otel import WeaveOtelConfig, WeaveSpanAttributes
 from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 

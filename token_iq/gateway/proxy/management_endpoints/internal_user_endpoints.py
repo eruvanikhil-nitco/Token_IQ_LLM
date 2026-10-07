@@ -113,27 +113,23 @@ def _team_table(
 def _verification_token_table(
     prisma_client: "PrismaClient | None",
 ) -> "TableActions[prisma_models.VerificationToken]":
-    token_table: Final[TableActions[prisma_models.VerificationToken]] = VerificationTokenRepository(
-        prisma_client
-    ).table
+    token_table: Final[TableActions[prisma_models.VerificationToken]] = VerificationTokenRepository(prisma_client).table
     return token_table
 
 
 def _organization_membership_table(
     prisma_client: "PrismaClient | None",
 ) -> "TableActions[prisma_models.OrganizationMembership]":
-    membership_table: Final[TableActions[prisma_models.OrganizationMembership]] = (
-        OrganizationMembershipRepository(prisma_client).table
-    )
+    membership_table: Final[TableActions[prisma_models.OrganizationMembership]] = OrganizationMembershipRepository(
+        prisma_client
+    ).table
     return membership_table
 
 
 def _invitation_link_table(
     prisma_client: "PrismaClient | None",
 ) -> "TableActions[prisma_models.InvitationLink]":
-    invitation_table: Final[TableActions[prisma_models.InvitationLink]] = InvitationLinkRepository(
-        prisma_client
-    ).table
+    invitation_table: Final[TableActions[prisma_models.InvitationLink]] = InvitationLinkRepository(prisma_client).table
     return invitation_table
 
 
@@ -905,9 +901,7 @@ async def user_info(
         _enforce_user_info_access(user_id=user_id, user_api_key_dict=user_api_key_dict)
 
         if prisma_client is None:
-            raise Exception(
-                "Database not connected. Connect a database to your proxy"
-            )
+            raise Exception("Database not connected. Connect a database to your proxy")
         if user_id is None and _user_has_admin_view(user_api_key_dict):
             return await _get_user_info_for_proxy_admin(user_api_key_dict=user_api_key_dict)
         elif user_id is None:
@@ -1144,9 +1138,7 @@ async def _get_user_info_for_proxy_admin(user_api_key_dict: UserAPIKeyAuth):
             (SELECT json_agg(k.*) FROM "LiteLLM_VerificationToken" k WHERE k.team_id != 'litellm-dashboard' OR k.team_id IS NULL) as keys
     """
     if prisma_client is None:
-        raise Exception(
-            "Database not connected. Connect a database to your proxy"
-        )
+        raise Exception("Database not connected. Connect a database to your proxy")
 
     results: Final = await _fetch_admin_teams_and_keys_rows(prisma_client, sql_query)
 
@@ -1195,7 +1187,7 @@ def _process_keys_for_user_info(
     all_teams: list[LiteLLM_TeamTable] | list[TeamListResponseObject] | None,
 ):
     from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
-    from token_iq.gateway.proxy.proxy_server import general_settings, gateway_master_key_hash
+    from token_iq.gateway.proxy.proxy_server import gateway_master_key_hash, general_settings
 
     returned_keys: Final = []
     if keys is None:
@@ -2375,9 +2367,9 @@ async def delete_user(
             )
 
         ## CLEANUP MEMBERS_WITH_ROLES
-        fetch_all_teams: Sequence[prisma_models.TeamTable] = await TeamRepository(
-            prisma_client
-        ).table.find_many(where={"team_id": {"in": user_row.teams}})
+        fetch_all_teams: Sequence[prisma_models.TeamTable] = await TeamRepository(prisma_client).table.find_many(
+            where={"team_id": {"in": user_row.teams}}
+        )
         teams_to_update: list[tuple[str, str]] = []
         for team in fetch_all_teams:
             removed_team_members, new_team_members = _cleanup_members_with_roles(

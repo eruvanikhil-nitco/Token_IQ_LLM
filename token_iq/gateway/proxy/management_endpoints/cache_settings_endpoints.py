@@ -23,8 +23,8 @@ from token_iq.gateway._uuid import uuid
 from token_iq.gateway.core_utils.sensitive_data_masker import SensitiveDataMasker
 from token_iq.gateway.proxy._types import (
     AUDIT_ACTIONS,
-    LiteLLM_AuditLogs,
     GatewayTableNames,
+    LiteLLM_AuditLogs,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth

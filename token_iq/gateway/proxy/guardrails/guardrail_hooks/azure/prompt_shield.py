@@ -11,13 +11,13 @@ from typing import TYPE_CHECKING, Any, ClassVar, Final, Literal, NoReturn, cast
 from fastapi import HTTPException
 
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.integrations.custom_guardrail import (
-    CustomGuardrail,
-    log_guardrail_information,
-)
 from token_iq.gateway.core_utils.llm_cost_calc.guardrail_cost import (
     AZURE_PROMPT_SHIELD_TEXT_RECORD_UNIT,
     azure_prompt_shield_guardrail_cost,
+)
+from token_iq.gateway.integrations.custom_guardrail import (
+    CustomGuardrail,
+    log_guardrail_information,
 )
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.guardrails import GuardrailEventHooks
@@ -220,7 +220,7 @@ class AzureContentSafetyPromptShieldGuardrail(AzureGuardrailBase, CustomGuardrai
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: "LiteLLMLoggingObj | None" = None,
+        logging_obj: "GatewayLoggingObj | None" = None,
     ) -> GenericGuardrailAPIInputs:
         _billing_usage_stash.set(None)
         usage: Final[dict[str, int]] = {}  # mutable-ok: per-invocation billing accumulator

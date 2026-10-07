@@ -18,6 +18,8 @@ from typing_extensions import ReadOnly, TypedDict
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.core_utils.internal_call_metadata import is_unbilled_non_inference_call_from_params
+from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 from token_iq.gateway.integrations.opentelemetry import (
     METRIC_METADATA_KEYS,
     TOKEN_TYPE_ATTRIBUTE,
@@ -33,8 +35,6 @@ from token_iq.gateway.integrations.otel.model.semconv import (
     resolve_provider,
 )
 from token_iq.gateway.integrations.otel.model.utils import to_seconds
-from token_iq.gateway.core_utils.internal_call_metadata import is_unbilled_non_inference_call_from_params
-from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 
 
 def _provider_attributes(custom_llm_provider: object) -> Mapping[str, str]:

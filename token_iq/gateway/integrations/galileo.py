@@ -14,11 +14,11 @@ from typing_extensions import ReadOnly, TypedDict
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     convert_content_list_to_str,
     get_content_from_model_response,
 )
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
     httpxSpecialProvider,

@@ -19,12 +19,12 @@ from typing_extensions import ReadOnly, TypedDict
 
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
+from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
 from token_iq.gateway.integrations.posthog_mock_client import (
     create_mock_posthog_client,
     should_use_posthog_mock,
 )
-from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     _get_httpx_client,
     get_async_httpx_client,

@@ -21,10 +21,10 @@ import httpx
 from pydantic import TypeAdapter, ValidationError
 
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.exceptions import APIError
 from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
     convert_to_model_response_object,
 )
+from token_iq.gateway.exceptions import APIError
 from token_iq.gateway.llms.bedrock.request_metadata import bedrock_request_metadata_is_owned
 from token_iq.gateway.rust_bridge.configuration import rust_enabled
 from token_iq.gateway.rust_bridge.loader import get_native_bridge

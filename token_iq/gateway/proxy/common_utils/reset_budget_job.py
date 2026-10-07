@@ -25,9 +25,9 @@ from token_iq.gateway.constants import (
 from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
 from token_iq.gateway.proxy._types import (
     DB_RETRY_SAFE_ERROR_TYPES,
+    Gateway_EntityType,
     LiteLLM_BudgetTableFull,
     LiteLLM_EndUserTable,
-    Gateway_EntityType,
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
     LiteLLM_VerificationToken,

@@ -31,7 +31,6 @@ from token_iq.gateway.constants import (
     STREAM_SSE_KEEPALIVE_PING_BYTES,
     UNSAFE_PROXY_RESPONSE_HEADERS,
 )
-from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.core_utils.core_helpers import get_or_create_metadata_bucket, is_expected_client_error
 from token_iq.gateway.core_utils.dd_tracing import NullTracer, tracer
 from token_iq.gateway.core_utils.get_supported_openai_params import (
@@ -47,6 +46,7 @@ from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 from token_iq.gateway.core_utils.streaming_handler import (
     backfill_missing_cache_usage_fields,
 )
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.auth_checks import can_key_call_resolved_model
 from token_iq.gateway.proxy.auth.auth_utils import check_response_size_is_safe
@@ -175,6 +175,7 @@ if TYPE_CHECKING:
     ProxyConfig = _ProxyConfig
 else:
     ProxyConfig = Any
+from token_iq.gateway import compat
 from token_iq.gateway.proxy.anthropic_endpoints.streaming_model_restamp import (
     AnthropicStreamModelRestamper,
 )
@@ -189,7 +190,6 @@ from token_iq.gateway.types.utils import (
     StandardLoggingPayloadErrorInformation,
     Usage,
 )
-from token_iq.gateway import compat
 
 # Datadog streaming spans are a no-op when ddtrace is not enabled, but the
 # ``with tracer.trace(...)`` context manager still allocates a NullSpan and

@@ -101,7 +101,9 @@ async def post_client_credentials_grant(
     from token_iq.gateway.llms.custom_httpx.http_handler import (  # noqa: PLC0415  # defer heavy handler import to call time
         get_async_httpx_client,  # pyright: ignore[reportUnknownVariableType]  # handler factory params are coarsely typed
     )
-    from token_iq.gateway.types.llms.custom_http import httpxSpecialProvider  # noqa: PLC0415  # deferred with the handler import
+    from token_iq.gateway.types.llms.custom_http import (
+        httpxSpecialProvider,  # noqa: PLC0415  # deferred with the handler import
+    )
 
     try:
         client: Final = get_async_httpx_client(llm_provider=httpxSpecialProvider.Oauth2Check)

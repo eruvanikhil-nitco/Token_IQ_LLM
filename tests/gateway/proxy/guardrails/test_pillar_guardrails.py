@@ -48,7 +48,7 @@ def setup_and_teardown():
     """
     import asyncio
 
-    global litellm
+    global gateway
 
     # Always import then reload to ensure fresh state
     # This handles both cases uniformly:

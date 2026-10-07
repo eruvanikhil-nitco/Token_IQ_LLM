@@ -193,7 +193,7 @@ class VertexAIBatchPrediction(VertexLLM):
         vertex_location: str | None,
         timeout: float | httpx.Timeout,
         max_retries: int | None,
-        logging_obj: "LiteLLMLoggingObj | None" = None,
+        logging_obj: "GatewayLoggingObj | None" = None,
     ) -> GatewayBatch | Coroutine[object, object, GatewayBatch]:
         sync_handler: Final = _get_httpx_client()
 
@@ -293,7 +293,7 @@ class VertexAIBatchPrediction(VertexLLM):
         self,
         api_base: str,
         headers: dict[str, str],
-        logging_obj: "LiteLLMLoggingObj | None" = None,
+        logging_obj: "GatewayLoggingObj | None" = None,
     ) -> GatewayBatch:
         client: Final = get_async_httpx_client(
             llm_provider=gateway.LlmProviders.VERTEX_AI,

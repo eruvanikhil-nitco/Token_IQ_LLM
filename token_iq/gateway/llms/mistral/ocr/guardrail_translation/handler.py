@@ -12,8 +12,8 @@ from token_iq.gateway.llms.base_llm.guardrail_translation.base_translation impor
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
-    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
     from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
     from token_iq.gateway.llms.base_llm.ocr.transformation import OCRResponse
 
 
@@ -34,7 +34,7 @@ class OCRHandler(BaseTranslation):
         self,
         data: dict,
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: "LiteLLMLoggingObj | None" = None,
+        litellm_logging_obj: "GatewayLoggingObj | None" = None,
     ) -> Any:
         """
         Process OCR input by applying guardrails to the document reference.
@@ -88,7 +88,7 @@ class OCRHandler(BaseTranslation):
         self,
         response: "OCRResponse",
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: "LiteLLMLoggingObj | None" = None,
+        litellm_logging_obj: "GatewayLoggingObj | None" = None,
         user_api_key_dict: Any | None = None,
         request_data: dict | None = None,
     ) -> Any:

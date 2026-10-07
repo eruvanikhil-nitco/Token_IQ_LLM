@@ -7,9 +7,16 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Final, TypedDict, cast
 
-from token_iq.gateway import compat
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.core_utils.internal_call_metadata import is_unbilled_non_inference_call_from_params
+from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
+from token_iq.gateway.core_utils.secret_redaction import redact_string
+from token_iq.gateway.core_utils.service_tier_utils import (
+    get_requested_service_tier,
+    get_served_service_tier,
+)
 from token_iq.gateway.integrations._types.open_inference import (
     OpenInferenceSpanKindValues,
     SpanAttributes,
@@ -23,13 +30,6 @@ from token_iq.gateway.integrations.opentelemetry_utils.gen_ai_semconv import (
 )
 from token_iq.gateway.integrations.otel.model.db_endpoint import db_span_attributes
 from token_iq.gateway.integrations.otel.model.semconv import Metric
-from token_iq.gateway.core_utils.internal_call_metadata import is_unbilled_non_inference_call_from_params
-from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
-from token_iq.gateway.core_utils.secret_redaction import redact_string
-from token_iq.gateway.core_utils.service_tier_utils import (
-    get_requested_service_tier,
-    get_served_service_tier,
-)
 from token_iq.gateway.secret_managers.main import get_secret_bool, str_to_bool
 from token_iq.gateway.types.services import ServiceLoggerPayload
 from token_iq.gateway.types.utils import (

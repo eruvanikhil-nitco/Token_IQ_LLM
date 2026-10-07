@@ -29,9 +29,9 @@ from token_iq.gateway.caching.redis_cluster_cache import RedisClusterCache
 from token_iq.gateway.proxy._types import (
     AUDIT_ACTIONS,
     CoordinationRedisParams,
-    LiteLLM_AuditLogs,
     GatewayTableNames,
     GatewayUserRoles,
+    LiteLLM_AuditLogs,
     UserAPIKeyAuth,
     user_api_key_has_admin_view,
 )

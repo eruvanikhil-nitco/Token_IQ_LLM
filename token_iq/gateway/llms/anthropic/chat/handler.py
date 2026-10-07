@@ -10,12 +10,6 @@ from typing import TYPE_CHECKING, Any, Final, Literal, Union, cast
 import httpx
 
 from token_iq import gateway
-import token_iq.gateway.core_utils
-from token_iq import gateway
-import token_iq.gateway.types
-from token_iq import gateway
-import token_iq.gateway.types.utils
-from token_iq import gateway
 from token_iq.gateway.anthropic_beta_headers_manager import (
     update_request_with_filtered_beta,
 )

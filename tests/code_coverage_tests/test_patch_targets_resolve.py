@@ -16,6 +16,7 @@ import ast
 import builtins
 import importlib
 import pathlib
+import functools
 import re
 import warnings
 from typing import Final
@@ -144,9 +145,34 @@ class TestNoTargetNamesTheOldPackage:
         )
 
 
-ENGINE_PATH: Final = re.compile(r"^token_iq(\.[A-Za-z_][A-Za-z0-9_]*)+$")
-"""A dotted path into the engine and nothing else. `TARGET` above is loose enough to match a hostname, and
-`litellm.example.com` appears in a test as one."""
+@functools.cache
+def _subpackages() -> frozenset[str]:
+    """The real top-level packages under `token_iq`, read from the tree rather than listed.
+
+    This is what separates an import path from a string that merely starts the same way, and the second
+    segment is the only place the two differ. Read, not written down, so adding a package cannot leave the
+    rule behind.
+    """
+    return frozenset(
+        child.name for child in (REPO / "token_iq").iterdir() if child.is_dir() and not child.name.startswith((".", "_"))
+    )
+
+
+def _is_engine_path(value: str) -> bool:
+    """Whether a dotted string is an import path into `token_iq` rather than data that looks like one.
+
+    Everything the engine sends outwards is dotted and starts with `token_iq.`: OpenTelemetry span
+    attributes (`token_iq.provider.error.code`), Datadog metrics (`token_iq.llm_api.request_count`), keys in
+    the settings an API call returns (`token_iq.request_timeout`) and `call_type` values
+    (`token_iq.completion`). None of them is a module and none ever will be, so asking whether they resolve
+    reported 71 failures that were all correct code. What a real path has that none of those has is a second
+    segment naming a package that is actually there.
+    """
+    head, _, rest = value.partition(".")
+    if head != "token_iq" or not rest:
+        return False
+    second, _, tail = rest.partition(".")
+    return bool(tail) and second in _subpackages()
 
 DELIBERATELY_ABSENT: Final[frozenset[str]] = frozenset(
     {
@@ -184,7 +210,7 @@ def _dotted_paths_outside_patches() -> tuple[tuple[str, str, int], ...]:
         for node in ast.walk(tree)
         if isinstance(node, ast.Constant)
         and isinstance(node.value, str)
-        and ENGINE_PATH.match(node.value)
+        and _is_engine_path(node.value)
         and id(node) not in patched
         and node.value not in DELIBERATELY_ABSENT
     )
@@ -207,7 +233,18 @@ def _names_something(target: str) -> bool:
     the parent and reaches for the last part as an attribute. A path in a `parametrize` list is often a whole
     module path instead, and `token_iq.gateway.proxy.proxy_server` is not an attribute of
     `token_iq.gateway.proxy` until something has imported it.
+
+    `module:attribute` is the third form. It is how uvicorn and granian are told which app to serve, so
+    `token_iq.gateway.proxy.proxy_server:app` names a real thing by a spelling no import understands, and it
+    is worth checking for the same reason a patch target is: a rename that misses it fails at deploy.
     """
+    module, _, attribute = target.partition(":")
+    if attribute:
+        try:
+            served: Final = importlib.import_module(module)
+        except ImportError:
+            return False
+        return hasattr(served, attribute)
     try:
         _ = importlib.import_module(target)
     except ImportError:
@@ -224,3 +261,60 @@ class TestDottedPathsOutsidePatchCalls:
         """Most of these are patch targets held in a `parametrize` list. A few name a module for some other
         reason, and those should resolve too, so one rule covers both."""
         assert _names_something(target), f"{where}:{line} names {target}, which resolves to nothing"
+
+
+class TestWhatCountsAsAnImportPath:
+    """The rule that decides which dotted strings the gate above asks about.
+
+    Written after the wider version reported 71 failures that were all correct code: every one was a name
+    the engine sends outwards, and none was a module. A rule this gate leans on has to be said against both
+    kinds, or the next widening repeats it.
+    """
+
+    def test_a_path_into_the_engine_counts(self) -> None:
+        assert _is_engine_path("token_iq.gateway.afile_delete")
+        assert _is_engine_path("token_iq.gateway.proxy.proxy_server.prisma_client")
+
+    def test_an_observability_name_does_not(self) -> None:
+        """Span attributes and Datadog metrics. `provider`, `llm_api` and `team` are not packages."""
+        assert not _is_engine_path("token_iq.provider.error.code")
+        assert not _is_engine_path("token_iq.llm_api.request_count")
+        assert not _is_engine_path("token_iq.team.metadata")
+
+    def test_a_settings_key_or_call_type_does_not(self) -> None:
+        """Keys in what `/config` returns, and the `call_type` a spend log carries."""
+        assert not _is_engine_path("token_iq.request_timeout")
+        assert not _is_engine_path("token_iq.callbacks")
+        assert not _is_engine_path("token_iq.completion")
+
+    def test_a_module_path_under_the_wrong_parent_does_not(self) -> None:
+        """`caching` is a package under the engine, not under `token_iq`, so this names nothing and a test
+        that asserts its absence should not be read as a broken patch target."""
+        assert not _is_engine_path("token_iq.caching.caching")
+
+    def test_the_bare_package_does_not(self) -> None:
+        assert not _is_engine_path("token_iq")
+        assert not _is_engine_path("token_iq.gateway")
+
+    def test_the_packages_are_read_from_the_tree(self) -> None:
+        """Listed, the set drifts, and a new package's patch targets stop being checked in silence."""
+        found = _subpackages()
+
+        assert "gateway" in found
+        assert "provider" not in found, "an observability name's second segment is not a package"
+        assert all((REPO / "token_iq" / name).is_dir() for name in found)
+
+
+class TestTheAsgiAppSpec:
+    """`module:attribute` is what uvicorn and granian are handed, and a rename that misses one fails at
+    deploy rather than in any test. Said here because the form resolves by no import."""
+
+    def test_the_real_app_spec_resolves(self) -> None:
+        assert _names_something("token_iq.gateway.proxy.proxy_server:app")
+
+    def test_a_moved_module_does_not(self) -> None:
+        assert not _names_something("litellm.proxy.proxy_server:app")
+
+    def test_a_missing_attribute_does_not(self) -> None:
+        """The half a plain import check would miss: the module is there and the name on it is not."""
+        assert not _names_something("token_iq.gateway.proxy.proxy_server:not_an_app")

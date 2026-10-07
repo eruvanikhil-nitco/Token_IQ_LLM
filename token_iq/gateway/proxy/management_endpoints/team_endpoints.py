@@ -27,14 +27,16 @@ from typing_extensions import ReadOnly, TypedDict
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
-from token_iq.gateway.integrations.prometheus import PrometheusLogger
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
+from token_iq.gateway.integrations.prometheus import PrometheusLogger
 from token_iq.gateway.proxy._types import (
     UI_TEAM_ID,
     BlockTeamRequest,
     BudgetNewRequest,
     CommonProxyErrors,
     DeleteTeamRequest,
+    GatewayTableNames,
+    GatewayUserRoles,
     LiteLLM_AuditLogs,
     LiteLLM_DeletedTeamTable,
     LiteLLM_ManagementEndpoint_MetadataFields,
@@ -46,8 +48,6 @@ from token_iq.gateway.proxy._types import (
     LiteLLM_TeamTable,
     LiteLLM_TeamTableCachedObj,
     LiteLLM_UserTable,
-    GatewayTableNames,
-    GatewayUserRoles,
     Member,
     NewTeamRequest,
     OrgMember,
@@ -4352,9 +4352,7 @@ async def team_info(
         if prisma_client is None:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail={
-                    "error":"Database not connected. Connect a database to your proxy"
-                },
+                detail={"error": "Database not connected. Connect a database to your proxy"},
             )
         if team_id is None:
             raise HTTPException(
@@ -4507,9 +4505,7 @@ async def team_member_me(
     if prisma_client is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={
-                "error":"Database not connected. Connect a database to your proxy"
-            },
+            detail={"error": "Database not connected. Connect a database to your proxy"},
         )
 
     caller_user_id: Final = user_api_key_dict.user_id
@@ -6231,11 +6227,11 @@ async def team_courier_coverage(
     Providers are narrowed to the ones this team can actually reach, because a warning
     about a provider the team was never granted is noise that teaches admins to skim.
     """
-    from token_iq.gateway.proxy.proxy_server import llm_router, prisma_client
     from token_iq.api.courier_coverage import (
         provider_courier_coverage,
         providers_of,
     )
+    from token_iq.gateway.proxy.proxy_server import llm_router, prisma_client
 
     if prisma_client is None:
         raise HTTPException(

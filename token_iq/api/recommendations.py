@@ -19,8 +19,6 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
-from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.api.types.recommendations import (
     DecisionBody,
     DecisionResponse,
@@ -29,6 +27,8 @@ from token_iq.api.types.recommendations import (
     RecommendationsResponse,
 )
 from token_iq.attribution.gap_owner import attribute
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.recommendations.inputs import BudgetSnapshot, RuleInput
 from token_iq.recommendations.registry import evaluate
 from token_iq.repositories.attribution_rule_repository import AttributionRuleRepository

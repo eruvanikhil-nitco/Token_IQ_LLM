@@ -26,12 +26,14 @@ from fastapi import HTTPException, status
 from jwt.api_jwk import PyJWK
 from typing_extensions import ReadOnly, TypedDict
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.dot_notation_indexing import get_nested_value
 from token_iq.gateway.llms.custom_httpx.httpx_handler import HTTPHandler
 from token_iq.gateway.proxy._types import (
     DEFAULT_JWKS_STALE_TTL,
     RBAC_ROLES,
+    GatewayUserRoles,
     JWKKeyValue,
     JWTAuthBuilderResult,
     JWTIssuerConfig,
@@ -42,7 +44,6 @@ from token_iq.gateway.proxy._types import (
     LiteLLM_TeamMembership,
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
-    GatewayUserRoles,
     Member,
     ProxyErrorTypes,
     ProxyException,
@@ -74,7 +75,6 @@ from .auth_checks import (
     get_team_object_by_alias,
     get_user_object,
 )
-from token_iq.gateway import compat
 
 
 class NoMatchingJWTPublicKeyError(Exception):

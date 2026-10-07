@@ -37,7 +37,7 @@ jobs:
             exit 0
           fi
           files="$(git diff --name-only "$base" HEAD)"
-          if grep -Eq '^(litellm/(proxy|types)/|ui/litellm-dashboard/(src/lib/http/schema\.d\.ts|scripts/gen-api-types\.mjs|package(-lock)?\.json)$|\.github/workflows/check-ui-api-types\.yml$)' <<< "$files"; then
+          if grep -Eq '^(token_iq/gateway/(proxy|types)/|ui/dashboard/(src/lib/http/schema\.d\.ts|scripts/gen-api-types\.mjs|package(-lock)?\.json)$|\.github/workflows/check-ui-api-types\.yml$)' <<< "$files"; then
             echo "relevant=true" >> "$GITHUB_OUTPUT"
           else
             echo "No proxy, types or generator changes in this pull request, nothing to verify."
@@ -96,7 +96,7 @@ jobs:
             echo "A lazily loaded route or model changed without regenerating the snapshot that /openapi.json serves for unloaded features."
             echo "To fix, run from the repo root:"
             echo "  uv run python -m litellm.proxy._lazy_openapi_snapshot"
-            echo "then run npm run gen:api from ui/litellm-dashboard and commit both files."
+            echo "then run npm run gen:api from ui/dashboard and commit both files."
             exit 1
           fi
           echo "_lazy_openapi_snapshot.json is in sync with the lazily loaded routes."
@@ -105,18 +105,18 @@ jobs:
         if: steps.changes.outputs.relevant == 'true'
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version-file: ui/litellm-dashboard/.nvmrc
+          node-version-file: ui/dashboard/.nvmrc
           cache: "npm"
-          cache-dependency-path: ui/litellm-dashboard/package-lock.json
+          cache-dependency-path: ui/dashboard/package-lock.json
 
       - name: Install dashboard dependencies
         if: steps.changes.outputs.relevant == 'true'
-        working-directory: ui/litellm-dashboard
+        working-directory: ui/dashboard
         run: npm ci
 
       - name: Regenerate types from the live spec
         if: steps.changes.outputs.relevant == 'true'
-        working-directory: ui/litellm-dashboard
+        working-directory: ui/dashboard
         env:
           LITELLM_PYTHON: "uv run --no-sync python"
         run: npm run gen:api
@@ -124,11 +124,11 @@ jobs:
       - name: Fail if types are stale
         if: steps.changes.outputs.relevant == 'true'
         run: |
-          if ! git diff --exit-code -- ui/litellm-dashboard/src/lib/http/schema.d.ts; then
-            echo "::error file=ui/litellm-dashboard/src/lib/http/schema.d.ts::Generated API types are out of sync with the proxy OpenAPI spec."
+          if ! git diff --exit-code -- ui/dashboard/src/lib/http/schema.d.ts; then
+            echo "::error file=ui/dashboard/src/lib/http/schema.d.ts::Generated API types are out of sync with the proxy OpenAPI spec."
             echo ""
             echo "A backend route or model changed without regenerating the dashboard types."
-            echo "To fix, run from ui/litellm-dashboard:"
+            echo "To fix, run from ui/dashboard:"
             echo "  npm run gen:api"
             echo "then commit the updated src/lib/http/schema.d.ts."
             exit 1

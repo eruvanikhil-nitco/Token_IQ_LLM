@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, Optional
 
 import httpx
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._version import version as litellm_version
 from token_iq.gateway.exceptions import GuardrailRaisedException, Timeout
@@ -30,7 +31,6 @@ from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.generic_guardrail_a
     GuardrailToolParam,
 )
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
-from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj

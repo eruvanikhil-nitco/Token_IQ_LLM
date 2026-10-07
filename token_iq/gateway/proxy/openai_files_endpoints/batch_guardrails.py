@@ -21,9 +21,9 @@ from urllib.parse import urlsplit
 from fastapi import HTTPException
 from typing_extensions import assert_never
 
+from token_iq.gateway.core_utils.api_route_to_call_types import get_call_types_for_route
 from token_iq.gateway.exceptions import GuardrailRaisedException
 from token_iq.gateway.integrations.custom_guardrail import is_guardrail_intervention
-from token_iq.gateway.core_utils.api_route_to_call_types import get_call_types_for_route
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.types.llms.openai import BatchGuardrailRecord, BatchGuardrailReport
 from token_iq.gateway.types.utils import CallTypes, CallTypesLiteral

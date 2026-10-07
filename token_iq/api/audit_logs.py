@@ -20,9 +20,9 @@ import fastapi
 from fastapi import Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from token_iq.api.audit_log_diff import FieldChange, diff_snapshots, summarise
 from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
-from token_iq.api.audit_log_diff import FieldChange, diff_snapshots, summarise
 
 router: Final = fastapi.APIRouter(tags=["audit"])
 

@@ -17,12 +17,12 @@ from typing import TYPE_CHECKING, Any, Final, cast
 from urllib.parse import urlparse
 
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.integrations.custom_logger import CustomLogger
-from token_iq.gateway.integrations.custom_prompt_management import CustomPromptManagement
-from token_iq.gateway.integrations.prompt_management_base import PromptManagementClient
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     with_prompt_cache_breakpoint,
 )
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.integrations.custom_prompt_management import CustomPromptManagement
+from token_iq.gateway.integrations.prompt_management_base import PromptManagementClient
 from token_iq.gateway.types.integrations.anthropic_cache_control_hook import (
     GATEWAY_INJECTED_CACHE_METADATA_KEY,
     GATEWAY_INJECTED_FOR_EVERY_DEPLOYMENT,
@@ -228,8 +228,8 @@ class AnthropicCacheControlHook(CustomPromptManagement):
 
     @staticmethod
     def _resolve_provider(model: str) -> str | None:
-        from token_iq.gateway.exceptions import BadRequestError
         from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
+        from token_iq.gateway.exceptions import BadRequestError
 
         try:
             _, provider, _, _ = get_llm_provider(model=model)

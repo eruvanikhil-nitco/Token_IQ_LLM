@@ -3,10 +3,10 @@ from typing import Final
 from fastapi import Request
 from fastapi_sso.sso.base import OpenID
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy.common_utils.http_parsing_utils import _safe_get_request_headers
-from token_iq.gateway import compat
 
 
 class CustomSSOLoginHandler(CustomLogger):

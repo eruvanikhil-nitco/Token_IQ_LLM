@@ -21,7 +21,6 @@ from token_iq.gateway.constants import (
     LITELLM_MAX_STREAMING_DURATION_SECONDS,
     STREAM_SSE_DONE_STRING,
 )
-from token_iq.gateway.exceptions import MidStreamFallbackError, RateLimitError
 from token_iq.gateway.core_utils.asyncify import run_async_function
 from token_iq.gateway.core_utils.core_helpers import process_response_headers
 from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
@@ -30,6 +29,7 @@ from token_iq.gateway.core_utils.llm_response_utils.response_metadata import (
     update_response_metadata,
 )
 from token_iq.gateway.core_utils.thread_pool_executor import executor
+from token_iq.gateway.exceptions import MidStreamFallbackError, RateLimitError
 from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
 from token_iq.gateway.responses.utils import ResponseAPILoggingUtils, ResponsesAPIRequestUtils
 from token_iq.gateway.types.llms.openai import (

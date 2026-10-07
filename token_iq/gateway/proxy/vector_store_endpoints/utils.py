@@ -7,8 +7,8 @@ from fastapi import HTTPException, Request
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy._types import (
-    LiteLLM_ObjectPermissionTable,
     GatewayUserRoles,
+    LiteLLM_ObjectPermissionTable,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.types.utils import LlmProviders

@@ -16,14 +16,14 @@ from urllib.parse import quote
 from token_iq import gateway
 from token_iq.gateway._logging import print_verbose, verbose_logger
 from token_iq.gateway.constants import DEFAULT_S3_BATCH_SIZE, DEFAULT_S3_FLUSH_INTERVAL_SECONDS
+from token_iq.gateway.core_utils.aws_partition import get_aws_dns_suffix
+from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
+from token_iq.gateway.core_utils.sensitive_data_masker import SensitiveDataMasker
 from token_iq.gateway.integrations.s3 import (
     get_s3_object_download_filename,
     get_s3_object_key,
     resolve_sse_params,
 )
-from token_iq.gateway.core_utils.aws_partition import get_aws_dns_suffix
-from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
-from token_iq.gateway.core_utils.sensitive_data_masker import SensitiveDataMasker
 from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     _get_httpx_client,

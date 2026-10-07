@@ -12,8 +12,8 @@ from typing import Any, Final
 import httpx
 
 from token_iq.gateway.constants import request_timeout
-from token_iq.gateway.interactions.http_handler import InteractionsHTTPHandler
 from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
+from token_iq.gateway.interactions.http_handler import InteractionsHTTPHandler
 from token_iq.gateway.llms.base_llm.agents.transformation import BaseAgentsAPIConfig
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 from token_iq.gateway.types.agents import (

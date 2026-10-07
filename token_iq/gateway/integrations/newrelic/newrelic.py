@@ -51,8 +51,8 @@ from typing import Any, Final
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.redact_messages import should_redact_message_logging
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.types.integrations.base_health_check import IntegrationHealthCheckStatus
 from token_iq.gateway.types.integrations.newrelic import NewRelicInitParams
 from token_iq.gateway.types.utils import Message, ModelResponse, StandardLoggingPayload

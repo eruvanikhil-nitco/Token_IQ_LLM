@@ -24,7 +24,7 @@ external = [
 # return a different shape), and *args/**kwargs forwarded verbatim with no fixed
 # shape. Tried the closest existing union (CostResponseTypes) first; basedpyright
 # caught a real mismatch, confirming Any is correct here, not a shortcut.
-"litellm/litellm_core_utils/litellm_logging.py" = ["ANN401"]
+"token_iq/gateway/core_utils/litellm_logging.py" = ["ANN401"]
 "token_iq/gateway/utils.py" = ["ANN401"]
 # `**kwargs` forwards verbatim to CustomGuardrail.__init__, whose param list is wide and
 # grows over time; typing it concretely (`object`) broke that forwarding call outright —

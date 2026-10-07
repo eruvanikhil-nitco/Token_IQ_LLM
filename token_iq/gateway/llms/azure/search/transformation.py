@@ -35,6 +35,7 @@ from typing import TYPE_CHECKING, Final, Literal
 import httpx
 from pydantic import BaseModel, ConfigDict, ValidationError
 
+from token_iq.gateway import compat
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.search.transformation import (
     BaseSearchConfig,
@@ -42,7 +43,6 @@ from token_iq.gateway.llms.base_llm.search.transformation import (
     SearchResult,
 )
 from token_iq.gateway.secret_managers.main import get_secret_str
-from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj

@@ -11,11 +11,11 @@ import httpx
 
 from token_iq import gateway
 from token_iq.gateway.constants import request_timeout
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.interactions.streaming_iterator import (
     InteractionsAPIStreamingIterator,
     SyncInteractionsAPIStreamingIterator,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.interactions.transformation import BaseInteractionsAPIConfig
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,

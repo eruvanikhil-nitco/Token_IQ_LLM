@@ -41,7 +41,7 @@ def classify(category: str, changed: list[str]) -> str:
 
 
 DOCS = ["README.md", "docs/my_website/index.mdx", "litellm/anywhere.md"]
-CLIENT = ["ui/litellm-dashboard/src/App.tsx"]
+CLIENT = ["ui/dashboard/src/App.tsx"]
 BACKEND = ["token_iq/gateway/main.py"]
 CI = [".github/workflows/test-litellm-ui-unit.yml"]
 
@@ -80,9 +80,9 @@ def test_classify_decisions(category: str, changed: list[str], expected: str) ->
 
 
 def test_markdown_under_ui_counts_as_client_not_docs() -> None:
-    assert classify("client", ["ui/litellm-dashboard/README.md"]) == "run"
-    assert classify("backend", ["ui/litellm-dashboard/README.md"]) == "skip"
-    assert classify("ui", ["ui/litellm-dashboard/README.md"]) == "run"
+    assert classify("client", ["ui/dashboard/README.md"]) == "run"
+    assert classify("backend", ["ui/dashboard/README.md"]) == "skip"
+    assert classify("ui", ["ui/dashboard/README.md"]) == "run"
 
 
 def test_ci_config_changes_reach_every_category() -> None:

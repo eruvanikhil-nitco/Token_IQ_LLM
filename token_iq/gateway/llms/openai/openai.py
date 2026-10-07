@@ -26,16 +26,16 @@ from token_iq import gateway
 from token_iq.gateway import LlmProviders
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import DEFAULT_MAX_RETRIES
-from token_iq.gateway.files.types import FileContentStreamingResult
 from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.logging_utils import speech_request_body, track_llm_api_timing
+from token_iq.gateway.files.types import FileContentStreamingResult
 from token_iq.gateway.llms.base_llm.base_model_iterator import BaseModelResponseIterator
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseConfig, BaseLLMException
 from token_iq.gateway.llms.bedrock.chat.invoke_handler import MockResponseIterator
 from token_iq.gateway.types.utils import (
     EmbeddingResponse,
-    ImageResponse,
     GatewayBatch,
+    ImageResponse,
     ModelResponse,
     ModelResponseStream,
 )

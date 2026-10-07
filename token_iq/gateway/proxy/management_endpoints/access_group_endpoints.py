@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
-    LiteLLM_AccessGroupTable,
     GatewayUserRoles,
+    LiteLLM_AccessGroupTable,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.proxy.auth.auth_checks import (
@@ -322,9 +322,7 @@ async def create_access_group(
     try:
         tx: _AccessGroupTx
         async with prisma_client.db.tx() as tx:
-            existing: Final = await tx.accessgrouptable.find_unique(
-                where={"access_group_name": data.access_group_name}
-            )
+            existing: Final = await tx.accessgrouptable.find_unique(where={"access_group_name": data.access_group_name})
             if existing is not None:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,

@@ -5,11 +5,11 @@ from typing import Final
 from httpx import Headers, Response
 
 from token_iq import gateway
-from token_iq.gateway.exceptions import UnsupportedParamsError
 from token_iq.gateway.core_utils.audio_utils.utils import (
     normalize_transcription_language_to_bcp47,
     process_audio_file,
 )
+from token_iq.gateway.exceptions import UnsupportedParamsError
 from token_iq.gateway.llms.base_llm.audio_transcription.transformation import (
     AudioTranscriptionRequestData,
     BaseAudioTranscriptionConfig,

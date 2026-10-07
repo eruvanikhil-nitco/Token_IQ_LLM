@@ -22,6 +22,22 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from token_iq import gateway
+from token_iq.api.model_discovery import (
+    ModelDiscoveryResponse,
+    merge_with_local_pricing,
+)
+from token_iq.api.provider_overview import (
+    DEFAULT_USAGE_RANGE,
+    ModelUsageResponse,
+    ProviderModelsResponse,
+    ProviderOverviewResponse,
+    build_model_usage,
+    build_provider_models,
+    build_provider_overview,
+    rollup_start_date,
+    usage_range_start,
+)
+from token_iq.connectors.billing.credential_purpose import is_billing_credential
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.constants import LITELLM_PROXY_ADMIN_NAME
@@ -37,10 +53,10 @@ from token_iq.gateway.core_utils.ptu_pricing import (
 from token_iq.gateway.proxy._types import (
     BlockModelRequest,
     CommonProxyErrors,
-    LiteLLM_ProxyModelTable,
-    LiteLLM_TeamTable,
     GatewayTableNames,
     GatewayUserRoles,
+    LiteLLM_ProxyModelTable,
+    LiteLLM_TeamTable,
     ModelInfoDelete,
     PrismaCompatibleUpdateDBModel,
     ProxyErrorTypes,
@@ -110,22 +126,6 @@ from token_iq.gateway.types.router import (
     updateDeployment,
 )
 from token_iq.gateway.utils import get_utc_datetime
-from token_iq.api.model_discovery import (
-    ModelDiscoveryResponse,
-    merge_with_local_pricing,
-)
-from token_iq.api.provider_overview import (
-    DEFAULT_USAGE_RANGE,
-    ModelUsageResponse,
-    ProviderModelsResponse,
-    ProviderOverviewResponse,
-    build_model_usage,
-    build_provider_models,
-    build_provider_overview,
-    rollup_start_date,
-    usage_range_start,
-)
-from token_iq.connectors.billing.credential_purpose import is_billing_credential
 from token_iq.policy.credential_access import credential_team
 
 if TYPE_CHECKING:
@@ -1780,9 +1780,7 @@ async def delete_model(
         if prisma_client is None:
             raise HTTPException(
                 status_code=500,
-                detail={
-                    "error":"No DB Connected. Here's how to do it"
-                },
+                detail={"error": "No DB Connected. Here's how to do it"},
             )
 
         model_in_db: Final = await _proxy_model_table(prisma_client).find_unique(where={"model_id": model_info.id})
@@ -1971,9 +1969,7 @@ async def add_new_model(
         if prisma_client is None:
             raise HTTPException(
                 status_code=500,
-                detail={
-                    "error":"No DB Connected. Here's how to do it"
-                },
+                detail={"error": "No DB Connected. Here's how to do it"},
             )
 
         add_model_team_id: Final = model_params.model_info.team_id
@@ -2145,9 +2141,7 @@ async def update_model(
         if prisma_client is None:
             raise HTTPException(
                 status_code=500,
-                detail={
-                    "error":"No DB Connected. Here's how to do it"
-                },
+                detail={"error": "No DB Connected. Here's how to do it"},
             )
 
         _model_id: str | None = None

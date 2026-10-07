@@ -42,8 +42,8 @@ from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import (
     LIST_BATCHES_SUPPORTED_PROVIDERS,
     OPENAI_COMPATIBLE_BATCH_AND_FILES_PROVIDERS,
-    ListBatchesSupportedProvider,
     GatewayBatch,
+    ListBatchesSupportedProvider,
     LlmProviders,
 )
 from token_iq.gateway.utils import (

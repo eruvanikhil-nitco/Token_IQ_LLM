@@ -175,7 +175,7 @@ Backend tests mirror the source tree under `tests/gateway/`:
 pytest tests/gateway/proxy/management_endpoints/
 ```
 
-The dashboard lives in `ui/litellm-dashboard`. Run `npm run dev` there for a live server on
+The dashboard lives in `ui/dashboard`. Run `npm run dev` there for a live server on
 port 3000, or `npm run build` to produce the static bundle the proxy serves. Run only the test
 files your change touches; the full suite is large and CI runs it anyway.
 

@@ -37,9 +37,9 @@ from typing import Any, Final
 import httpx
 
 from token_iq import gateway
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.interactions.agents.http_handler import agents_http_handler
 from token_iq.gateway.interactions.agents.utils import get_provider_agents_api_config
-from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.types.agents import (
     AgentCreateResponse,
     AgentDeleteResult,

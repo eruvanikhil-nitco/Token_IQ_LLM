@@ -15,8 +15,6 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
-from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.api.types.ledger import (
     AdjustmentBody,
     InvoiceBody,
@@ -29,6 +27,8 @@ from token_iq.api.types.ledger import (
 )
 from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
 from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.ledger.reconciliation import Reconciliation, reconcile
 from token_iq.repositories.attribution_rule_repository import AttributionRuleRepository
 from token_iq.repositories.invoice_repository import InvoiceRepository

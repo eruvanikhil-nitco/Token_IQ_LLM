@@ -54,6 +54,7 @@ def validate_budget_duration(budget_duration: str | None) -> None:
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching import DualCache
 from token_iq.gateway.proxy._types import (
+    GatewayUserRoles,
     KeyRequestBase,
     LiteLLM_ManagementEndpoint_MetadataFields,
     LiteLLM_ManagementEndpoint_MetadataFields_Premium,
@@ -61,7 +62,6 @@ from token_iq.gateway.proxy._types import (
     LiteLLM_ProjectTable,
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
-    GatewayUserRoles,
     NewProjectRequest,
     UpdateProjectRequest,
     UserAPIKeyAuth,

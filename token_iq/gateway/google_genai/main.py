@@ -9,10 +9,10 @@ from pydantic import BaseModel, ConfigDict
 
 from token_iq import gateway
 from token_iq.gateway.constants import request_timeout
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 # Import the adapter for fallback to completion format
 from token_iq.gateway.google_genai.adapters.handler import GenerateContentToCompletionHandler
-from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.google_genai.transformation import (
     BaseGoogleGenAIGenerateContentConfig,
 )

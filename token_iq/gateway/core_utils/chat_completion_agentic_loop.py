@@ -5,12 +5,12 @@ from collections.abc import Mapping
 from typing import Final, cast
 
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.agentic_loop_settings import (
     DEFAULT_MAX_AGENTIC_LOOPS,
     validated_max_agentic_loops,
 )
 from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObject
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.llms.base_llm.base_model_iterator import MockResponseIterator
 from token_iq.gateway.types.integrations.custom_logger import (
     CHAT_COMPLETION_AGENTIC_SURFACE,

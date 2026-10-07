@@ -156,7 +156,7 @@ class AzureContentSafetyTextModerationGuardrail(AzureGuardrailBase, CustomGuardr
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: "LiteLLMLoggingObj | None" = None,
+        logging_obj: "GatewayLoggingObj | None" = None,
     ) -> GenericGuardrailAPIInputs:
         for text in inputs.get("texts") or ():
             if text:

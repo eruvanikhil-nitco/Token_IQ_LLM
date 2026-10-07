@@ -19,6 +19,7 @@ import threading
 from contextlib import suppress
 from dataclasses import dataclass, field
 from typing import Final, Protocol, TypeAlias
+
 from token_iq.gateway import compat
 
 KEYRING_SERVICE: Final = "litellm-cli"

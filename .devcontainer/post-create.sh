@@ -12,6 +12,6 @@ echo "[post-create] Generating Prisma client"
 uv run --no-sync prisma generate
 
 echo "[post-create] Installing npm dependencies"
-cd ui/litellm-dashboard && npm ci
+cd ui/dashboard && npm ci
 
 echo "[post-create] Done"

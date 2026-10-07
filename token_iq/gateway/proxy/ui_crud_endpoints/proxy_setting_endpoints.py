@@ -19,6 +19,7 @@ from pydantic.fields import FieldInfo
 from typing_extensions import NotRequired, ReadOnly, TypedDict
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.sensitive_data_masker import mask_sensitive_keys
 from token_iq.gateway.proxy._experimental.mcp_server.tool_search import MCP_TOOL_SEARCH_SETTINGS_KEY
@@ -44,7 +45,6 @@ from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
     DefaultTeamSSOParams,
     SSOConfig,
 )
-from token_iq.gateway import compat
 
 router: Final = APIRouter()
 

@@ -17,8 +17,8 @@ from pydantic import BaseModel
 
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
-from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.common_utils.path_utils import safe_join

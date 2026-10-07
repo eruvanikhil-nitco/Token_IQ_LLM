@@ -13,9 +13,15 @@ every old name still works for one more release.
 
 ### Upgrading to this release
 
-Nothing to do. Every name below was renamed, and this release reads both spellings, so a running
-installation keeps working with the configuration it already has. The release after next stops accepting
-the old ones, so treat this as the window to migrate.
+Nothing to do about configuration. Every name below was renamed, and this release reads both spellings,
+so a running installation keeps working with the settings it already has. The release after next stops
+accepting the old ones, so treat this as the window to migrate.
+
+One thing is not a name a customer writes. The database tables keep the names they have, but the Prisma
+models that address them were renamed, so the generated Python client has to be rebuilt against the new
+schema. An image upgrade already does that at build time. An installation running from a source checkout
+or a pip install has to run `prisma generate` itself, and until it does the client still answers to the
+old model names: the startup password migration is skipped with a warning and key lookups fail outright.
 
 The proxy logs a deprecation warning the first time it reads each old name, once per name rather than
 once per read, which is also the shortest list of what a particular installation still has to change.

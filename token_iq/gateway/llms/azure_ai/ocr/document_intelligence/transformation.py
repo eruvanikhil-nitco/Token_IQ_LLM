@@ -24,8 +24,8 @@ from token_iq.gateway.constants import (
     AZURE_DOCUMENT_INTELLIGENCE_DEFAULT_DPI,
     AZURE_OPERATION_POLLING_TIMEOUT,
 )
-from token_iq.gateway.exceptions import UnsupportedParamsError
 from token_iq.gateway.core_utils.url_utils import SSRFError, assert_same_origin, encode_url_path_segment
+from token_iq.gateway.exceptions import UnsupportedParamsError
 from token_iq.gateway.llms.azure_ai.common_utils import get_azure_ai_auth_headers
 from token_iq.gateway.llms.base_llm.ocr.transformation import (
     OCR_REQUEST_FORMAT_PARAM,

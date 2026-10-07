@@ -3,15 +3,15 @@ import os
 from typing import TYPE_CHECKING, Any, Final
 
 from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.core_utils.cloud_storage_security import (
+    encode_gcs_object_name_for_url,
+    split_configured_cloud_bucket_name,
+)
 from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
 from token_iq.gateway.integrations.gcs_bucket.gcs_bucket_mock_client import (
     create_mock_gcs_client,
     mock_vertex_auth_methods,
     should_use_gcs_mock,
-)
-from token_iq.gateway.core_utils.cloud_storage_security import (
-    encode_gcs_object_name_for_url,
-    split_configured_cloud_bucket_name,
 )
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,

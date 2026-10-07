@@ -8,8 +8,8 @@ from typing import Final
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
-from token_iq.gateway.integrations.custom_logger import Span
 from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
+from token_iq.gateway.integrations.custom_logger import Span
 from token_iq.gateway.llms.bedrock.common_utils import get_bedrock_base_model
 from token_iq.gateway.proxy._types import Gateway_EntityType, UserAPIKeyAuth
 from token_iq.gateway.router_strategy.budget_limiter import RouterBudgetLimiting

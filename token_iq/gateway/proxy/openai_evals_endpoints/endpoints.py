@@ -7,6 +7,7 @@ from typing import Final
 import orjson
 from fastapi import APIRouter, Depends, Request, Response
 
+from token_iq.gateway import compat
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
@@ -20,7 +21,6 @@ from token_iq.gateway.types.llms.openai_evals import (
     Run,
     RunDeleteResponse,
 )
-from token_iq.gateway import compat
 
 router: Final = APIRouter()
 
@@ -79,7 +79,9 @@ async def create_eval(
 
     # Extract model for routing (header > query > body)
     # When using extra_body={"model": "..."}, the OpenAI SDK merges it into the body
-    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    model: Final = (
+        data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    )
     if model:
         data["model"] = model
 
@@ -180,7 +182,9 @@ async def list_evals(
         data["order_by"] = order_by
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    model: Final = (
+        data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    )
     if model:
         data["model"] = model
 
@@ -268,7 +272,9 @@ async def get_eval(
     data["eval_id"] = eval_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    model: Final = (
+        data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    )
     if model:
         data["model"] = model
 
@@ -358,7 +364,9 @@ async def update_eval(
     data["eval_id"] = eval_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    model: Final = (
+        data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    )
     if model:
         data["model"] = model
 
@@ -446,7 +454,9 @@ async def delete_eval(
     data["eval_id"] = eval_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    model: Final = (
+        data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    )
     if model:
         data["model"] = model
 
@@ -534,7 +544,9 @@ async def cancel_eval(
     data["eval_id"] = eval_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    model: Final = (
+        data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    )
     if model:
         data["model"] = model
 
@@ -907,7 +919,9 @@ async def cancel_run(
     data["run_id"] = run_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    model: Final = (
+        data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    )
     if model:
         data["model"] = model
 
@@ -996,7 +1010,9 @@ async def delete_run(
     data["run_id"] = run_id
 
     # Extract model for routing (header > query > body)
-    model: Final = data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    model: Final = (
+        data.get("model") or request.query_params.get("model") or compat.header(request.headers, "x-token-iq-model")
+    )
     if model:
         data["model"] = model
 

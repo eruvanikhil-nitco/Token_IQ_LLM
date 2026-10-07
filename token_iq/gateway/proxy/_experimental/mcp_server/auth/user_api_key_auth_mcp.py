@@ -12,6 +12,7 @@ from starlette.types import Scope
 from typing_extensions import assert_never
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
     get_passthrough_resource_metadata_url,
@@ -62,7 +63,6 @@ from token_iq.gateway.repositories.table_repositories import (
 )
 from token_iq.gateway.repositories.user_repository import UserRepository
 from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
-from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.proxy.utils import PrismaClient

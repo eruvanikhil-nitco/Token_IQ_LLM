@@ -11,12 +11,12 @@ from typing import Any, Final, Literal
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.core_utils.core_helpers import independent_snapshot
 from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
     ModifyResponseException,
 )
 from token_iq.gateway.integrations.custom_logger import CustomLogger
-from token_iq.gateway.core_utils.core_helpers import independent_snapshot
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
     UnifiedLLMGuardrails,
 )

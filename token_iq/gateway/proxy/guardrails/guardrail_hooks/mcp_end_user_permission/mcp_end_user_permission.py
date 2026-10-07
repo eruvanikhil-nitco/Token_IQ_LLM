@@ -55,7 +55,7 @@ class MCPEndUserPermissionGuardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"] = "request",
-        logging_obj: "LiteLLMLoggingObj | None" = None,
+        logging_obj: "GatewayLoggingObj | None" = None,
     ) -> GenericGuardrailAPIInputs:
         """
         Filters MCP tools the end user cannot access based on their

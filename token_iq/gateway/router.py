@@ -27,8 +27,6 @@ from pydantic import BaseModel, TypeAdapter, ValidationError
 from typing_extensions import overload
 
 from token_iq import gateway
-import token_iq.gateway.core_utils.exception_mapping_utils
-from token_iq import gateway
 from token_iq.gateway import get_secret_str
 from token_iq.gateway._logging import verbose_router_logger
 from token_iq.gateway._uuid import uuid
@@ -47,7 +45,6 @@ from token_iq.gateway.constants import (
     RUNTIME_UPDATABLE_ROUTER_SETTINGS,
     SESSION_DEPLOYMENT_AFFINITY_TTL_METADATA_KEY,
 )
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.asyncify import asyncify, run_async_function
 from token_iq.gateway.core_utils.core_helpers import (
     _get_parent_otel_span_from_kwargs,
@@ -79,6 +76,7 @@ from token_iq.gateway.core_utils.sensitive_data_masker import (
     mask_credentials_in_payload,
     mask_sensitive_structure,
 )
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.llms.base_llm.vector_store.transformation import (
     RouterVectorStoreEmbeddingExecutor,
     vector_store_request_metadata,
@@ -222,8 +220,8 @@ from token_iq.gateway.types.services import ServiceTypes
 from token_iq.gateway.types.utils import (
     PROMPT_QUOTING_ROUTING_DECISION_FIELDS,
     CustomPricingGatewayParams,
-    GenericBudgetConfigType,
     GatewayBatch,
+    GenericBudgetConfigType,
     LlmProviders,
     ModelInfo,
     ModelResponseStream,
@@ -408,7 +406,9 @@ MAX_BUFFERED_PRE_CONTENT_ANTHROPIC_CHUNKS: Final = 200
 def _anthropic_stream_should_drop_pre_content_ping(chunk: object, has_generated_content: bool) -> bool:
     """A `ping` keepalive seen before any real content is dropped outright - it recurs indefinitely on a
     slow-starting connection and carries nothing worth buffering toward a possible fallback."""
-    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import is_anthropic_ping_chunk
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
+        is_anthropic_ping_chunk,
+    )
 
     if has_generated_content:
         return False
@@ -419,7 +419,9 @@ def _anthropic_stream_forwards_ping_live(chunk: object, has_generated_content: b
     """A `ping` that no lifecycle frame precedes reaches the client live: a fallback's own message_start can still
     follow it without overlapping lifecycles, and AgenticAnthropicStreamingIterator's hold-back keepalive is exactly
     such a ping."""
-    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import is_anthropic_ping_chunk
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
+        is_anthropic_ping_chunk,
+    )
 
     if has_generated_content or buffered_chunk_count:
         return False
@@ -749,7 +751,9 @@ class Router:
         from token_iq.gateway._service_logger import ServiceLogging
 
         self.service_logger_obj: ServiceLogging = ServiceLogging()
-        gateway.suppress_debug_info = True # prevents'Give Feedback/Get help' message from being emitted on Router - Relevant Issue
+        gateway.suppress_debug_info = (
+            True  # prevents'Give Feedback/Get help' message from being emitted on Router - Relevant Issue
+        )
         if self.set_verbose is True:
             if debug_level == "INFO":
                 verbose_router_logger.setLevel(logging.INFO)
@@ -9176,7 +9180,7 @@ class Router:
 
             if _gateway_params.get("organization", None) is not None and isinstance(
                 _gateway_params["organization"], list
-            ): # Addresses
+            ):  # Addresses
                 for org in _gateway_params["organization"]:
                     _gateway_params["organization"] = org
                     self._create_deployment(

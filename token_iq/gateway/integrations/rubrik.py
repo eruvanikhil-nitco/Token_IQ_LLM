@@ -16,15 +16,15 @@ import httpx
 from typing_extensions import Never, ReadOnly, Required
 
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
-from token_iq.gateway.integrations.custom_guardrail import (
-    CustomGuardrail,
-    ModifyResponseException,
-)
 from token_iq.gateway.core_utils.core_helpers import safe_deep_copy
 from token_iq.gateway.core_utils.model_param_helper import ModelParamHelper
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     convert_content_list_to_str,
+)
+from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
+from token_iq.gateway.integrations.custom_guardrail import (
+    CustomGuardrail,
+    ModifyResponseException,
 )
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,

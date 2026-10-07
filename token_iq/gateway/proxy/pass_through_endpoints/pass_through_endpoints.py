@@ -42,8 +42,6 @@ from token_iq.gateway.constants import (
     MAXIMUM_TRACEBACK_LINES_TO_LOG,
     WEBSOCKET_CLOSE_REASON_MAX_BYTES,
 )
-from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.core_helpers import (
     get_metadata_variable_name_from_kwargs,
     get_or_create_metadata_bucket,
@@ -53,6 +51,8 @@ from token_iq.gateway.core_utils.internal_call_metadata import MODEL_ACCESS_GROU
 from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.llms.base_llm.managed_resources.utils import (
     resolve_passthrough_managed_id_provider,
 )
@@ -883,12 +883,12 @@ async def _log_passthrough_upstream_failure(
             )
 
 
+from token_iq.gateway import compat
 from token_iq.gateway.passthrough.timeout_utils import (
     DEFAULT_PASS_THROUGH_REQUEST_TIMEOUT_SECONDS,  # noqa: F401 - re-exported for backward compat
     resolve_llm_passthrough_timeout,  # noqa: F401 - re-exported for backward compat
     resolve_pass_through_request_timeout,
 )
-from token_iq.gateway import compat
 
 
 async def pass_through_request(
@@ -927,8 +927,8 @@ async def pass_through_request(
         timeout: Optional per-endpoint timeout in seconds. Falls back to
             general_settings.pass_through_request_timeout, then 600s.
     """
-    from token_iq.gateway.exceptions import ModifyResponseException
     from token_iq.gateway.core_utils.litellm_logging import Logging
+    from token_iq.gateway.exceptions import ModifyResponseException
     from token_iq.gateway.proxy.pass_through_endpoints.passthrough_guardrails import (
         PassthroughGuardrailHandler,
     )

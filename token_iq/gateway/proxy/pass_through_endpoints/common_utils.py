@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Final
 
 from fastapi import Request
+
 from token_iq.gateway import compat
 
 if TYPE_CHECKING:

@@ -43,8 +43,8 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, BeforeValidator, ConfigDict, TypeAdapter, ValidationError
 
-from token_iq.gateway import compat
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.caching.dual_cache import DualCache
@@ -75,8 +75,8 @@ from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.sso_as
 )
 from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
-    LiteLLM_UserTable,
     GatewayUserRoles,
+    LiteLLM_UserTable,
     Member,
     NewTeamRequest,
     NewUserRequest,
@@ -2790,7 +2790,7 @@ def set_session_token_cookie(response: Response, request: Request, jwt_token: st
 
     Not HttpOnly: the dashboard reads this cookie via ``document.cookie`` to
     populate its own Authorization headers (see
-    ``ui/litellm-dashboard/src/utils/cookieUtils.ts``), so marking it
+    ``ui/dashboard/src/utils/cookieUtils.ts``), so marking it
     HttpOnly would break login. Secure is still required whenever the public
     origin is HTTPS, resolved the same trust-aware way as every other
     litellm cookie."""

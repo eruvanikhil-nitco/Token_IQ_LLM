@@ -9,8 +9,8 @@ from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any, Final
 
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.exceptions import ContextWindowExceededError
 from token_iq.gateway.core_utils.exception_mapping_utils import ExceptionCheckers
+from token_iq.gateway.exceptions import ContextWindowExceededError
 from token_iq.gateway.proxy._experimental.mcp_server.faults import iter_exception_tree
 from token_iq.gateway.proxy._experimental.mcp_server.utils import MCP_TOOL_PREFIX_SEPARATOR
 

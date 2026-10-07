@@ -88,9 +88,9 @@ existing_files() {
 
 litellm_py_pattern='^litellm/.*\.py$'
 e2e_py_pattern='^tests/e2e/.*\.py$'
-spec_pattern='^(litellm/(proxy|types)/.*|ui/litellm-dashboard/(scripts/gen-api-types\.mjs|package\.json|package-lock\.json|src/lib/http/schema\.d\.ts))$'
-ui_prettier_pattern='^ui/litellm-dashboard/.*\.(js|jsx|ts|tsx|mjs|cjs|json|css|scss|md|mdx|yml|yaml|html)$'
-ui_eslint_pattern='^ui/litellm-dashboard/.*\.(js|jsx|ts|tsx|mjs|cjs)$'
+spec_pattern='^(litellm/(proxy|types)/.*|ui/dashboard/(scripts/gen-api-types\.mjs|package\.json|package-lock\.json|src/lib/http/schema\.d\.ts))$'
+ui_prettier_pattern='^ui/dashboard/.*\.(js|jsx|ts|tsx|mjs|cjs|json|css|scss|md|mdx|yml|yaml|html)$'
+ui_eslint_pattern='^ui/dashboard/.*\.(js|jsx|ts|tsx|mjs|cjs)$'
 
 # CI's lint job (test-linting.yml) only inspects litellm/, so a tests-only or
 # scripts-only commit can't turn it red; scope the trigger there to skip the slow
@@ -146,16 +146,16 @@ lint_dashboard() {
         prettier_rel=()
         eslint_rel=()
         while IFS= read -r f; do
-            [ -n "$f" ] && prettier_rel+=("${f#ui/litellm-dashboard/}")
+            [ -n "$f" ] && prettier_rel+=("${f#ui/dashboard/}")
         done <<EOF
 $ui_prettier_files
 EOF
         while IFS= read -r f; do
-            [ -n "$f" ] && eslint_rel+=("${f#ui/litellm-dashboard/}")
+            [ -n "$f" ] && eslint_rel+=("${f#ui/dashboard/}")
         done <<EOF
 $ui_eslint_files
 EOF
-        cd ui/litellm-dashboard
+        cd ui/dashboard
         if [ ${#prettier_rel[@]} -gt 0 ]; then
             npx prettier --check "${prettier_rel[@]}" || rc=1
         fi
@@ -226,12 +226,12 @@ fi
 
 dashboard_checks() {
     echo "check: linting dashboard (prettier + eslint + lint budgets)"
-    if [ ! -d ui/litellm-dashboard/node_modules ]; then
-        echo "✗ ui/litellm-dashboard/node_modules is missing; dashboard lint cannot run." >&2
+    if [ ! -d ui/dashboard/node_modules ]; then
+        echo "✗ ui/dashboard/node_modules is missing; dashboard lint cannot run." >&2
         bootstrap_hint
         return 1
     fi
-    lint_dashboard || { echo "✗ Dashboard lint failed. See above; format with: (cd ui/litellm-dashboard && npm run format)." >&2; return 1; }
+    lint_dashboard || { echo "✗ Dashboard lint failed. See above; format with: (cd ui/dashboard && npm run format)." >&2; return 1; }
 }
 
 if [ -n "$ui_prettier_changed" ] || [ -n "$ui_eslint_changed" ]; then
@@ -249,8 +249,8 @@ genapi_checks() {
     # and an up-to-date Prisma client; check-ui-api-types.yml installs those and runs
     # prisma generate before gen:api, so mirror that here or a stale client can mask
     # drift that CI will still flag.
-    if [ ! -d ui/litellm-dashboard/node_modules ]; then
-        echo "✗ ui/litellm-dashboard/node_modules is missing; the gen:api sync check cannot run." >&2
+    if [ ! -d ui/dashboard/node_modules ]; then
+        echo "✗ ui/dashboard/node_modules is missing; the gen:api sync check cannot run." >&2
         bootstrap_hint
         status=1
     elif ! uv run --no-sync python -c "import orjson, prisma" 2>/dev/null; then
@@ -263,12 +263,12 @@ genapi_checks() {
     elif ! uv run --no-sync python -m litellm.proxy._lazy_openapi_snapshot; then
         echo "✗ Could not regenerate the lazy OpenAPI snapshot (python -m litellm.proxy._lazy_openapi_snapshot failed)." >&2
         status=1
-    elif ( cd ui/litellm-dashboard && LITELLM_PYTHON="uv run --no-sync python" npm run gen:api ); then
+    elif ( cd ui/dashboard && LITELLM_PYTHON="uv run --no-sync python" npm run gen:api ); then
         if ! git diff --quiet -- token_iq/gateway/proxy/_lazy_openapi_snapshot.json; then
             echo "✗ The lazy OpenAPI snapshot is stale; regenerated token_iq/gateway/proxy/_lazy_openapi_snapshot.json. Stage it and commit; re-run make check only if other checks failed too." >&2
             status=1
         fi
-        if ! git diff --quiet -- ui/litellm-dashboard/src/lib/http/schema.d.ts; then
+        if ! git diff --quiet -- ui/dashboard/src/lib/http/schema.d.ts; then
             echo "✗ Dashboard API types are stale; regenerated src/lib/http/schema.d.ts. Stage it and commit; re-run make check only if other checks failed too." >&2
             status=1
         fi

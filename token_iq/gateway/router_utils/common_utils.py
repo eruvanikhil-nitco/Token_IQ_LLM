@@ -9,8 +9,8 @@ if TYPE_CHECKING:
 
 from token_iq.gateway._logging import verbose_logger, verbose_router_logger
 from token_iq.gateway.constants import ROUTER_FALLBACK_ERROR_DETAIL_MAX_CHARS
-from token_iq.gateway.exceptions import BadRequestError
 from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
+from token_iq.gateway.exceptions import BadRequestError
 from token_iq.gateway.types.router import CredentialGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 

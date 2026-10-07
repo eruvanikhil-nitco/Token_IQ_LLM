@@ -29,7 +29,7 @@ updates:
           - patch
 
   - package-ecosystem: npm
-    directory: /ui/litellm-dashboard
+    directory: /ui/dashboard
     schedule:
       interval: weekly
       day: monday

@@ -9,9 +9,9 @@ from typing_extensions import TypedDict
 from token_iq import gateway
 from token_iq.gateway import DualCache, EmbeddingResponse, ModelResponse, TextCompletionResponse
 from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.core_utils.core_helpers import _get_parent_otel_span_from_kwargs
 from token_iq.gateway.exceptions import RateLimitType
 from token_iq.gateway.integrations.custom_logger import CustomLogger
-from token_iq.gateway.core_utils.core_helpers import _get_parent_otel_span_from_kwargs
 from token_iq.gateway.proxy._types import CommonProxyErrors, CurrentItemRateLimit, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.auth_utils import (
     get_key_model_rpm_limit,

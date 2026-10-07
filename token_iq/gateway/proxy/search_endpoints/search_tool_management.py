@@ -12,8 +12,8 @@ from pydantic import BaseModel
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
 from token_iq.gateway.proxy._types import (
-    LiteLLM_TeamTable,
     GatewayUserRoles,
+    LiteLLM_TeamTable,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth

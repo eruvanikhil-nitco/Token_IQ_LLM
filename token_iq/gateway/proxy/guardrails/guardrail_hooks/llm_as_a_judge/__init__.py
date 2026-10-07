@@ -9,13 +9,13 @@ from typing_extensions import NotRequired, ReadOnly, TypedDict
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.core_utils.llm_judge import (
     default_router_provider,
     extract_text_from_content,
     judge_acompletion,
     parse_json_verdict,
 )
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.types.guardrails import GuardrailEventHooks, SupportedGuardrailIntegrations
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs, GuardrailStatus
 

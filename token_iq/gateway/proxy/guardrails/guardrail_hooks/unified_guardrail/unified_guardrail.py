@@ -15,10 +15,10 @@ from fastapi import HTTPException
 
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.core_utils.api_route_to_call_types import get_call_types_for_route
 from token_iq.gateway.cost_calculator import _infer_call_type
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.integrations.custom_logger import CustomLogger
-from token_iq.gateway.core_utils.api_route_to_call_types import get_call_types_for_route
 from token_iq.gateway.llms import load_guardrail_translation_mappings
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.types.guardrails import GuardrailEventHooks

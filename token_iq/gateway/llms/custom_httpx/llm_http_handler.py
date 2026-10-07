@@ -13,12 +13,6 @@ from httpx._types import FileContent
 from openai.types.file_deleted import FileDeleted
 
 from token_iq import gateway
-import token_iq.gateway.core_utils
-from token_iq import gateway
-import token_iq.gateway.types
-from token_iq import gateway
-import token_iq.gateway.types.utils
-from token_iq import gateway
 from token_iq.gateway._logging import _redact_string, verbose_logger
 from token_iq.gateway.anthropic_beta_headers_manager import update_headers_with_filtered_beta
 from token_iq.gateway.constants import REALTIME_WEBSOCKET_MAX_MESSAGE_SIZE_BYTES
@@ -178,8 +172,8 @@ if TYPE_CHECKING:
     from aiohttp import ClientSession
     from websockets.asyncio.client import ClientConnection
 
-    from token_iq.gateway.integrations.custom_logger import CustomLogger
     from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
     from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.fake_stream_iterator import (
         FakeAnthropicMessagesStreamIterator,
     )
@@ -246,10 +240,10 @@ def _responses_api_optional_request_param_names() -> frozenset[str]:
 
 
 def _custom_logger_callbacks(logging_obj: GatewayLoggingObj) -> list["CustomLogger"]:
-    from token_iq.gateway.integrations.custom_logger import CustomLogger
     from token_iq.gateway.core_utils.litellm_logging import (
         get_custom_logger_compatible_class,
     )
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     dynamic_success_callbacks: Final = getattr(logging_obj, "dynamic_success_callbacks", None)
     callbacks: Final = list(gateway.callbacks)

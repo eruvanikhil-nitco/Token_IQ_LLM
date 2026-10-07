@@ -3,8 +3,8 @@ from typing import Final
 from fastapi import Request
 from fastapi_sso.sso.base import OpenID
 
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway import compat
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
 class CustomSSOLoginHandler(CustomLogger):

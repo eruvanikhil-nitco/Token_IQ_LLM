@@ -13,6 +13,7 @@ from typing import (
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, Response
 
 from token_iq import gateway
+from token_iq.connectors.billing.credential_purpose import billing_credential_problem, is_billing_credential
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.credential_accessor import CredentialAccessor
 from token_iq.gateway.core_utils.litellm_logging import _get_masked_values
@@ -22,7 +23,6 @@ from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import encrypt_va
 from token_iq.gateway.proxy.utils import handle_exception_on_proxy, jsonify_object
 from token_iq.gateway.repositories.credentials_repository import CredentialsRepository
 from token_iq.gateway.types.utils import CreateCredentialItem, CredentialItem
-from token_iq.connectors.billing.credential_purpose import billing_credential_problem, is_billing_credential
 from token_iq.policy.credential_access import (
     CREDENTIAL_TEAM_KEY,
     credential_team,

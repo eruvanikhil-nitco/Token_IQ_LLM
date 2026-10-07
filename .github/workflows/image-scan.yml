@@ -22,7 +22,7 @@ on:
       - token-iq-migrations/**
       - tests/proxy_migration_tests/**
       - uv.lock
-      - ui/litellm-dashboard/package-lock.json
+      - ui/dashboard/package-lock.json
       - ui/Dockerfile
       - ui/nginx.conf
       - .github/workflows/image-scan.yml

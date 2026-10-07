@@ -12,8 +12,8 @@ from token_iq.gateway.llms.base_llm.guardrail_translation.base_translation impor
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
-    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
     from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
     from token_iq.gateway.types.utils import EmbeddingResponse
 
 
@@ -36,7 +36,7 @@ class OpenAIEmbeddingsHandler(BaseTranslation):
         self,
         data: dict,
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: "LiteLLMLoggingObj | None" = None,
+        litellm_logging_obj: "GatewayLoggingObj | None" = None,
     ) -> Any:
         """
         Process input text by applying guardrails to text content.
@@ -71,7 +71,7 @@ class OpenAIEmbeddingsHandler(BaseTranslation):
         data: dict,
         input_data: str,
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: "LiteLLMLoggingObj | None",
+        litellm_logging_obj: "GatewayLoggingObj | None",
     ) -> dict:
         """Process a single string input through the guardrail."""
         inputs: Final = GenericGuardrailAPIInputs(texts=[input_data])
@@ -100,7 +100,7 @@ class OpenAIEmbeddingsHandler(BaseTranslation):
         data: dict,
         input_data: list[str | int | list[int]],
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: "LiteLLMLoggingObj | None",
+        litellm_logging_obj: "GatewayLoggingObj | None",
     ) -> dict:
         """Process a list input through the guardrail (if it contains strings)."""
         if len(input_data) == 0:
@@ -145,7 +145,7 @@ class OpenAIEmbeddingsHandler(BaseTranslation):
         self,
         response: "EmbeddingResponse",
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: "LiteLLMLoggingObj | None" = None,
+        litellm_logging_obj: "GatewayLoggingObj | None" = None,
         user_api_key_dict: Any | None = None,
         request_data: dict | None = None,
     ) -> Any:

@@ -14,6 +14,15 @@ from typing import Final, TypeAlias
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from token_iq.connectors.billing.connection_state import (
+    ConnectionState,
+    account_state,
+    provider_state,
+    verified_against_real_account,
+)
+from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
+from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES, FetchProfile
+from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
 from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
@@ -24,15 +33,6 @@ from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
     ProviderSyncHistoryResponse,
     ProviderSyncHistoryRow,
 )
-from token_iq.connectors.billing.connection_state import (
-    ConnectionState,
-    account_state,
-    provider_state,
-    verified_against_real_account,
-)
-from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
-from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES, FetchProfile
-from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
 from token_iq.repositories.provider_sync_run_repository import ProviderSyncRunRepository
 from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 from token_iq.types.provider_billing import BillingCredential, ProviderSyncRun

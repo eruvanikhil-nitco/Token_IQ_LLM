@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq.gateway.exceptions import AuthenticationError
 from token_iq.gateway.core_utils.core_helpers import process_response_headers
 from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
     _safe_convert_created_field,
 )
+from token_iq.gateway.exceptions import AuthenticationError
 from token_iq.gateway.llms.openai.common_utils import OpenAIError
 from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
 from token_iq.gateway.responses.sse_output_recovery import (

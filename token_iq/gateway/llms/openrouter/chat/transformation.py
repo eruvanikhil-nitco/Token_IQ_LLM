@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 import httpx
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway.llms.base_llm.base_model_iterator import BaseModelResponseIterator
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.types.llms.openai import AllMessageValues, ChatCompletionToolParam
@@ -21,7 +22,6 @@ from token_iq.gateway.types.utils import ModelResponse, ModelResponseStream
 
 from ...openai.chat.gpt_transformation import OpenAIGPTConfig
 from ..common_utils import OpenRouterException
-from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     import tiktoken
@@ -222,9 +222,7 @@ class OpenrouterConfig(OpenAIGPTConfig):
                         model_response._hidden_params = {}
                     if "additional_headers" not in model_response._hidden_params:
                         model_response._hidden_params["additional_headers"] = {}
-                    model_response._hidden_params["additional_headers"][compat.PROVIDER_COST_KEY] = float(
-                        response_cost
-                    )
+                    model_response._hidden_params["additional_headers"][compat.PROVIDER_COST_KEY] = float(response_cost)
         except Exception:
             # If we can't extract cost, continue without it - don't fail the response
             pass

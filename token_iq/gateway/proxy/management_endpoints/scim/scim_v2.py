@@ -31,9 +31,9 @@ from token_iq.gateway._uuid import uuid
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 from token_iq.gateway.models.user import SCIMPlaceholder
 from token_iq.gateway.proxy._types import (
+    GatewayUserRoles,
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
-    GatewayUserRoles,
     Member,
     NewTeamRequest,
     NewUserRequest,

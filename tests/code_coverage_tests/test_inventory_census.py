@@ -19,7 +19,7 @@ def _tree(root: pathlib.Path, files: dict[str, str]) -> pathlib.Path:
 class TestExclusions:
     def test_skips_vendored_dependencies(self) -> None:
         """Counting node_modules is how the source document reached 521,641."""
-        assert is_excluded(pathlib.PurePosixPath("ui/litellm-dashboard/node_modules/x/a.js"))
+        assert is_excluded(pathlib.PurePosixPath("ui/dashboard/node_modules/x/a.js"))
 
     def test_skips_the_committed_ui_bundle(self) -> None:
         """1,016 tracked files of build output are not source."""
@@ -27,7 +27,7 @@ class TestExclusions:
 
     def test_does_not_skip_real_source(self) -> None:
         assert not is_excluded(pathlib.PurePosixPath("token_iq/gateway/proxy/proxy_server.py"))
-        assert not is_excluded(pathlib.PurePosixPath("ui/litellm-dashboard/src/components/leftnav.tsx"))
+        assert not is_excluded(pathlib.PurePosixPath("ui/dashboard/src/components/leftnav.tsx"))
 
 
 class TestCategories:

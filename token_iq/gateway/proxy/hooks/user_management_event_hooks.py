@@ -12,9 +12,9 @@ from token_iq.gateway._uuid import uuid
 from token_iq.gateway.proxy._types import (
     AUDIT_ACTIONS,
     CommonProxyErrors,
-    LiteLLM_AuditLogs,
     Gateway_EntityType,
     GatewayTableNames,
+    LiteLLM_AuditLogs,
     NewUserRequest,
     NewUserResponse,
     UserAPIKeyAuth,
@@ -174,9 +174,7 @@ class UserManagementEventHooks:
 
         # check if user has setup email alerting
         if "email" not in general_settings.get("alerting", []):
-            raise ValueError(
-                "Email alerting not setup on config.yaml. Please set `alerting=['email']. \nDocs`"
-            )
+            raise ValueError("Email alerting not setup on config.yaml. Please set `alerting=['email']. \nDocs`")
 
         # If user configured email alerting - send an Email letting their end-user know the key was created
         asyncio.create_task(

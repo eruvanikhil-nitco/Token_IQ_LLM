@@ -20,10 +20,10 @@ from starlette.datastructures import UploadFile
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
+from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
 from token_iq.gateway.integrations.vector_store_integrations.vector_store_pre_call_hook import (
     LiteLLM_ManagedVectorStore,
 )
-from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
 from token_iq.gateway.proxy._types import *
 from token_iq.gateway.proxy.auth.auth_utils import is_request_body_safe
 from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth, user_api_key_auth

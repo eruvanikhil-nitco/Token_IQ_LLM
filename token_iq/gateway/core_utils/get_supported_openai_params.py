@@ -1,8 +1,8 @@
 from typing import Final, Literal
 
 from token_iq import gateway
-from token_iq.gateway.exceptions import BadRequestError
 from token_iq.gateway.core_utils.get_llm_provider_logic import declared_authenticating_provider
+from token_iq.gateway.exceptions import BadRequestError
 from token_iq.gateway.types.utils import LlmProviders, LlmProvidersSet
 
 

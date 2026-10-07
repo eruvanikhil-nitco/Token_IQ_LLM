@@ -21,8 +21,8 @@ import httpx
 
 from token_iq import gateway
 from token_iq.gateway._internal_context import is_internal_call
-from token_iq.gateway.cost_calculator import vector_store_search_cost
 from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
+from token_iq.gateway.cost_calculator import vector_store_search_cost
 from token_iq.gateway.rag.ingestion.base_ingestion import BaseRAGIngestion
 from token_iq.gateway.rag.ingestion.bedrock_ingestion import BedrockRAGIngestion
 from token_iq.gateway.rag.ingestion.gemini_ingestion import GeminiRAGIngestion

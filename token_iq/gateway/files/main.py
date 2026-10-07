@@ -34,11 +34,11 @@ FileDeleteProvider = Literal["openai", "azure", "gemini", "litellm_proxy", "manu
 FileListProvider = Literal["openai", "azure", "litellm_proxy", "manus", "anthropic"]
 from token_iq import gateway
 from token_iq.gateway import get_secret_str
-from token_iq.gateway.files.streaming import FileContentStreamingResponse
-from token_iq.gateway.files.types import FileContentProvider, FileContentStreamingResult
 from token_iq.gateway.core_utils.get_litellm_params import add_trusted_model_credentials_to_gateway_params
 from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
+from token_iq.gateway.files.streaming import FileContentStreamingResponse
+from token_iq.gateway.files.types import FileContentProvider, FileContentStreamingResult
 from token_iq.gateway.llms.azure.common_utils import get_azure_credentials
 from token_iq.gateway.llms.azure.files.handler import AzureOpenAIFilesAPI
 from token_iq.gateway.llms.bedrock.files.handler import BedrockFilesHandler

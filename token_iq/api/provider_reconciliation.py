@@ -16,6 +16,9 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from token_iq.connectors.billing.connector import BillingConnector, registered_connectors
+from token_iq.connectors.billing.runner import LOOKBACK
+from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
 from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
@@ -25,9 +28,6 @@ from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
     ReconciliationResponse,
     ReconciliationRow,
 )
-from token_iq.connectors.billing.connector import BillingConnector, registered_connectors
-from token_iq.connectors.billing.runner import LOOKBACK
-from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
 from token_iq.types.provider_billing import BillingCredential, Fetched, FetchFailed, NotConfigured
 
 router: Final = APIRouter()

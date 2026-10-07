@@ -37,6 +37,7 @@ from pydantic import AnyUrl, BaseModel
 from typing_extensions import ReadOnly
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import (
     MCP_CLIENT_TIMEOUT,
@@ -46,12 +47,12 @@ from token_iq.gateway.constants import (
     MCP_STDIO_ALLOWED_COMMANDS,
     MCP_TOOL_LISTING_TIMEOUT,
 )
+from token_iq.gateway.core_utils.url_utils import SSRFError, async_safe_get
 from token_iq.gateway.exceptions import BlockedPiiEntityError, GuardrailRaisedException
 from token_iq.gateway.experimental_mcp_client.client import MCPClient, MCPSigV4Auth, strip_auth_scheme
 from token_iq.gateway.integrations.custom_guardrail import (
     _sync_guardrail_info_to_logging_obj,  # pyright: ignore[reportPrivateUsage] - the same bridge @log_guardrail_information uses; reimplementing it here would fork the metadata-key logic
 )
-from token_iq.gateway.core_utils.url_utils import SSRFError, async_safe_get
 from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
 from token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
     MCPRequestHandler,
@@ -165,7 +166,6 @@ from token_iq.gateway.types.mcp_server.mcp_server_manager import (
     MCPServer,
 )
 from token_iq.gateway.types.utils import CallTypes
-from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from mcp.client.session import ClientSession
@@ -1382,7 +1382,7 @@ def _create_elicitation_callback():
 
 def _record_mcp_guardrail_evaluations(
     synthetic_llm_data: dict[str, Any],  # mutable-ok: `_sync_guardrail_info_to_logging_obj` takes a concrete dict
-    litellm_logging_obj: "LiteLLMLoggingObj | None",
+    litellm_logging_obj: "GatewayLoggingObj | None",
 ) -> None:
     """Bridge guardrail decision records off an MCP synthetic request onto the request's logger.
 
@@ -5062,7 +5062,7 @@ class MCPServerManager:
         proxy_logging_obj: ProxyLogging | None,
         server: MCPServer,
         raw_headers: dict[str, str] | None = None,
-        litellm_logging_obj: "LiteLLMLoggingObj | None" = None,
+        litellm_logging_obj: "GatewayLoggingObj | None" = None,
     ) -> dict[str, Any]:
         """
         Run pre-call checks and guardrail hooks for an MCP tool call.
@@ -5182,7 +5182,7 @@ class MCPServerManager:
         user_api_key_auth: UserAPIKeyAuth | None,
         proxy_logging_obj: ProxyLogging,
         start_time: datetime.datetime,
-        litellm_logging_obj: "LiteLLMLoggingObj | None" = None,
+        litellm_logging_obj: "GatewayLoggingObj | None" = None,
     ):
         """Create and return a during hook task for MCP tool calls.
 
@@ -5744,7 +5744,7 @@ class MCPServerManager:
         oauth2_headers: dict[str, str] | None = None,
         raw_headers: dict[str, str] | None = None,
         host_progress_callback: Callable | None = None,
-        litellm_logging_obj: "LiteLLMLoggingObj | None" = None,
+        litellm_logging_obj: "GatewayLoggingObj | None" = None,
     ) -> CallToolResult:
         """
         Call a tool with the given name and arguments

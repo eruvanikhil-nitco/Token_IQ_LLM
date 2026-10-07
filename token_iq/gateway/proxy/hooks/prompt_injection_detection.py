@@ -16,10 +16,10 @@ from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.constants import DEFAULT_PROMPT_INJECTION_SIMILARITY_THRESHOLD
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.prompt_templates.factory import (
     prompt_injection_detection_default_pt,
 )
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy._types import GatewayPromptInjectionParams, UserAPIKeyAuth
 from token_iq.gateway.router import Router
 from token_iq.gateway.utils import get_formatted_prompt

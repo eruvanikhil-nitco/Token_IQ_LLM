@@ -89,7 +89,7 @@ commands:
             echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$BASH_ENV"
             export PATH="$HOME/.local/bin:$PATH"
   install_node:
-    description: "Install the Node.js version pinned in ui/litellm-dashboard/.nvmrc (24.19.0, which bundles npm 11.17.0) with checksum verification, and prepend it to PATH. Run this on any executor whose image does not already ship that version, or `npm ci` in ui/litellm-dashboard fails EBADENGINE against the engines floor. Installs into /opt/node rather than over /usr/local on purpose: cimg/python:*-browsers ships its own node there, and unpacking the tarball on top of it leaves npm 11.17 files merged with the image's npm 11.9 tree, which reports the new version and then exits 1 on `npm ci` with no error text at all. Requires checkout, which the .nvmrc drift check reads."
+    description: "Install the Node.js version pinned in ui/dashboard/.nvmrc (24.19.0, which bundles npm 11.17.0) with checksum verification, and prepend it to PATH. Run this on any executor whose image does not already ship that version, or `npm ci` in ui/dashboard fails EBADENGINE against the engines floor. Installs into /opt/node rather than over /usr/local on purpose: cimg/python:*-browsers ships its own node there, and unpacking the tarball on top of it leaves npm 11.17 files merged with the image's npm 11.9 tree, which reports the new version and then exits 1 on `npm ci` with no error text at all. Requires checkout, which the .nvmrc drift check reads."
     steps:
       - run:
           name: Install Node.js 24.19.0
@@ -97,9 +97,9 @@ commands:
             NODE_VERSION="24.19.0"
             NODE_TARBALL="node-v${NODE_VERSION}-linux-x64.tar.xz"
             NODE_EXPECTED_SHA="14b342e71204f811bde6153be8e04b62aef63c236fef92b55f9c83154b409647"
-            NVMRC_VERSION="$(tr -d '[:space:]' < ui/litellm-dashboard/.nvmrc)"
+            NVMRC_VERSION="$(tr -d '[:space:]' < ui/dashboard/.nvmrc)"
             if [ "$NVMRC_VERSION" != "$NODE_VERSION" ]; then
-              echo "install_node: ui/litellm-dashboard/.nvmrc pins ${NVMRC_VERSION} but this command pins ${NODE_VERSION}; update NODE_VERSION and NODE_EXPECTED_SHA together" >&2
+              echo "install_node: ui/dashboard/.nvmrc pins ${NVMRC_VERSION} but this command pins ${NODE_VERSION}; update NODE_VERSION and NODE_EXPECTED_SHA together" >&2
               exit 1
             fi
             curl -sSLf -o "/tmp/${NODE_TARBALL}" "https://nodejs.org/dist/v${NODE_VERSION}/${NODE_TARBALL}"
@@ -2594,7 +2594,7 @@ jobs:
             - ~/.cache/uv
       - restore_cache:
           keys:
-            - ui-e2e-node-deps-v4-{{ checksum "ui/litellm-dashboard/package-lock.json" }}-{{ checksum "tests/e2e/ui/package-lock.json" }}
+            - ui-e2e-node-deps-v4-{{ checksum "ui/dashboard/package-lock.json" }}-{{ checksum "tests/e2e/ui/package-lock.json" }}
       - run:
           name: Install Node dependencies and Playwright
           # The cimg/python:3.12-browsers image already ships the Chromium system
@@ -2603,15 +2603,15 @@ jobs:
           # 5-10 minutes to the job and frequently stalls on flaky Ubuntu mirrors,
           # so we install just the browser binary.
           command: |
-            cd ui/litellm-dashboard
+            cd ui/dashboard
             npm ci
             cd ../../tests/e2e/ui
             npm ci
             npx playwright install chromium
       - save_cache:
-          key: ui-e2e-node-deps-v4-{{ checksum "ui/litellm-dashboard/package-lock.json" }}-{{ checksum "tests/e2e/ui/package-lock.json" }}
+          key: ui-e2e-node-deps-v4-{{ checksum "ui/dashboard/package-lock.json" }}-{{ checksum "tests/e2e/ui/package-lock.json" }}
           paths:
-            - ui/litellm-dashboard/node_modules
+            - ui/dashboard/node_modules
             - tests/e2e/ui/node_modules
             - ~/.cache/ms-playwright
       - run:
@@ -2625,7 +2625,7 @@ jobs:
           # the pre-build bundle on every run. Replace-and-move guarantees the
           # freshly built bundle is what the proxy actually serves.
           command: |
-            cd ui/litellm-dashboard
+            cd ui/dashboard
             npm run build
             rm -rf ../../token_iq/gateway/proxy/_experimental/out
             mv out ../../token_iq/gateway/proxy/_experimental/out
@@ -2738,25 +2738,25 @@ jobs:
             - ~/.cache/uv
       - restore_cache:
           keys:
-            - ui-e2e-node-deps-v4-{{ checksum "ui/litellm-dashboard/package-lock.json" }}-{{ checksum "tests/e2e/ui/package-lock.json" }}
+            - ui-e2e-node-deps-v4-{{ checksum "ui/dashboard/package-lock.json" }}-{{ checksum "tests/e2e/ui/package-lock.json" }}
       - run:
           name: Install Node dependencies and Playwright
           command: |
-            cd ui/litellm-dashboard
+            cd ui/dashboard
             npm ci
             cd ../../tests/e2e/ui
             npm ci
             npx playwright install chromium
       - save_cache:
-          key: ui-e2e-node-deps-v4-{{ checksum "ui/litellm-dashboard/package-lock.json" }}-{{ checksum "tests/e2e/ui/package-lock.json" }}
+          key: ui-e2e-node-deps-v4-{{ checksum "ui/dashboard/package-lock.json" }}-{{ checksum "tests/e2e/ui/package-lock.json" }}
           paths:
-            - ui/litellm-dashboard/node_modules
+            - ui/dashboard/node_modules
             - tests/e2e/ui/node_modules
             - ~/.cache/ms-playwright
       - run:
           name: Build UI from source
           command: |
-            cd ui/litellm-dashboard
+            cd ui/dashboard
             npm run build
             rm -rf ../../token_iq/gateway/proxy/_experimental/out
             mv out ../../token_iq/gateway/proxy/_experimental/out

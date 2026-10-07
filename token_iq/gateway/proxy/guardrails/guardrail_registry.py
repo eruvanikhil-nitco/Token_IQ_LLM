@@ -14,8 +14,8 @@ from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
-from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.llms.base_llm.guardrail_translation.utils import (
     effective_scan_only_tool_results_for_guardrail,
     effective_skip_tool_message_for_guardrail,

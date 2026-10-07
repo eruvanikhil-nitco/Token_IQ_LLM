@@ -27,8 +27,9 @@ import yaml
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq.gateway import compat
 from token_iq import gateway
+from token_iq.api.projects import project_a_key_may_join_or_403
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.caching.dual_cache import DualCache
@@ -155,7 +156,6 @@ from token_iq.gateway.types.utils import (
     PersonalUIKeyGenerationConfig,
     TeamUIKeyGenerationConfig,
 )
-from token_iq.api.projects import project_a_key_may_join_or_403
 
 if TYPE_CHECKING:
     import prisma

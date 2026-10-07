@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any, Final, cast
 
 from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
 from token_iq.gateway.integrations.datadog.datadog_handler import (
     get_datadog_env,
@@ -13,7 +14,6 @@ from token_iq.gateway.integrations.datadog.datadog_handler import (
     get_datadog_service,
     normalize_datadog_tag_value,
 )
-from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
     httpxSpecialProvider,

@@ -14,13 +14,13 @@ from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching import DualCache
 from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
-from token_iq.gateway.integrations.custom_guardrail import (
-    CustomGuardrail,
-    log_guardrail_information,
-)
 from token_iq.gateway.core_utils.core_helpers import (
     get_metadata_variable_name_from_kwargs,
     get_or_create_metadata_bucket,
+)
+from token_iq.gateway.integrations.custom_guardrail import (
+    CustomGuardrail,
+    log_guardrail_information,
 )
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,

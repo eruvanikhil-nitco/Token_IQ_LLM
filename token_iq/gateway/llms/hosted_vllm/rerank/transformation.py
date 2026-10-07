@@ -10,8 +10,8 @@ import httpx
 from pydantic import ValidationError
 
 from token_iq.gateway._uuid import uuid
-from token_iq.gateway.exceptions import UnsupportedParamsError
 from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
+from token_iq.gateway.exceptions import UnsupportedParamsError
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.rerank.transformation import BaseRerankConfig
 from token_iq.gateway.secret_managers.main import get_secret_str

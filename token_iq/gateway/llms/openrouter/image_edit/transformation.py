@@ -48,6 +48,7 @@ import httpx
 from httpx._types import RequestFiles
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway.images.utils import ImageEditRequestUtils
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.image_edit.transformation import BaseImageEditConfig
@@ -62,7 +63,6 @@ from token_iq.gateway.types.utils import (
     ImageUsage,
     ImageUsageInputTokensDetails,
 )
-from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
@@ -337,9 +337,7 @@ class OpenRouterImageEditConfig(BaseImageEditConfig):
                     model_response._hidden_params = {}
                 if "additional_headers" not in model_response._hidden_params:
                     model_response._hidden_params["additional_headers"] = {}
-                model_response._hidden_params["additional_headers"][compat.PROVIDER_COST_KEY] = float(
-                    cost
-                )
+                model_response._hidden_params["additional_headers"][compat.PROVIDER_COST_KEY] = float(cost)
 
             cost_details: Final = usage_data.get("cost_details", {})
             if cost_details:

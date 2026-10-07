@@ -13,8 +13,8 @@ from token_iq.gateway.constants import (
     AZURE_STORAGE_DEFAULT_ENDPOINT_SUFFIX,
     AZURE_STORAGE_MSFT_VERSION,
 )
-from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
+from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
 from token_iq.gateway.llms.azure.common_utils import get_azure_ad_token_from_entra_id
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,

@@ -17,12 +17,12 @@ from typing_extensions import ReadOnly
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger, verbose_proxy_logger
 from token_iq.gateway.constants import HEALTH_CHECK_TIMEOUT_SECONDS
+from token_iq.gateway.core_utils.custom_logger_registry import CustomLoggerRegistry
 from token_iq.gateway.integrations.SlackAlerting.ms_teams import (
     MS_TEAMS_ALERT_HEADERS,
     build_ms_teams_payload,
     get_ms_teams_webhook_url,
 )
-from token_iq.gateway.core_utils.custom_logger_registry import CustomLoggerRegistry
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 from token_iq.gateway.proxy._types import (
     AlertType,
@@ -314,11 +314,11 @@ async def health_services_endpoint(
                 "message": (response["error_message"] if response["status"] == "unhealthy" else "Datadog is healthy"),
             }
         elif service == "datadog_metrics":
-            from token_iq.gateway.integrations.datadog.datadog_metrics import (
-                DatadogMetricsLogger,
-            )
             from token_iq.gateway.core_utils.litellm_logging import (
                 get_custom_logger_compatible_class,
+            )
+            from token_iq.gateway.integrations.datadog.datadog_metrics import (
+                DatadogMetricsLogger,
             )
 
             datadog_metrics_logger = get_custom_logger_compatible_class("datadog_metrics")

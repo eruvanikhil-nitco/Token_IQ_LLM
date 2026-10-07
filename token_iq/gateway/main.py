@@ -57,8 +57,6 @@ from token_iq.gateway.constants import (
     DEFAULT_MOCK_RESPONSE_COMPLETION_TOKEN_COUNT,
     DEFAULT_MOCK_RESPONSE_PROMPT_TOKEN_COUNT,
 )
-from token_iq.gateway.exceptions import GatewayUnknownProvider
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.asyncify import run_async_function
 from token_iq.gateway.core_utils.audio_utils.utils import (
     calculate_request_duration,
@@ -91,6 +89,8 @@ from token_iq.gateway.core_utils.prompt_templates.common_utils import (
 from token_iq.gateway.core_utils.request_timeout_resolver import (
     get_configured_request_timeout,
 )
+from token_iq.gateway.exceptions import GatewayUnknownProvider
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.llms.base_llm import BaseConfig, BaseImageGenerationConfig
 from token_iq.gateway.llms.base_llm.base_model_iterator import (
     convert_model_response_to_streaming,

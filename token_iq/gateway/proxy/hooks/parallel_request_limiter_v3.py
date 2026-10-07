@@ -23,14 +23,13 @@ from typing import (
 
 from typing_extensions import NotRequired, ReadOnly
 
-from token_iq.gateway import compat
-from token_iq.gateway import DualCache
+from token_iq.gateway import DualCache, compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import DYNAMIC_RATE_LIMIT_ERROR_THRESHOLD_PER_MINUTE, INTERNAL_CALL_ORIGIN_METADATA_KEY
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     get_str_from_messages,
 )
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.auth_utils import (
     ESTIMATED_OUTPUT_TOKENS_FIELD,

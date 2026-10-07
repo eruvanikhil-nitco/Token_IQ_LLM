@@ -17,12 +17,12 @@ from pydantic import BaseModel, ConfigDict, TypeAdapter, field_validator
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.exceptions import BudgetExceededError
 from token_iq.gateway.core_utils.llm_judge import judge_target
+from token_iq.gateway.exceptions import BudgetExceededError
 from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
-    LiteLLM_TeamTable,
     GatewayUserRoles,
+    LiteLLM_TeamTable,
     ProxyErrorTypes,
     ProxyException,
     UserAPIKeyAuth,

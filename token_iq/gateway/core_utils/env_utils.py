@@ -4,6 +4,7 @@ Utility helpers for reading and parsing environment variables.
 
 import logging
 from typing import Final
+
 from token_iq.gateway import compat
 
 

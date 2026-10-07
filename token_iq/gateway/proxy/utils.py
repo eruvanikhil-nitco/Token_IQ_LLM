@@ -21,8 +21,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Final, Literal, Optional, Proto
 
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq.gateway import compat
-from token_iq.gateway import _custom_logger_compatible_callbacks_literal
+from token_iq.gateway import _custom_logger_compatible_callbacks_literal, compat
 from token_iq.gateway.constants import (
     DEFAULT_MODEL_CREATED_AT_TIME,
     LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL,
@@ -69,9 +68,7 @@ except ImportError:
 
 from fastapi import HTTPException, status
 
-from token_iq import gateway
 import token_iq.gateway.core_utils
-from token_iq import gateway
 import token_iq.gateway.core_utils.litellm_logging
 from token_iq import gateway
 from token_iq.gateway import (
@@ -85,6 +82,14 @@ from token_iq.gateway._logging import _redact_string, verbose_proxy_logger
 from token_iq.gateway._service_logger import ServiceLogging, ServiceTypes
 from token_iq.gateway.caching.caching import DualCache, RedisCache
 from token_iq.gateway.caching.dual_cache import LimitedSizeOrderedDict
+from token_iq.gateway.core_utils.core_helpers import (
+    coerce_token_limit,
+    independent_snapshot,
+    is_expected_client_error,
+)
+from token_iq.gateway.core_utils.litellm_logging import Logging
+from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
+from token_iq.gateway.core_utils.safe_json_loads import safe_json_loads
 from token_iq.gateway.exceptions import RejectedRequestError, SensitiveDataRouteException
 from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
@@ -94,14 +99,6 @@ from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.integrations.prometheus import PrometheusLogger
 from token_iq.gateway.integrations.SlackAlerting.slack_alerting import SlackAlerting
 from token_iq.gateway.integrations.SlackAlerting.utils import _add_langfuse_trace_id_to_alert
-from token_iq.gateway.core_utils.core_helpers import (
-    coerce_token_limit,
-    independent_snapshot,
-    is_expected_client_error,
-)
-from token_iq.gateway.core_utils.litellm_logging import Logging
-from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
-from token_iq.gateway.core_utils.safe_json_loads import safe_json_loads
 from token_iq.gateway.llms import load_guardrail_translation_mappings
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 from token_iq.gateway.proxy._types import (
@@ -3357,9 +3354,9 @@ async def _lookup_deprecated_key(
         _deprecated_key_cache.pop(hashed_token, None)
 
     try:
-        deprecated_keys_table: Final[
-            DeprecatedVerificationTokenActions[DeprecatedVerificationToken]
-        ] = db.deprecatedverificationtoken
+        deprecated_keys_table: Final[DeprecatedVerificationTokenActions[DeprecatedVerificationToken]] = (
+            db.deprecatedverificationtoken
+        )
         deprecated_row: Final = await deprecated_keys_table.find_first(
             where={
                 "token": hashed_token,

@@ -858,7 +858,7 @@ class BaseLLMChatTest(ABC):
             # Bedrock fetches the URL and base64-embeds it in the
             # Converse request body; using a multi-MB hosted product
             # photo here previously bloated cassettes to ~60 MB each.
-            "https://cdn.jsdelivr.net/gh/BerriAI/litellm@d769e81c90d453240c61fc572cdb27fae06a89d0/ui/litellm-dashboard/public/assets/logos/litellm_logo.jpg",
+            "https://cdn.jsdelivr.net/gh/BerriAI/litellm@d769e81c90d453240c61fc572cdb27fae06a89d0/ui/dashboard/public/assets/logos/litellm_logo.jpg",
             "https://awsmp-logos.s3.amazonaws.com/seller-xw5kijmvmzasy/c233c9ade2ccb5491072ae232c814942.png",
         ],
     )
@@ -906,7 +906,7 @@ class BaseLLMChatTest(ABC):
                                 # sha-pinned in-repo logo via jsdelivr; gstatic's
                                 # robots.txt blocks server-side fetchers (e.g.
                                 # Anthropic), which 400s the request.
-                                "url": "https://cdn.jsdelivr.net/gh/BerriAI/litellm@d769e81c90d453240c61fc572cdb27fae06a89d0/ui/litellm-dashboard/public/assets/logos/litellm_logo.jpg",
+                                "url": "https://cdn.jsdelivr.net/gh/BerriAI/litellm@d769e81c90d453240c61fc572cdb27fae06a89d0/ui/dashboard/public/assets/logos/litellm_logo.jpg",
                                 "detail": detail,
                             },
                         },

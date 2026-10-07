@@ -170,8 +170,8 @@ if MCP_AVAILABLE:
         is_ui_session_credential,
     )
     from token_iq.gateway.proxy._types import (
-        LiteLLM_MCPServerTable,
         GatewayUserRoles,
+        LiteLLM_MCPServerTable,
         MakeMCPServersPublicRequest,
         MCPApprovalStatus,
         MCPOAuthUserCredentialRequest,
@@ -1179,11 +1179,9 @@ if MCP_AVAILABLE:
         if user_id and _byok_prisma_client is not None:
             byok_server_ids: Final = [s.server_id for s in redacted_mcp_servers if getattr(s, "is_byok", False)]
             if byok_server_ids:
-                cred_rows: Final[
-                    Sequence[prisma_models.MCPUserCredentials]
-                ] = await MCPUserCredentialsRepository(_byok_prisma_client).table.find_many(
-                    where={"user_id": user_id, "server_id": {"in": byok_server_ids}}
-                )
+                cred_rows: Final[Sequence[prisma_models.MCPUserCredentials]] = await MCPUserCredentialsRepository(
+                    _byok_prisma_client
+                ).table.find_many(where={"user_id": user_id, "server_id": {"in": byok_server_ids}})
                 cred_set: Final = {r.server_id for r in cred_rows}
                 for server in redacted_mcp_servers:
                     if getattr(server, "is_byok", False):
@@ -2132,9 +2130,7 @@ if MCP_AVAILABLE:
         --header 'Authorization: Bearer your_api_key_here'
         ```
         """
-        prisma_client: Final = get_prisma_client_or_throw(
-            "Database not connected. Connect a database to your proxy"
-        )
+        prisma_client: Final = get_prisma_client_or_throw("Database not connected. Connect a database to your proxy")
 
         # Authz - restrict only admins to delete mcp servers
         if GatewayUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
@@ -2658,9 +2654,7 @@ if MCP_AVAILABLE:
         --header 'Authorization: Bearer your_api_key_here'
         ```
         """
-        prisma_client: Final = get_prisma_client_or_throw(
-            "Database not connected. Connect a database to your proxy"
-        )
+        prisma_client: Final = get_prisma_client_or_throw("Database not connected. Connect a database to your proxy")
 
         payload_fields_set: Final = set(payload.fields_set())
 

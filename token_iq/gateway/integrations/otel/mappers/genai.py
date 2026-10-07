@@ -30,9 +30,9 @@ from token_iq.gateway.integrations.otel.model.payloads import (
 from token_iq.gateway.integrations.otel.model.semconv import (
     MCP,
     Error,
+    Gateway,
     GenAI,
     JsonRpc,
-    Gateway,
     RpcSystem,
     Server,
 )

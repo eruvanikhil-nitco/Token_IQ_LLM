@@ -218,7 +218,7 @@ These rules apply to every page:
 
 **No existing page or tab is removed or merged.** Pages and tabs may move or be renamed, and every old address redirects to the new one. Ten merge and removal suggestions were rejected on 2026-09-14 and are not reintroduced without fresh approval. The eight pages that have routes but no sidebar entry (Organizations, Agents, Workflows, Memory, Caching, Vector Stores, Search Tools, Tool Policies) stay out of the sidebar
 
-To keep future upstream merges manageable, the reorganisation is done mostly in the sidebar definition (`ui/litellm-dashboard/src/components/leftnav.tsx`) and the redirect map (`ui/litellm-dashboard/src/utils/migratedPages.ts`) rather than by moving page folders
+To keep future upstream merges manageable, the reorganisation is done mostly in the sidebar definition (`ui/dashboard/src/components/leftnav.tsx`) and the redirect map (`ui/dashboard/src/utils/migratedPages.ts`) rather than by moving page folders
 
 ### Full sidebar
 

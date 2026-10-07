@@ -3,7 +3,7 @@ from typing import Literal
 from pydantic import Field
 from typing_extensions import TypedDict
 
-from token_iq.gateway.proxy._types import KeyManagementRoutes, GatewayUserRoles
+from token_iq.gateway.proxy._types import GatewayUserRoles, KeyManagementRoutes
 from token_iq.gateway.types.utils import GatewayPydanticObjectBase
 
 

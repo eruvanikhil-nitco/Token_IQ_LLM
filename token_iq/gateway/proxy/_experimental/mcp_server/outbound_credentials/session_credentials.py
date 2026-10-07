@@ -106,7 +106,9 @@ class SessionSigningConfigError(BaseModel):
 def _resolve_key_material(value: str) -> str | None:
     if not value.startswith("os.environ/"):
         return value
-    from token_iq.gateway.secret_managers.main import get_secret_str  # noqa: PLC0415  # heavy import kept off the pure path
+    from token_iq.gateway.secret_managers.main import (
+        get_secret_str,  # noqa: PLC0415  # heavy import kept off the pure path
+    )
 
     return get_secret_str(value)
 

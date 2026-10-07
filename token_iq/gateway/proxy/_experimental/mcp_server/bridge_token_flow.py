@@ -10,10 +10,10 @@ from fastapi.responses import JSONResponse
 from pydantic import SecretStr
 from typing_extensions import assert_never
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import TOKEN_NO_CACHE_HEADERS
 from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
-from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.models.user import LiteLLM_UserTable
@@ -141,7 +141,9 @@ async def _resolve_active_gateway_key(request: Request) -> "_ResolvedKey | _KeyR
     token: Final = _gateway_key_from_request(request)
     if not token:
         return "no_active_key"
-    from token_iq.gateway.proxy._types import hash_token  # noqa: PLC0415  # inline import avoids a module-load circular import
+    from token_iq.gateway.proxy._types import (
+        hash_token,  # noqa: PLC0415  # inline import avoids a module-load circular import
+    )
 
     return await _reload_active_key_by_hash(hash_token(token))
 

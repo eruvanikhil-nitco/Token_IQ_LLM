@@ -19,7 +19,6 @@ from typing_extensions import ReadOnly
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.constants import BEDROCK_INVOKE_PROVIDERS_LITERAL
-from token_iq.gateway.files.utils import FilesAPIUtils
 from token_iq.gateway.core_utils.aws_partition import get_aws_dns_suffix
 from token_iq.gateway.core_utils.cloud_storage_security import (
     BEDROCK_MANAGED_S3_BATCH_PREFIX,
@@ -36,6 +35,7 @@ from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     extract_file_data,
     text_completion_prompt_to_messages,
 )
+from token_iq.gateway.files.utils import FilesAPIUtils
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.files.transformation import (
     BaseFilesConfig,

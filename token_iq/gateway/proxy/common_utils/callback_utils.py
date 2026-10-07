@@ -14,12 +14,12 @@ from token_iq.gateway.constants import (
     PRE_CALL_EXECUTED_GUARDRAILS_KEY,
     SESSION_DEPLOYMENT_AFFINITY_TTL_METADATA_KEY,
 )
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.core_helpers import (
     get_metadata_variable_name_from_kwargs,
     get_or_create_metadata_bucket,
 )
 from token_iq.gateway.core_utils.sensitive_data_masker import SensitiveDataMasker
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayPromptInjectionParams
 from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import (
     decrypt_value_helper,
@@ -124,10 +124,10 @@ def initialize_callbacks_on_proxy(
 ):
     if not isinstance(callback_specific_params, dict):
         callback_specific_params = {}
-    from token_iq.gateway.integrations.custom_logger import CustomLogger
     from token_iq.gateway.core_utils.logging_callback_manager import (
         LoggingCallbackManager,
     )
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
     verbose_proxy_logger.debug("%sinitializing callbacks=%s on proxy%s", blue_color_code, value, reset_color_code)

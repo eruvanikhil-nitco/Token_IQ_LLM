@@ -7,8 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from token_iq.gateway.proxy._types import (
     CreateJWTKeyMappingRequest,
     DeleteJWTKeyMappingRequest,
-    JWTKeyMappingResponse,
     GatewayUserRoles,
+    JWTKeyMappingResponse,
     UpdateJWTKeyMappingRequest,
     UserAPIKeyAuth,
     hash_token,

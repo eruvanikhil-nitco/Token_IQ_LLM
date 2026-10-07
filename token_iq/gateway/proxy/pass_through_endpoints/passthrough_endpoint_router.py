@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING, Final
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_router_logger
+from token_iq.gateway.core_utils.credential_accessor import CredentialAccessor
 from token_iq.gateway.integrations.vector_store_integrations.vector_store_pre_call_hook import (
     LiteLLM_ManagedVectorStore,
 )
-from token_iq.gateway.core_utils.credential_accessor import CredentialAccessor
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.vertex_ai import VERTEX_CREDENTIALS_TYPES
 from token_iq.gateway.types.passthrough_endpoints.vertex_ai import VertexPassThroughCredentials

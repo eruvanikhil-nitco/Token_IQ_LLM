@@ -7,13 +7,13 @@ from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.proxy._types import (
+    Gateway_EntityType,
+    GatewayTableNames,
     GenerateKeyRequest,
     GenerateKeyResponse,
     KeyRequest,
     LiteLLM_AuditLogs,
-    Gateway_EntityType,
     LiteLLM_VerificationToken,
-    GatewayTableNames,
     RegenerateKeyRequest,
     UpdateKeyRequest,
     UserAPIKeyAuth,

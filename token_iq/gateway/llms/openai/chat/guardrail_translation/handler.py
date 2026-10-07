@@ -59,11 +59,11 @@ from token_iq.gateway.types.utils import (
 if TYPE_CHECKING:
     from fastapi import HTTPException
 
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.integrations.custom_guardrail import (
         CustomGuardrail,
         ModifyResponseException,
     )
-    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
@@ -93,7 +93,7 @@ class OpenAIChatCompletionsHandler(BaseTranslation):
         self,
         data: dict,
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: "LiteLLMLoggingObj | None" = None,
+        litellm_logging_obj: "GatewayLoggingObj | None" = None,
     ) -> dict:
         """
         Process input messages by applying guardrails to text content.
@@ -342,7 +342,7 @@ class OpenAIChatCompletionsHandler(BaseTranslation):
         self,
         response: "ModelResponse",
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: "LiteLLMLoggingObj | None" = None,
+        litellm_logging_obj: "GatewayLoggingObj | None" = None,
         user_api_key_dict: "UserAPIKeyAuth | None" = None,
         request_data: dict | None = None,
     ) -> ModelResponse:
@@ -449,7 +449,7 @@ class OpenAIChatCompletionsHandler(BaseTranslation):
         self,
         responses_so_far: list["ModelResponseStream"],
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: "LiteLLMLoggingObj | None" = None,
+        litellm_logging_obj: "GatewayLoggingObj | None" = None,
         user_api_key_dict: "UserAPIKeyAuth | None" = None,
         request_data: dict | None = None,
         stream_transform_sink: StreamTransformSink | None = None,
@@ -499,7 +499,7 @@ class OpenAIChatCompletionsHandler(BaseTranslation):
         *,
         responses_so_far: list["ModelResponseStream"],
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: "LiteLLMLoggingObj | None",
+        litellm_logging_obj: "GatewayLoggingObj | None",
         user_api_key_dict: "UserAPIKeyAuth | None",
         request_data: dict | None,
     ) -> list["ModelResponseStream"]:
@@ -638,7 +638,7 @@ class OpenAIChatCompletionsHandler(BaseTranslation):
         *,
         responses_so_far: list["ModelResponseStream"],
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: "LiteLLMLoggingObj | None",
+        litellm_logging_obj: "GatewayLoggingObj | None",
         user_api_key_dict: "UserAPIKeyAuth | None",
         request_data: dict | None,
         sink: StreamTransformSink,

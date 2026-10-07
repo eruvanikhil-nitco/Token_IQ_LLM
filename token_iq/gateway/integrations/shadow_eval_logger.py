@@ -26,7 +26,6 @@ from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError, field_
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.caching.in_memory_cache import InMemoryCache
 from token_iq.gateway.constants import INTERNAL_CALL_ORIGIN_METADATA_KEY
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.core_helpers import get_litellm_metadata_from_kwargs
 from token_iq.gateway.core_utils.internal_call_metadata import sanitized_forwardable_call_metadata
 from token_iq.gateway.core_utils.llm_judge import (
@@ -36,6 +35,7 @@ from token_iq.gateway.core_utils.llm_judge import (
     parse_json_verdict,
 )
 from token_iq.gateway.core_utils.redact_messages import should_redact_message_logging
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.llms.base_llm.base_utils import type_to_response_format_param
 from token_iq.gateway.types.management_endpoints.auto_router_endpoints import ShadowEvalDirection
 from token_iq.gateway.types.utils import SHADOW_EVAL_JUDGE_CALL_ORIGIN, SHADOW_EVAL_ROUTER_CALL_ORIGIN

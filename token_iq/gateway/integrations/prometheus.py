@@ -16,6 +16,13 @@ from pydantic import BaseModel
 
 from token_iq import gateway
 from token_iq.gateway._logging import print_verbose, verbose_logger
+from token_iq.gateway.core_utils.core_helpers import (
+    get_litellm_metadata_from_kwargs,
+    get_metadata_variable_name_from_kwargs,
+)
+from token_iq.gateway.core_utils.service_tier_utils import (
+    get_service_tier_from_standard_logging_payload,
+)
 from token_iq.gateway.exceptions import (
     validate_rate_limit_category,
     validate_rate_limit_type,
@@ -27,13 +34,6 @@ from token_iq.gateway.integrations.prometheus_helpers import (
 )
 from token_iq.gateway.integrations.prometheus_helpers.bounded_prometheus_series_tracker import (
     BoundedPrometheusSeriesTracker,
-)
-from token_iq.gateway.core_utils.core_helpers import (
-    get_litellm_metadata_from_kwargs,
-    get_metadata_variable_name_from_kwargs,
-)
-from token_iq.gateway.core_utils.service_tier_utils import (
-    get_service_tier_from_standard_logging_payload,
 )
 from token_iq.gateway.proxy._types import (
     LiteLLM_DeletedVerificationToken,

@@ -31,11 +31,11 @@ from token_iq.gateway.constants import (
     RETURN_RAW_MODEL_NAME_METADATA_KEY,
     SESSION_ID_GENERATED_METADATA_KEY,
 )
-from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.core_helpers import get_metadata_variable_name_from_kwargs
 from token_iq.gateway.core_utils.internal_call_metadata import forwarded_internal_call_metadata
 from token_iq.gateway.core_utils.prompt_templates.common_utils import request_contains_image_content
 from token_iq.gateway.core_utils.sensitive_data_masker import mask_credentials_in_payload
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.llms.base_llm.base_utils import type_to_response_format_param
 from token_iq.gateway.router_strategy.adaptive_router.classifier import classify_prompt
 from token_iq.gateway.router_strategy.complexity_router.tier_predictor import (

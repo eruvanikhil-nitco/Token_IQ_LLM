@@ -26,10 +26,11 @@ import httpx
 from httpx import Response
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq.gateway import compat
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
+from token_iq.gateway.core_utils.dd_tracing import tracer
 from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
 from token_iq.gateway.integrations.datadog.datadog_handler import (
     get_datadog_base_url_from_env,
@@ -42,7 +43,6 @@ from token_iq.gateway.integrations.datadog.datadog_mock_client import (
     create_mock_datadog_client,
     should_use_datadog_mock,
 )
-from token_iq.gateway.core_utils.dd_tracing import tracer
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     MaskedHTTPStatusError,
     _get_httpx_client,

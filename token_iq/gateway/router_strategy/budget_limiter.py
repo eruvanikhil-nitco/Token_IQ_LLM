@@ -28,11 +28,11 @@ from token_iq import gateway
 from token_iq.gateway._logging import verbose_router_logger
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.caching.redis_cache import RedisPipelineIncrementOperation
-from token_iq.gateway.integrations.custom_logger import CustomLogger, Span
 from token_iq.gateway.core_utils.core_helpers import (
     get_metadata_variable_name_from_kwargs,
 )
 from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
+from token_iq.gateway.integrations.custom_logger import CustomLogger, Span
 from token_iq.gateway.router_strategy.tag_based_routing import _get_tags_from_request_kwargs
 from token_iq.gateway.router_utils.cooldown_callbacks import (
     _get_prometheus_logger_from_callbacks,

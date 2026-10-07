@@ -13,12 +13,6 @@ from openai import APIError
 from pydantic import TypeAdapter
 
 from token_iq import gateway
-import token_iq.gateway.core_utils
-from token_iq import gateway
-import token_iq.gateway.core_utils.litellm_logging
-from token_iq import gateway
-import token_iq.gateway.types
-from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger, verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.constants import (
@@ -26,14 +20,14 @@ from token_iq.gateway.constants import (
     SLACK_DAILY_REPORT_LOCK_ID,
     SLACK_MODEL_DEPRECATION_LOCK_ID,
 )
+from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
+from token_iq.gateway.core_utils.exception_mapping_utils import (
+    _add_key_name_and_team_to_alert,
+)
 from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
 from token_iq.gateway.integrations.SlackAlerting.budget_alert_types import get_budget_alert_type
 from token_iq.gateway.integrations.SlackAlerting.hanging_request_check import (
     AlertingHangingRequestCheck,
-)
-from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
-from token_iq.gateway.core_utils.exception_mapping_utils import (
-    _add_key_name_and_team_to_alert,
 )
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
@@ -42,9 +36,9 @@ from token_iq.gateway.llms.custom_httpx.http_handler import (
 from token_iq.gateway.proxy._types import (
     AlertType,
     CallInfo,
+    Gateway_EntityType,
     InvitationModel,
     InvitationNew,
-    Gateway_EntityType,
     UserAPIKeyAuth,
     VirtualKeyEvent,
     WebhookEvent,

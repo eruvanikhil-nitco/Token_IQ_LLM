@@ -16,12 +16,12 @@ from typing import TYPE_CHECKING, Any, Final, Literal
 from fastapi import HTTPException
 
 from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.core_utils.logging_utils import (
+    convert_gateway_response_object_to_str,
+)
 from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
     log_guardrail_information,
-)
-from token_iq.gateway.core_utils.logging_utils import (
-    convert_gateway_response_object_to_str,
 )
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,

@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.llms.base_llm.image_edit.transformation import BaseImageEditConfig
 from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
@@ -28,7 +29,6 @@ from token_iq.gateway.utils import (
     _get_potential_model_names,
     get_model_info,
 )
-from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj

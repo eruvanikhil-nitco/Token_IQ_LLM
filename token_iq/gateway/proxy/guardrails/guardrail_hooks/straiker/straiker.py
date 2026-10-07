@@ -12,6 +12,8 @@ from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._version import version as litellm_version
+from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
+from token_iq.gateway.core_utils.prompt_templates.factory import resolve_structured_messages
 from token_iq.gateway.exceptions import (
     BadRequestError,
     GuardrailRaisedException,
@@ -23,8 +25,6 @@ from token_iq.gateway.integrations.custom_guardrail import (
     get_session_id_from_request_data,
     log_guardrail_information,
 )
-from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
-from token_iq.gateway.core_utils.prompt_templates.factory import resolve_structured_messages
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
     httpxSpecialProvider,

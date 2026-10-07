@@ -15,15 +15,15 @@ from pydantic import TypeAdapter
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.compression.compress import get_protected_indices
-from token_iq.gateway.integrations.custom_guardrail import (
-    CustomGuardrail,
-    log_guardrail_information,
-)
 from token_iq.gateway.core_utils.prompt_templates.factory import (
     get_attribute_or_key,
     get_tool_calls_from_response,
     group_tool_exchanges,
     has_tool_with_name,
+)
+from token_iq.gateway.integrations.custom_guardrail import (
+    CustomGuardrail,
+    log_guardrail_information,
 )
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,  # pyright: ignore[reportUnknownVariableType]

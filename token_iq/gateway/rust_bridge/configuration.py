@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import warnings
 from typing import TYPE_CHECKING, Final
+
 from token_iq.gateway import compat
 
 if TYPE_CHECKING:

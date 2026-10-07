@@ -40,6 +40,7 @@ from typing import Any, Final
 import httpx
 
 from token_iq import gateway
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.interactions.background_cost_polling import (
     maybe_schedule_background_interaction_cost_polling,
     maybe_settle_background_interaction_before_delete,
@@ -49,7 +50,6 @@ from token_iq.gateway.interactions.utils import (
     InteractionsAPIRequestUtils,
     get_provider_interactions_api_config,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.types.interactions import (
     CancelInteractionResult,
     DeleteInteractionResult,

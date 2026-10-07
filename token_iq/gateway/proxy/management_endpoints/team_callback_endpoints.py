@@ -17,9 +17,9 @@ from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.proxy._types import (
     AddTeamCallback,
+    GatewayTableNames,
     LiteLLM_AuditLogs,
     LiteLLM_TeamTable,
-    GatewayTableNames,
     ProxyErrorTypes,
     ProxyException,
     TeamCallbackDeleteResponse,

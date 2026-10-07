@@ -13,8 +13,6 @@ from typing import Final
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
-from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.api.types.tool_connections import (
     ToolConnection,
     ToolConnectionAccount,
@@ -28,6 +26,8 @@ from token_iq.connectors.billing.connection_state import (
 )
 from token_iq.connectors.tools.credential_purpose import TOOL_NAMES
 from token_iq.connectors.tools.fetch_profile import TOOL_FETCH_PROFILES
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.repositories.provider_sync_run_repository import ProviderSyncRunRepository
 from token_iq.repositories.tool_usage_fact_repository import ToolUsageFactRepository
 from token_iq.types.provider_billing import BillingCredential, ProviderSyncRun
@@ -132,8 +132,8 @@ async def tool_connections(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> ToolConnectionsResponse:
     """One row per user tool, with one row per stored account inside it."""
-    from token_iq.gateway.proxy.proxy_server import prisma_client
     from token_iq.connectors.tools.scheduled import build_tool_credentials_lookup
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     if prisma_client is None:

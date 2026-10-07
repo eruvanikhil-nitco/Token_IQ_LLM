@@ -89,8 +89,8 @@ from typing import TYPE_CHECKING, Final
 
 from starlette.types import Message, Send
 
-from token_iq.gateway.core_utils.sensitive_data_masker import SensitiveDataMasker
 from token_iq.gateway import compat
+from token_iq.gateway.core_utils.sensitive_data_masker import SensitiveDataMasker
 
 if TYPE_CHECKING:
     from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
