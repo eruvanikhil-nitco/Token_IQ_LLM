@@ -68,8 +68,8 @@ async def get_fallback_metric_from_prometheus() -> str:
     """
     response_message = ""
     relevant_metrics: Final = [
-        "litellm_deployment_successful_fallbacks_total",
-        "litellm_deployment_failed_fallbacks_total",
+        "token_iq_deployment_successful_fallbacks_total",
+        "token_iq_deployment_failed_fallbacks_total",
     ]
     for metric in relevant_metrics:
         response_json = await get_metric_from_prometheus(
@@ -145,10 +145,10 @@ async def get_daily_spend_from_prometheus(api_key: str | None) -> list[Prometheu
     url: Final = f"{PROMETHEUS_URL}/api/v1/query_range"
 
     if api_key is None:
-        query = "sum(delta(litellm_spend_metric_total[1d]))"
+        query = "sum(delta(token_iq_spend_metric_total[1d]))"
     else:
         quoted_api_key: Final = _quote_promql_string_literal(api_key)
-        query = f"sum(delta(litellm_spend_metric_total{{hashed_api_key={quoted_api_key}}}[1d]))"
+        query = f"sum(delta(token_iq_spend_metric_total{{hashed_api_key={quoted_api_key}}}[1d]))"
 
     params: Final = {
         "query": query,

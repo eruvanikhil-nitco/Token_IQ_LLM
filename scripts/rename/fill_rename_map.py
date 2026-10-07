@@ -23,6 +23,7 @@ import argparse
 import ast
 import csv
 import functools
+import importlib.util
 import io
 import pathlib
 import subprocess
@@ -32,6 +33,23 @@ from typing import Final
 
 from pydantic import BaseModel
 
+_METRICS: Final = pathlib.Path(__file__).with_name("rename_metric_names.py")
+
+
+def metric_names() -> tuple[str, ...]:
+    """Every Prometheus metric the code constructs, read from the pass that renamed them.
+
+    Borrowed rather than reimplemented, so the notes and the rename cannot disagree about what a metric is.
+    """
+    spec: Final = importlib.util.spec_from_file_location("rename_metric_names", _METRICS)
+    assert spec is not None and spec.loader is not None
+    module: Final = importlib.util.module_from_spec(spec)
+    sys.modules.setdefault("rename_metric_names", module)
+    spec.loader.exec_module(module)
+    names: Final[tuple[str, ...]] = module.every_metric()  # pyright: ignore[reportAny]  # loaded at runtime
+    return names
+
+
 REPO: Final = pathlib.Path(__file__).resolve().parents[2]
 MAP: Final = REPO / "docs" / "plans" / "rename-map.csv"
 
@@ -39,6 +57,9 @@ OLD_ENV_PREFIX: Final = "LITELLM_"
 NEW_ENV_PREFIX: Final = "TOKEN_IQ_"
 OLD_HEADER_PREFIX: Final = "x-litellm-"
 NEW_HEADER_PREFIX: Final = "x-token-iq-"
+
+OLD_METRIC_PREFIX: Final = "litellm_"
+NEW_METRIC_PREFIX: Final = "token_iq_"
 
 CONFIG_KEYS: Final[dict[str, str]] = {
     "litellm_settings": "gateway_settings",
@@ -121,9 +142,10 @@ def header_names(found: Iterable[str]) -> tuple[str, ...]:
 
 
 def filled(rows: Sequence[dict[str, str]], found: Sequence[str]) -> tuple[dict[str, str], ...]:
-    """The map with phase 7's answers in it."""
+    """The map with the answers phases 7 and 9 decided."""
     asked: Final = env_names(found)
     headers: Final = header_names(found)
+    metrics: Final = metric_names()
 
     def answer(row: dict[str, str]) -> dict[str, str] | None:
         kind: Final = row["kind"]
@@ -136,7 +158,7 @@ def filled(rows: Sequence[dict[str, str]], found: Sequence[str]) -> tuple[dict[s
             return {**row, "new": new, "note": "phase 7, old name still read"}
         if kind == "config key":
             return {**row, "new": CONFIG_KEYS[row["old"]], "note": "phase 7, old name still read"}
-        if kind == "request header":
+        if kind in ("request header", "metric name"):
             return None
         return row
 
@@ -151,8 +173,20 @@ def filled(rows: Sequence[dict[str, str]], found: Sequence[str]) -> tuple[dict[s
         }
         for name in headers
     )
-    at: Final = next((index for index, row in enumerate(kept) if row["kind"] == "metric name"), len(kept))
-    return kept[:at] + replaced + kept[at:]
+    # The inventory's 141 "metric name" rows were a loose match on any quoted `litellm_…` string, so they
+    # are module names, config keys and metadata keys rather than metrics. Replaced by the 82 the code
+    # actually constructs.
+    measured: Final = tuple(
+        {
+            "kind": "metric name",
+            "old": f"{OLD_METRIC_PREFIX}{name.removeprefix(NEW_METRIC_PREFIX)}",
+            "new": name,
+            "files": "",
+            "note": "phase 9, the old name stops being emitted",
+        }
+        for name in sorted(metrics)
+    )
+    return kept + replaced + measured
 
 
 def main(argv: Sequence[str] | None = None, out: io.TextIOBase | None = None) -> int:
@@ -171,7 +205,7 @@ def main(argv: Sequence[str] | None = None, out: io.TextIOBase | None = None) ->
 
     answered: Final = filled(rows, literals())
     named: Final = tuple(row for row in answered if row["new"])
-    for kind in ("env var", "config key", "request header"):
+    for kind in ("env var", "config key", "request header", "metric name"):
         before = sum(1 for row in rows if row["kind"] == kind)
         after = sum(1 for row in answered if row["kind"] == kind)
         with_new = sum(1 for row in named if row["kind"] == kind)

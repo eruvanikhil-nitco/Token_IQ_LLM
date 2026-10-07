@@ -85,7 +85,7 @@ async def test_async_log_failure_event_accepts_custom_metadata_labels(
         )
 
     assert "Incorrect label count" not in caplog.text
-    samples = _metric_samples("litellm_llm_api_failed_requests_metric_total")
+    samples = _metric_samples("token_iq_llm_api_failed_requests_metric_total")
     assert any(
         sample.labels.get("metadata_department") == "engineering"
         and sample.labels.get("metadata_environment") == "production"
@@ -117,7 +117,7 @@ def test_virtual_key_rate_limit_metrics_accept_custom_metadata_labels(
         model_id="model-123",
     )
 
-    samples = _metric_samples("litellm_remaining_api_key_requests_for_model")
+    samples = _metric_samples("token_iq_remaining_api_key_requests_for_model")
     assert any(
         sample.labels.get("metadata_department") == "engineering"
         and sample.labels.get("metadata_environment") == "production"
@@ -150,8 +150,8 @@ def test_virtual_key_rate_limit_metrics_preserve_zero_remaining_values(
         model_id="model-123",
     )
 
-    request_samples = _metric_samples("litellm_remaining_api_key_requests_for_model")
-    token_samples = _metric_samples("litellm_remaining_api_key_tokens_for_model")
+    request_samples = _metric_samples("token_iq_remaining_api_key_requests_for_model")
+    token_samples = _metric_samples("token_iq_remaining_api_key_tokens_for_model")
 
     assert any(sample.value == 0 for sample in request_samples)
     assert any(sample.value == 0 for sample in token_samples)

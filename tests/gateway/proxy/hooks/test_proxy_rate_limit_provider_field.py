@@ -14,7 +14,7 @@ lifecycle.
 Until now, those hooks raised a bare ``HTTPException(429, ...)`` which carries
 no ``llm_provider`` / ``model`` attribute. Downstream:
 
-- The Prometheus ``litellm_proxy_failed_requests_metric`` reads
+- The Prometheus ``token_iq_proxy_failed_requests_metric`` reads
   ``exception.llm_provider`` via ``_get_exception_class_name`` — it came back
   empty, so dashboards showed ``exception_class="HTTPException"`` with no
   provider attribution.

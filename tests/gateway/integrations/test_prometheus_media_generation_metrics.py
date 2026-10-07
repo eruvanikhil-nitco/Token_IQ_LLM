@@ -20,8 +20,8 @@ from token_iq.gateway.types.integrations.prometheus import (
 )
 
 MEDIA_GENERATION_METRICS = [
-    "litellm_video_duration_seconds_metric",
-    "litellm_images_generated_metric",
+    "token_iq_video_duration_seconds_metric",
+    "token_iq_images_generated_metric",
 ]
 
 
@@ -68,18 +68,18 @@ class TestMediaGenerationMetricsRegistration:
 
     def test_metrics_share_output_token_label_set(self):
         assert (
-            PrometheusMetricLabels.litellm_video_duration_seconds_metric
-            == PrometheusMetricLabels.litellm_output_tokens_metric
+            PrometheusMetricLabels.token_iq_video_duration_seconds_metric
+            == PrometheusMetricLabels.token_iq_output_tokens_metric
         )
         assert (
-            PrometheusMetricLabels.litellm_images_generated_metric
-            == PrometheusMetricLabels.litellm_output_tokens_metric
+            PrometheusMetricLabels.token_iq_images_generated_metric
+            == PrometheusMetricLabels.token_iq_output_tokens_metric
         )
 
     def test_runtime_label_set_matches_output_tokens_metric(self):
-        """Full parity with litellm_output_tokens_metric, including the org labels
+        """Full parity with token_iq_output_tokens_metric, including the org labels
         appended via _org_label_metrics, so existing token dashboards can be cloned."""
-        expected = PrometheusMetricLabels.get_labels("litellm_output_tokens_metric")
+        expected = PrometheusMetricLabels.get_labels("token_iq_output_tokens_metric")
         for name in MEDIA_GENERATION_METRICS:
             assert PrometheusMetricLabels.get_labels(name) == expected
 
@@ -95,8 +95,8 @@ class TestIncrementMediaGenerationMetrics:
             enum_values=sample_enum_values,
         )
 
-        logger.litellm_video_duration_seconds_metric.labels().inc.assert_called_once_with(8.0)
-        logger.litellm_images_generated_metric.labels.assert_not_called()
+        logger.token_iq_video_duration_seconds_metric.labels().inc.assert_called_once_with(8.0)
+        logger.token_iq_images_generated_metric.labels.assert_not_called()
 
     def test_image_count_incremented(self, sample_enum_values):
         logger = _make_mock_logger()
@@ -117,8 +117,8 @@ class TestIncrementMediaGenerationMetrics:
             enum_values=sample_enum_values,
         )
 
-        logger.litellm_images_generated_metric.labels().inc.assert_called_once_with(2.0)
-        logger.litellm_video_duration_seconds_metric.labels.assert_not_called()
+        logger.token_iq_images_generated_metric.labels().inc.assert_called_once_with(2.0)
+        logger.token_iq_video_duration_seconds_metric.labels.assert_not_called()
 
     def test_token_only_usage_is_a_noop(self, sample_enum_values):
         logger = _make_mock_logger()

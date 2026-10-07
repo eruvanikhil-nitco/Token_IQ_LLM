@@ -1839,7 +1839,7 @@ class ProxyBaseLLMRequestProcessing:
         # which sets arrival_time in proxy_server_request. Ends at start_time
         # (not a freshly captured time.time() here) so this window is exactly
         # [arrival_time, start_time], with zero overlap with the
-        # litellm_request_total_latency_metric window of [start_time, end_time] --
+        # token_iq_request_total_latency_metric window of [start_time, end_time] --
         # otherwise the few lines of add_litellm_data_to_request's own work would
         # be double-counted across both metrics.
         proxy_server_request: Final = self.data.get("proxy_server_request", {})

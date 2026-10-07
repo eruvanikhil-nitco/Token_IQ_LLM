@@ -2,7 +2,7 @@
 Tracks the number of HTTP requests currently in-flight on this uvicorn worker.
 
 Used by /health/backlog to expose per-pod queue depth, and emitted as the
-Prometheus gauge `litellm_in_flight_requests`.
+Prometheus gauge `token_iq_in_flight_requests`.
 """
 
 import os
@@ -19,7 +19,7 @@ class InFlightRequestsMiddleware:
     The counter is class-level and therefore scoped to a single uvicorn worker
     process — exactly the per-pod granularity we want.
 
-    Also updates the `litellm_in_flight_requests` Prometheus gauge if
+    Also updates the `token_iq_in_flight_requests` Prometheus gauge if
     prometheus_client is installed. The gauge is lazily initialised on the
     first request so that PROMETHEUS_MULTIPROC_DIR is already set by the time
     we register the metric. Initialisation is attempted only once — if
@@ -65,13 +65,13 @@ class InFlightRequestsMiddleware:
             if "PROMETHEUS_MULTIPROC_DIR" in os.environ:
                 # livesum aggregates across all worker processes in the scrape response
                 InFlightRequestsMiddleware._gauge = Gauge(
-                    "litellm_in_flight_requests",
+                    "token_iq_in_flight_requests",
                     "Number of HTTP requests currently in-flight on this uvicorn worker",
                     multiprocess_mode="livesum",
                 )
             else:
                 InFlightRequestsMiddleware._gauge = Gauge(
-                    "litellm_in_flight_requests",
+                    "token_iq_in_flight_requests",
                     "Number of HTTP requests currently in-flight on this uvicorn worker",
                 )
         except Exception:

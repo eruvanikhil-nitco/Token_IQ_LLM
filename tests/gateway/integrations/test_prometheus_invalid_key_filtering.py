@@ -154,10 +154,10 @@ class TestAsyncHooks:
 
         with (
             patch.object(
-                prometheus_logger, "litellm_proxy_failed_requests_metric"
+                prometheus_logger, "token_iq_proxy_failed_requests_metric"
             ) as mock_failed,
             patch.object(
-                prometheus_logger, "litellm_proxy_total_requests_metric"
+                prometheus_logger, "token_iq_proxy_total_requests_metric"
             ) as mock_total,
         ):
 
@@ -188,7 +188,7 @@ class TestAsyncHooks:
 
         with (
             patch.object(
-                prometheus_logger, "litellm_llm_api_failed_requests_metric"
+                prometheus_logger, "token_iq_llm_api_failed_requests_metric"
             ) as mock_failed,
             patch.object(
                 prometheus_logger, "set_llm_deployment_failure_metrics"

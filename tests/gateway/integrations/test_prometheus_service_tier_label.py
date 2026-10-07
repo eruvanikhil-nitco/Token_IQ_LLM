@@ -25,10 +25,10 @@ from token_iq.gateway.types.integrations.prometheus import (
 )
 
 SERVICE_TIER_METRICS = [
-    "litellm_llm_api_latency_metric",
-    "litellm_llm_api_time_to_first_token_metric",
-    "litellm_request_total_latency_metric",
-    "litellm_spend_metric",
+    "token_iq_llm_api_latency_metric",
+    "token_iq_llm_api_time_to_first_token_metric",
+    "token_iq_request_total_latency_metric",
+    "token_iq_spend_metric",
 ]
 
 
@@ -217,10 +217,10 @@ async def test_success_event_emits_service_tier_on_latency_and_spend_metrics():
         await logger.async_log_success_event(kwargs, None, now, now)
 
         for metric_name in (
-            "litellm_request_total_latency_metric_bucket",
-            "litellm_llm_api_latency_metric_bucket",
-            "litellm_llm_api_time_to_first_token_metric_bucket",
-            "litellm_spend_metric_total",
+            "token_iq_request_total_latency_metric_bucket",
+            "token_iq_llm_api_latency_metric_bucket",
+            "token_iq_llm_api_time_to_first_token_metric_bucket",
+            "token_iq_spend_metric_total",
         ):
             samples = _collected_samples(metric_name)
             assert samples, f"expected {metric_name} to be emitted"

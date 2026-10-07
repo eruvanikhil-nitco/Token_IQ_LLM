@@ -21,8 +21,8 @@ async def test_async_post_call_failure_hook_includes_client_ip_user_agent():
     ):
         logger = PrometheusLogger()
         # Initialize attributes manually as __init__ is mocked
-        logger.litellm_proxy_failed_requests_metric = MagicMock()
-        logger.litellm_proxy_total_requests_metric = MagicMock()
+        logger.token_iq_proxy_failed_requests_metric = MagicMock()
+        logger.token_iq_proxy_total_requests_metric = MagicMock()
         logger.get_labels_for_metric = MagicMock(
             return_value=["client_ip", "user_agent"]
         )
@@ -84,7 +84,7 @@ async def test_async_post_call_success_hook_includes_client_ip_user_agent():
         "token_iq.gateway.integrations.prometheus.PrometheusLogger.__init__", return_value=None
     ):
         logger = PrometheusLogger()
-        logger.litellm_proxy_total_requests_metric = MagicMock()
+        logger.token_iq_proxy_total_requests_metric = MagicMock()
         logger.get_labels_for_metric = MagicMock(
             return_value=["client_ip", "user_agent"]
         )
@@ -172,8 +172,8 @@ def test_set_llm_deployment_failure_metrics_includes_client_ip_user_agent():
         "token_iq.gateway.integrations.prometheus.PrometheusLogger.__init__", return_value=None
     ):
         logger = PrometheusLogger()
-        logger.litellm_deployment_failure_responses = MagicMock()
-        logger.litellm_deployment_total_requests = MagicMock()
+        logger.token_iq_deployment_failure_responses = MagicMock()
+        logger.token_iq_deployment_total_requests = MagicMock()
         logger.get_labels_for_metric = MagicMock(
             return_value=["client_ip", "user_agent"]
         )

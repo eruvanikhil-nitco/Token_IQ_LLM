@@ -20,8 +20,8 @@ _BUDGET_EXCLUDED_CONFIG = [
     {
         "group": "core-only",
         "metrics": [
-            "litellm_requests_metric",
-            "litellm_total_tokens_metric",
+            "token_iq_requests_metric",
+            "token_iq_total_tokens_metric",
         ],
     }
 ]
@@ -69,26 +69,26 @@ COMMON_KWARGS = dict(
 class TestBudgetGaugesAreNoopWhenExcluded:
     def test_team_gauge_is_noop(self):
         logger = make_logger_with_budget_metrics_disabled()
-        assert isinstance(logger.litellm_remaining_team_budget_metric, NoOpMetric)
+        assert isinstance(logger.token_iq_remaining_team_budget_metric, NoOpMetric)
 
     def test_api_key_gauge_is_noop(self):
         logger = make_logger_with_budget_metrics_disabled()
-        assert isinstance(logger.litellm_remaining_api_key_budget_metric, NoOpMetric)
+        assert isinstance(logger.token_iq_remaining_api_key_budget_metric, NoOpMetric)
 
     def test_user_gauge_is_noop(self):
         logger = make_logger_with_budget_metrics_disabled()
-        assert isinstance(logger.litellm_remaining_user_budget_metric, NoOpMetric)
+        assert isinstance(logger.token_iq_remaining_user_budget_metric, NoOpMetric)
 
     def test_org_gauge_is_noop(self):
         logger = make_logger_with_budget_metrics_disabled()
-        assert isinstance(logger.litellm_remaining_org_budget_metric, NoOpMetric)
+        assert isinstance(logger.token_iq_remaining_org_budget_metric, NoOpMetric)
 
     def test_gauges_are_real_when_all_metrics_enabled(self):
         logger = make_logger_with_all_metrics_enabled()
-        assert not isinstance(logger.litellm_remaining_team_budget_metric, NoOpMetric)
-        assert not isinstance(logger.litellm_remaining_api_key_budget_metric, NoOpMetric)
-        assert not isinstance(logger.litellm_remaining_user_budget_metric, NoOpMetric)
-        assert not isinstance(logger.litellm_remaining_org_budget_metric, NoOpMetric)
+        assert not isinstance(logger.token_iq_remaining_team_budget_metric, NoOpMetric)
+        assert not isinstance(logger.token_iq_remaining_api_key_budget_metric, NoOpMetric)
+        assert not isinstance(logger.token_iq_remaining_user_budget_metric, NoOpMetric)
+        assert not isinstance(logger.token_iq_remaining_org_budget_metric, NoOpMetric)
 
 
 class TestTopLevelGuard:
@@ -170,7 +170,7 @@ class TestPerEntityGuards:
         """Per-entity guard: team assemble helper is not called when team gauge is NoOp,
         even when key and user gauges are real."""
         logger = make_logger_with_all_metrics_enabled()
-        logger.litellm_remaining_team_budget_metric = NoOpMetric()
+        logger.token_iq_remaining_team_budget_metric = NoOpMetric()
 
         assemble_team = AsyncMock(return_value=MagicMock())
         assemble_key = AsyncMock(
@@ -213,7 +213,7 @@ class TestPerEntityGuards:
         """Per-entity guard: key assemble helper is not called when key gauge is NoOp,
         even when team and user gauges are real."""
         logger = make_logger_with_all_metrics_enabled()
-        logger.litellm_remaining_api_key_budget_metric = NoOpMetric()
+        logger.token_iq_remaining_api_key_budget_metric = NoOpMetric()
 
         assemble_team = AsyncMock(
             return_value=MagicMock(
@@ -256,7 +256,7 @@ class TestPerEntityGuards:
         """Per-entity guard: user assemble helper is not called when user gauge is NoOp,
         even when team and key gauges are real."""
         logger = make_logger_with_all_metrics_enabled()
-        logger.litellm_remaining_user_budget_metric = NoOpMetric()
+        logger.token_iq_remaining_user_budget_metric = NoOpMetric()
 
         assemble_team = AsyncMock(
             return_value=MagicMock(

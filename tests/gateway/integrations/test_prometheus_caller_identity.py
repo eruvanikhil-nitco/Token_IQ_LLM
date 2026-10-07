@@ -83,8 +83,8 @@ def test_target_metric_label_schema_for_each_caller_identity_mode(
 def test_repeated_label_resolution_does_not_mutate_class_level_or_shared_lists(
     monkeypatch: pytest.MonkeyPatch,
 ):
-    total_request_labels = PrometheusMetricLabels.litellm_deployment_total_requests
-    success_labels = PrometheusMetricLabels.litellm_deployment_success_responses
+    total_request_labels = PrometheusMetricLabels.token_iq_deployment_total_requests
+    success_labels = PrometheusMetricLabels.token_iq_deployment_success_responses
     original = tuple(total_request_labels)
 
     assert success_labels is total_request_labels
@@ -94,8 +94,8 @@ def test_repeated_label_resolution_does_not_mutate_class_level_or_shared_lists(
             resolved = PrometheusMetricLabels.get_labels(metric_name)
             assert resolved is not getattr(PrometheusMetricLabels, metric_name)
 
-    assert PrometheusMetricLabels.litellm_deployment_total_requests is total_request_labels
-    assert PrometheusMetricLabels.litellm_deployment_success_responses is success_labels
+    assert PrometheusMetricLabels.token_iq_deployment_total_requests is total_request_labels
+    assert PrometheusMetricLabels.token_iq_deployment_success_responses is success_labels
     assert success_labels is total_request_labels
     assert tuple(total_request_labels) == original
 
@@ -120,12 +120,12 @@ def test_invalid_caller_identity_mode_fails_during_prometheus_initialization(
 def test_label_resolution_rejects_non_string_class_labels(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
         PrometheusMetricLabels,
-        "litellm_deployment_total_requests",
+        "token_iq_deployment_total_requests",
         ["api_key_alias", 1],
     )
 
     with pytest.raises(TypeError, match=r"Prometheus labels .* must be strings"):
-        PrometheusMetricLabels.get_labels("litellm_deployment_total_requests")
+        PrometheusMetricLabels.get_labels("token_iq_deployment_total_requests")
 
 
 @pytest.mark.parametrize(
@@ -153,7 +153,7 @@ def test_include_labels_validation_matches_caller_identity_mode(
         [
             {
                 "group": "caller_identity",
-                "metrics": ["litellm_deployment_total_requests"],
+                "metrics": ["token_iq_deployment_total_requests"],
                 "include_labels": include_labels,
             }
         ],
@@ -165,7 +165,7 @@ def test_include_labels_validation_matches_caller_identity_mode(
         return
 
     logger = PrometheusLogger()
-    assert logger.get_labels_for_metric("litellm_deployment_total_requests") == include_labels
+    assert logger.get_labels_for_metric("token_iq_deployment_total_requests") == include_labels
 
 
 @pytest.mark.parametrize(
@@ -190,17 +190,17 @@ def test_exclude_labels_can_remove_supported_identity_labels(
     monkeypatch.setattr(gateway, "prometheus_exclude_labels", exclude_labels)
 
     logger = PrometheusLogger()
-    labels = logger.get_labels_for_metric("litellm_deployment_total_requests")
+    labels = logger.get_labels_for_metric("token_iq_deployment_total_requests")
 
     assert set(labels) & {"api_key_alias", "user_email"} == remaining_identity_labels
 
 
 @pytest.mark.parametrize("mode", IDENTITY_MODES)
 def test_non_target_metric_label_schema_is_unchanged(monkeypatch: pytest.MonkeyPatch, mode: str):
-    baseline = list(PrometheusMetricLabels.litellm_overhead_with_guardrails_latency_metric)
+    baseline = list(PrometheusMetricLabels.token_iq_overhead_with_guardrails_latency_metric)
     _set_caller_identity(monkeypatch, mode)
 
-    actual = PrometheusMetricLabels.get_labels("litellm_overhead_with_guardrails_latency_metric")
+    actual = PrometheusMetricLabels.get_labels("token_iq_overhead_with_guardrails_latency_metric")
 
     assert actual == baseline
     assert "api_key_alias" in actual
@@ -307,14 +307,14 @@ def test_successful_request_emits_configured_identity_on_real_counter_and_histog
 
     scrape = generate_latest(REGISTRY).decode()
     sample_names = (
-        "litellm_deployment_total_requests_total",
-        "litellm_deployment_success_responses_total",
-        "litellm_request_total_latency_metric_count",
-        "litellm_llm_api_latency_metric_count",
-        "litellm_llm_api_time_to_first_token_metric_count",
-        "litellm_request_queue_time_seconds_count",
-        "litellm_overhead_latency_metric_count",
-        "litellm_deployment_latency_per_output_token_count",
+        "token_iq_deployment_total_requests_total",
+        "token_iq_deployment_success_responses_total",
+        "token_iq_request_total_latency_metric_count",
+        "token_iq_llm_api_latency_metric_count",
+        "token_iq_llm_api_time_to_first_token_metric_count",
+        "token_iq_request_queue_time_seconds_count",
+        "token_iq_overhead_latency_metric_count",
+        "token_iq_deployment_latency_per_output_token_count",
     )
     for sample_name in sample_names:
         samples = _sample_labels(scrape, sample_name)
@@ -369,8 +369,8 @@ def test_deployment_failure_email_fallbacks_reach_both_real_counters(
 
     scrape = generate_latest(REGISTRY).decode()
     for sample_name in (
-        "litellm_deployment_failure_responses_total",
-        "litellm_deployment_total_requests_total",
+        "token_iq_deployment_failure_responses_total",
+        "token_iq_deployment_total_requests_total",
     ):
         samples = _sample_labels(scrape, sample_name)
         assert len(samples) == 1, sample_name
@@ -476,17 +476,17 @@ def test_user_email_mode_conflict_error_names_every_conflicting_metric_and_only_
     metrics_config = [
         {
             "group": "non_target",
-            "metrics": ["litellm_overhead_with_guardrails_latency_metric"],
+            "metrics": ["token_iq_overhead_with_guardrails_latency_metric"],
             "include_labels": ["api_key_alias"],
         },
         {
             "group": "target_pair",
-            "metrics": ["litellm_deployment_total_requests", "litellm_llm_api_latency_metric"],
+            "metrics": ["token_iq_deployment_total_requests", "token_iq_llm_api_latency_metric"],
             "include_labels": ["api_key_alias"],
         },
         {
             "group": "target_single",
-            "metrics": ["litellm_request_queue_time_seconds"],
+            "metrics": ["token_iq_request_queue_time_seconds"],
             "include_labels": ["api_key_alias"],
         },
     ]
@@ -496,12 +496,12 @@ def test_user_email_mode_conflict_error_names_every_conflicting_metric_and_only_
 
     message = str(exc_info.value)
     for conflicting_metric in (
-        "litellm_deployment_total_requests",
-        "litellm_llm_api_latency_metric",
-        "litellm_request_queue_time_seconds",
+        "token_iq_deployment_total_requests",
+        "token_iq_llm_api_latency_metric",
+        "token_iq_request_queue_time_seconds",
     ):
         assert conflicting_metric in message
-    assert "litellm_overhead_with_guardrails_latency_metric" not in message
+    assert "token_iq_overhead_with_guardrails_latency_metric" not in message
     assert "prometheus_deployment_and_latency_caller_identity" in message
     assert "user_email" in message
 
@@ -514,7 +514,7 @@ def test_user_email_mode_conflict_error_names_every_conflicting_metric_and_only_
             [
                 {
                     "group": "g",
-                    "metrics": ["litellm_deployment_total_requests"],
+                    "metrics": ["token_iq_deployment_total_requests"],
                     "include_labels": ["user_email"],
                 }
             ],
@@ -524,7 +524,7 @@ def test_user_email_mode_conflict_error_names_every_conflicting_metric_and_only_
             [
                 {
                     "group": "g",
-                    "metrics": ["litellm_overhead_with_guardrails_latency_metric"],
+                    "metrics": ["token_iq_overhead_with_guardrails_latency_metric"],
                     "include_labels": ["api_key_alias"],
                 }
             ],
@@ -534,7 +534,7 @@ def test_user_email_mode_conflict_error_names_every_conflicting_metric_and_only_
             [
                 {
                     "group": "g",
-                    "metrics": ["litellm_deployment_total_requests"],
+                    "metrics": ["token_iq_deployment_total_requests"],
                     "include_labels": ["api_key_alias"],
                 }
             ],
@@ -544,7 +544,7 @@ def test_user_email_mode_conflict_error_names_every_conflicting_metric_and_only_
             [
                 {
                     "group": "g",
-                    "metrics": ["litellm_deployment_total_requests"],
+                    "metrics": ["token_iq_deployment_total_requests"],
                     "include_labels": ["api_key_alias"],
                 }
             ],
@@ -553,7 +553,7 @@ def test_user_email_mode_conflict_error_names_every_conflicting_metric_and_only_
         ("user_email", ["not-a-dict"]),
         (
             "user_email",
-            [{"group": "g", "metrics": ["litellm_deployment_total_requests"], "include_labels": None}],
+            [{"group": "g", "metrics": ["token_iq_deployment_total_requests"], "include_labels": None}],
         ),
         ("user_email", [{"group": "g", "metrics": None, "include_labels": ["api_key_alias"]}]),
     ),
@@ -607,7 +607,7 @@ def _write_proxy_config(tmp_path: Path, litellm_settings: dict[str, object]) -> 
             "prometheus_metrics_config": [
                 {
                     "group": "g",
-                    "metrics": ["litellm_deployment_total_requests"],
+                    "metrics": ["token_iq_deployment_total_requests"],
                     "include_labels": ["api_key_alias"],
                 }
             ],
@@ -647,7 +647,7 @@ def test_failed_init_leaves_registry_clean_so_a_corrected_retry_succeeds(
 
     _set_caller_identity(monkeypatch, "user_email")
     logger = PrometheusLogger()
-    assert "user_email" in logger.get_labels_for_metric("litellm_deployment_total_requests")
+    assert "user_email" in logger.get_labels_for_metric("token_iq_deployment_total_requests")
 
 
 @pytest.mark.parametrize("invalid_label", ("api_key_alias", "user_email"))
@@ -658,7 +658,7 @@ def test_label_validation_error_names_mode_setting_for_identity_labels_on_target
     _set_caller_identity(monkeypatch, "user_email")
 
     error = LabelValidationError(
-        metric_name="litellm_deployment_total_requests",
+        metric_name="token_iq_deployment_total_requests",
         invalid_labels=[invalid_label],
         valid_labels=["user_email"],
     )
@@ -672,12 +672,12 @@ def test_label_validation_error_keeps_base_message_for_non_identity_cases(
 ):
     _set_caller_identity(monkeypatch, "user_email")
     non_target_metric = LabelValidationError(
-        metric_name="litellm_overhead_with_guardrails_latency_metric",
+        metric_name="token_iq_overhead_with_guardrails_latency_metric",
         invalid_labels=["api_key_alias"],
         valid_labels=[],
     )
     non_identity_label = LabelValidationError(
-        metric_name="litellm_deployment_total_requests",
+        metric_name="token_iq_deployment_total_requests",
         invalid_labels=["bogus_label"],
         valid_labels=[],
     )

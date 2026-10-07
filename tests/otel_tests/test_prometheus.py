@@ -106,8 +106,8 @@ async def test_proxy_failure_metrics():
         # Note: client_ip, user_agent, model_id are present but we use substring matching to be flexible
         # Check for both the new metric and deprecated metric for backwards compatibility
         expected_patterns = [
-            "litellm_proxy_failed_requests_metric_total{",  # New metric
-            "litellm_llm_api_failed_requests_metric_total{",  # Deprecated but may still be used
+            "token_iq_proxy_failed_requests_metric_total{",  # New metric
+            "token_iq_llm_api_failed_requests_metric_total{",  # Deprecated but may still be used
         ]
 
         # Master-key auth substitutes LITELLM_PROXY_MASTER_KEY_ALIAS for
@@ -122,7 +122,7 @@ async def test_proxy_failure_metrics():
         for pattern in expected_patterns:
             for line in metrics.split("\n"):
                 # For proxy metric, check proxy-specific fields
-                if "litellm_proxy_failed_requests_metric_total{" in line:
+                if "token_iq_proxy_failed_requests_metric_total{" in line:
                     if (
                         'api_key_alias="None"' in line
                         and 'exception_class="Openai.RateLimitError"' in line
@@ -134,7 +134,7 @@ async def test_proxy_failure_metrics():
                         found_metric = True
                         break
                 # For deprecated llm_api metric, check llm-specific fields
-                elif "litellm_llm_api_failed_requests_metric_total{" in line:
+                elif "token_iq_llm_api_failed_requests_metric_total{" in line:
                     if (
                         f'hashed_api_key="{expected_hashed_api_key}"' in line
                         and 'model="429"' in line
@@ -146,11 +146,11 @@ async def test_proxy_failure_metrics():
 
         assert (
             found_metric
-        ), f"Expected failure metric not found in /metrics. Looking for either litellm_proxy_failed_requests_metric_total or litellm_llm_api_failed_requests_metric_total with required fields"
+        ), f"Expected failure metric not found in /metrics. Looking for either token_iq_proxy_failed_requests_metric_total or token_iq_llm_api_failed_requests_metric_total with required fields"
 
         # Check total requests metric similarly
-        # The litellm_proxy_total_requests_metric_total should be present
-        total_requests_pattern = "litellm_proxy_total_requests_metric_total{"
+        # The token_iq_proxy_total_requests_metric_total should be present
+        total_requests_pattern = "token_iq_proxy_total_requests_metric_total{"
 
         found_total_metric = False
         for line in metrics.split("\n"):
@@ -206,7 +206,7 @@ async def test_proxy_success_metrics():
         found_request_latency = False
         for line in metrics.split("\n"):
             if (
-                "litellm_request_total_latency_metric_bucket{" in line
+                "token_iq_request_total_latency_metric_bucket{" in line
                 and 'api_key_alias="None"' in line
                 and f'hashed_api_key="{expected_hashed_api_key}"' in line
                 and 'requested_model="fake-openai-endpoint"' in line
@@ -217,13 +217,13 @@ async def test_proxy_success_metrics():
 
         assert (
             found_request_latency
-        ), "Expected litellm_request_total_latency_metric_bucket not found in /metrics"
+        ), "Expected token_iq_request_total_latency_metric_bucket not found in /metrics"
 
         # Check for llm_api_latency_metric with required fields
         found_api_latency = False
         for line in metrics.split("\n"):
             if (
-                "litellm_llm_api_latency_metric_bucket{" in line
+                "token_iq_llm_api_latency_metric_bucket{" in line
                 and 'api_key_alias="None"' in line
                 and f'hashed_api_key="{expected_hashed_api_key}"' in line
                 and 'requested_model="fake-openai-endpoint"' in line
@@ -234,7 +234,7 @@ async def test_proxy_success_metrics():
 
         assert (
             found_api_latency
-        ), "Expected litellm_llm_api_latency_metric_bucket not found in /metrics"
+        ), "Expected token_iq_llm_api_latency_metric_bucket not found in /metrics"
 
         verify_latency_metrics(metrics)
 
@@ -242,8 +242,8 @@ async def test_proxy_success_metrics():
 def verify_latency_metrics(metrics: str):
     """
     Assert that LATENCY_BUCKETS distribution is used for
-    - litellm_request_total_latency_metric_bucket
-    - litellm_llm_api_latency_metric_bucket
+    - token_iq_request_total_latency_metric_bucket
+    - token_iq_llm_api_latency_metric_bucket
 
     Very important to verify that the overhead latency metric is present
     """
@@ -254,9 +254,9 @@ def verify_latency_metrics(metrics: str):
     time.sleep(2)
 
     metric_names = [
-        "litellm_request_total_latency_metric_bucket",
-        "litellm_llm_api_latency_metric_bucket",
-        "litellm_overhead_latency_metric_bucket",
+        "token_iq_request_total_latency_metric_bucket",
+        "token_iq_llm_api_latency_metric_bucket",
+        "token_iq_overhead_latency_metric_bucket",
     ]
 
     for metric_name in metric_names:
@@ -311,7 +311,7 @@ async def test_proxy_fallback_metrics():
         found_successful_fallback = False
         for line in metrics.split("\n"):
             if (
-                "litellm_deployment_successful_fallbacks_total{" in line
+                "token_iq_deployment_successful_fallbacks_total{" in line
                 and 'api_key_alias="None"' in line
                 and 'exception_class="Openai.RateLimitError"' in line
                 and 'exception_status="429"' in line
@@ -325,13 +325,13 @@ async def test_proxy_fallback_metrics():
 
         assert (
             found_successful_fallback
-        ), "Expected litellm_deployment_successful_fallbacks_total metric not found in /metrics"
+        ), "Expected token_iq_deployment_successful_fallbacks_total metric not found in /metrics"
 
         # Check if failed fallback metric is incremented - use flexible matching
         found_failed_fallback = False
         for line in metrics.split("\n"):
             if (
-                "litellm_deployment_failed_fallbacks_total{" in line
+                "token_iq_deployment_failed_fallbacks_total{" in line
                 and 'api_key_alias="None"' in line
                 and 'exception_class="Openai.RateLimitError"' in line
                 and 'exception_status="429"' in line
@@ -345,7 +345,7 @@ async def test_proxy_fallback_metrics():
 
         assert (
             found_failed_fallback
-        ), "Expected litellm_deployment_failed_fallbacks_total metric not found in /metrics"
+        ), "Expected token_iq_deployment_failed_fallbacks_total metric not found in /metrics"
 
 
 async def create_test_team(
@@ -398,17 +398,17 @@ def extract_budget_metrics(metrics_text: str, team_id: str) -> Dict[str, float]:
     metrics = {}
 
     # Get remaining budget
-    remaining_pattern = f'litellm_remaining_team_budget_metric{{team="{team_id}",team_alias="[^"]*"}} ([0-9.]+)'
+    remaining_pattern = f'token_iq_remaining_team_budget_metric{{team="{team_id}",team_alias="[^"]*"}} ([0-9.]+)'
     remaining_match = re.search(remaining_pattern, metrics_text)
     metrics["remaining"] = float(remaining_match.group(1)) if remaining_match else None
 
     # Get total budget
-    total_pattern = f'litellm_team_max_budget_metric{{team="{team_id}",team_alias="[^"]*"}} ([0-9.]+)'
+    total_pattern = f'token_iq_team_max_budget_metric{{team="{team_id}",team_alias="[^"]*"}} ([0-9.]+)'
     total_match = re.search(total_pattern, metrics_text)
     metrics["total"] = float(total_match.group(1)) if total_match else None
 
     # Get remaining hours
-    hours_pattern = f'litellm_team_budget_remaining_hours_metric{{team="{team_id}",team_alias="[^"]*"}} ([0-9.]+)'
+    hours_pattern = f'token_iq_team_budget_remaining_hours_metric{{team="{team_id}",team_alias="[^"]*"}} ([0-9.]+)'
     hours_match = re.search(hours_pattern, metrics_text)
     metrics["remaining_hours"] = float(hours_match.group(1)) if hours_match else None
 
@@ -579,17 +579,17 @@ def extract_key_budget_metrics(metrics_text: str, key_id: str) -> Dict[str, floa
     metrics = {}
 
     # Get remaining budget
-    remaining_pattern = f'litellm_remaining_api_key_budget_metric{{api_key_alias="[^"]*",hashed_api_key="{key_id}"}} ([0-9.]+)'
+    remaining_pattern = f'token_iq_remaining_api_key_budget_metric{{api_key_alias="[^"]*",hashed_api_key="{key_id}"}} ([0-9.]+)'
     remaining_match = re.search(remaining_pattern, metrics_text)
     metrics["remaining"] = float(remaining_match.group(1)) if remaining_match else None
 
     # Get total budget
-    total_pattern = f'litellm_api_key_max_budget_metric{{api_key_alias="[^"]*",hashed_api_key="{key_id}"}} ([0-9.]+)'
+    total_pattern = f'token_iq_api_key_max_budget_metric{{api_key_alias="[^"]*",hashed_api_key="{key_id}"}} ([0-9.]+)'
     total_match = re.search(total_pattern, metrics_text)
     metrics["total"] = float(total_match.group(1)) if total_match else None
 
     # Get remaining hours
-    hours_pattern = f'litellm_api_key_budget_remaining_hours_metric{{api_key_alias="[^"]*",hashed_api_key="{key_id}"}} ([0-9.]+)'
+    hours_pattern = f'token_iq_api_key_budget_remaining_hours_metric{{api_key_alias="[^"]*",hashed_api_key="{key_id}"}} ([0-9.]+)'
     hours_match = re.search(hours_pattern, metrics_text)
     metrics["remaining_hours"] = float(hours_match.group(1)) if hours_match else None
 
@@ -606,17 +606,17 @@ def extract_user_budget_metrics(metrics_text: str, user_id: str) -> Dict[str, fl
     escaped_user_id = re.escape(user_id)
 
     # Get remaining budget (user_email and user_alias may also be present as labels)
-    remaining_pattern = rf'litellm_remaining_user_budget_metric{{[^}}]*user="{escaped_user_id}"[^}}]*}} ([0-9.]+)'
+    remaining_pattern = rf'token_iq_remaining_user_budget_metric{{[^}}]*user="{escaped_user_id}"[^}}]*}} ([0-9.]+)'
     remaining_match = re.search(remaining_pattern, metrics_text)
     metrics["remaining"] = float(remaining_match.group(1)) if remaining_match else None
 
     # Get total budget
-    total_pattern = rf'litellm_user_max_budget_metric{{[^}}]*user="{escaped_user_id}"[^}}]*}} ([0-9.]+)'
+    total_pattern = rf'token_iq_user_max_budget_metric{{[^}}]*user="{escaped_user_id}"[^}}]*}} ([0-9.]+)'
     total_match = re.search(total_pattern, metrics_text)
     metrics["total"] = float(total_match.group(1)) if total_match else None
 
     # Get remaining hours
-    hours_pattern = rf'litellm_user_budget_remaining_hours_metric{{[^}}]*user="{escaped_user_id}"[^}}]*}} ([0-9.]+)'
+    hours_pattern = rf'token_iq_user_budget_remaining_hours_metric{{[^}}]*user="{escaped_user_id}"[^}}]*}} ([0-9.]+)'
     hours_match = re.search(hours_pattern, metrics_text)
     metrics["remaining_hours"] = float(hours_match.group(1)) if hours_match else None
 
@@ -835,12 +835,12 @@ async def test_user_email_metrics():
 async def test_user_email_in_all_required_metrics():
     """
     Test that user_email label is present in all the metrics that were requested to have it:
-    - litellm_proxy_total_requests_metric_total
-    - litellm_proxy_failed_requests_metric_total
-    - litellm_input_tokens_metric_total
-    - litellm_output_tokens_metric_total
-    - litellm_requests_metric_total
-    - litellm_spend_metric_total
+    - token_iq_proxy_total_requests_metric_total
+    - token_iq_proxy_failed_requests_metric_total
+    - token_iq_input_tokens_metric_total
+    - token_iq_output_tokens_metric_total
+    - token_iq_requests_metric_total
+    - token_iq_spend_metric_total
     """
     async with aiohttp.ClientSession() as session:
         # Create a user with user_email
@@ -868,11 +868,11 @@ async def test_user_email_in_all_required_metrics():
 
         # Check that user_email appears in all the required metrics
         required_metrics_with_user_email = [
-            # "litellm_proxy_total_requests_metric_total",
-            # "litellm_input_tokens_metric_total",
-            # "litellm_output_tokens_metric_total",
-            # "litellm_requests_metric_total",
-            "litellm_spend_metric_total",
+            # "token_iq_proxy_total_requests_metric_total",
+            # "token_iq_input_tokens_metric_total",
+            # "token_iq_output_tokens_metric_total",
+            # "token_iq_requests_metric_total",
+            "token_iq_spend_metric_total",
         ]
 
         import re
@@ -903,8 +903,8 @@ async def test_user_email_in_all_required_metrics():
         metrics_text = await get_prometheus_metrics(session)
 
         # Check that failure metric also contains user_email
-        failure_pattern = rf'litellm_proxy_failed_requests_metric_total{{[^}}]*user_email="{re.escape(user_email)}"[^}}]*}}'
+        failure_pattern = rf'token_iq_proxy_failed_requests_metric_total{{[^}}]*user_email="{re.escape(user_email)}"[^}}]*}}'
         failure_matches = re.findall(failure_pattern, metrics_text)
         assert (
             len(failure_matches) > 0
-        ), f"litellm_proxy_failed_requests_metric_total should contain user_email={user_email}"
+        ), f"token_iq_proxy_failed_requests_metric_total should contain user_email={user_email}"

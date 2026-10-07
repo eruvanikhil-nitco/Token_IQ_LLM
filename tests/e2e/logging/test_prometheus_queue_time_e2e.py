@@ -12,7 +12,7 @@ from logging_client import LoggingClient
 pytestmark = pytest.mark.e2e
 
 DRIVER_MODEL = "gemini-2.5-flash"
-QUEUE_TIME_METRIC = "litellm_request_queue_time_seconds"
+QUEUE_TIME_METRIC = "token_iq_request_queue_time_seconds"
 ALIAS_LABEL = "api_key_alias"
 
 

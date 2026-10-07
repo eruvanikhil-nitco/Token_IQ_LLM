@@ -1790,7 +1790,7 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
         This excludes LiteLLM overhead and measures only the LLM provider's response time.
         Works for both streaming and non-streaming requests.
 
-        Mirrors Prometheus's litellm_llm_api_latency_metric.
+        Mirrors Prometheus's token_iq_llm_api_latency_metric.
         Uses kwargs.get("end_time") with fallback to parameter for consistency with Prometheus.
         """
         if not self._response_duration_histogram:

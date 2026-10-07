@@ -2,9 +2,9 @@
 Unit tests for the new Prometheus metrics that were previously missing from validation.
 
 Tests for:
-- litellm_remaining_api_key_requests_for_model
-- litellm_remaining_api_key_tokens_for_model
-- litellm_callback_logging_failures_metric
+- token_iq_remaining_api_key_requests_for_model
+- token_iq_remaining_api_key_tokens_for_model
+- token_iq_callback_logging_failures_metric
 """
 
 from typing import get_args
@@ -22,9 +22,9 @@ def test_new_metrics_in_defined_metrics():
     defined_metrics = get_args(DEFINED_PROMETHEUS_METRICS)
 
     new_metrics = [
-        "litellm_remaining_api_key_requests_for_model",
-        "litellm_remaining_api_key_tokens_for_model",
-        "litellm_callback_logging_failures_metric",
+        "token_iq_remaining_api_key_requests_for_model",
+        "token_iq_remaining_api_key_tokens_for_model",
+        "token_iq_callback_logging_failures_metric",
     ]
 
     for metric in new_metrics:
@@ -39,8 +39,8 @@ def test_new_metrics_have_correct_labels():
     """
     # Test API Key limits metrics labels
     api_key_metrics = [
-        "litellm_remaining_api_key_requests_for_model",
-        "litellm_remaining_api_key_tokens_for_model",
+        "token_iq_remaining_api_key_requests_for_model",
+        "token_iq_remaining_api_key_tokens_for_model",
     ]
 
     expected_api_key_labels = [
@@ -57,7 +57,7 @@ def test_new_metrics_have_correct_labels():
             ), f"{metric} should have label {expected_label}"
 
     # Test Callback failure metric labels
-    callback_metric = "litellm_callback_logging_failures_metric"
+    callback_metric = "token_iq_callback_logging_failures_metric"
     callback_labels = PrometheusMetricLabels.get_labels(callback_metric)
 
     assert (

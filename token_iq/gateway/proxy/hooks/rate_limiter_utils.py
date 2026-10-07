@@ -23,7 +23,7 @@ def resolve_llm_provider_for_rate_limit(
     :func:`litellm.get_llm_provider` is invoked anywhere else in the request
     lifecycle — so the raised 429 would otherwise have an empty
     ``llm_provider`` field, making the resulting Prometheus
-    ``litellm_proxy_failed_requests_metric`` show up with
+    ``token_iq_proxy_failed_requests_metric`` show up with
     ``exception_class="RateLimitError"`` and no provider attribution.
 
     Resolution order:

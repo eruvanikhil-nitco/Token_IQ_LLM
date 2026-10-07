@@ -51,7 +51,7 @@ class TestPrometheusUserTeamCountMetrics:
         assert prometheus_logger.litellm_teams_count_metric is not None
 
     def test_user_count_metric_has_no_labels(self, prometheus_logger):
-        """Test that litellm_total_users metric has no labels (as specified)"""
+        """Test that token_iq_total_users metric has no labels (as specified)"""
         metric = prometheus_logger.litellm_total_users_metric
 
         # The metric should be callable without labels
@@ -64,7 +64,7 @@ class TestPrometheusUserTeamCountMetrics:
             pytest.fail(f"litellm_total_users_metric should not require labels: {e}")
 
     def test_teams_count_metric_has_no_labels(self, prometheus_logger):
-        """Test that litellm_teams_count metric has no labels (as specified)"""
+        """Test that token_iq_teams_count metric has no labels (as specified)"""
         metric = prometheus_logger.litellm_teams_count_metric
 
         # The metric should be callable without labels
@@ -158,10 +158,10 @@ class TestPrometheusUserTeamCountMetrics:
 
         # Verify our metrics are in the collected metrics
         assert (
-            "litellm_total_users" in metrics or "litellm_total_users_total" in metrics
+            "token_iq_total_users" in metrics or "token_iq_total_users_total" in metrics
         )
         assert (
-            "litellm_teams_count" in metrics or "litellm_teams_count_total" in metrics
+            "token_iq_teams_count" in metrics or "token_iq_teams_count_total" in metrics
         )
 
     def test_initialize_user_and_team_count_metrics_method_exists(
@@ -192,13 +192,13 @@ class TestPrometheusUserTeamCountMetrics:
         prometheus_logger._initialize_user_and_team_count_metrics.assert_called_once()
 
     def test_active_users_metric_initialized(self, prometheus_logger):
-        """litellm_active_users gauge must exist alongside litellm_total_users."""
+        """token_iq_active_users gauge must exist alongside token_iq_total_users."""
         assert hasattr(prometheus_logger, "litellm_active_users_metric")
         assert prometheus_logger.litellm_active_users_metric is not None
 
     @pytest.mark.asyncio
     async def test_initialize_counts_total_and_active_users(self, prometheus_logger):
-        """litellm_total_users counts every row; litellm_active_users counts only
+        """token_iq_total_users counts every row; token_iq_active_users counts only
         billable (non SCIM-deactivated) users."""
         import sys
 
@@ -366,9 +366,9 @@ async def test_set_team_budget_metrics_after_api_request_no_inf_when_metadata_bu
     End-to-end: when user_api_key_team_max_budget is None in request metadata
     but the team has a real budget in the DB, the metric must NOT be set to +Inf.
     """
-    prometheus_logger.litellm_remaining_team_budget_metric = MagicMock()
-    prometheus_logger.litellm_team_max_budget_metric = MagicMock()
-    prometheus_logger.litellm_team_budget_remaining_hours_metric = MagicMock()
+    prometheus_logger.token_iq_remaining_team_budget_metric = MagicMock()
+    prometheus_logger.token_iq_team_max_budget_metric = MagicMock()
+    prometheus_logger.token_iq_team_budget_remaining_hours_metric = MagicMock()
 
     db_team = MagicMock()
     db_team.max_budget = 3000.0
@@ -385,7 +385,7 @@ async def test_set_team_budget_metrics_after_api_request_no_inf_when_metadata_bu
         )
 
     set_call_args = (
-        prometheus_logger.litellm_remaining_team_budget_metric.labels().set.call_args
+        prometheus_logger.token_iq_remaining_team_budget_metric.labels().set.call_args
     )
     assert (
         set_call_args is not None
@@ -407,9 +407,9 @@ async def test_set_team_budget_metrics_after_api_request_inf_when_genuinely_no_b
     When the team genuinely has no budget (max_budget=None in both metadata and
     DB), +Inf is the correct value and must be preserved.
     """
-    prometheus_logger.litellm_remaining_team_budget_metric = MagicMock()
-    prometheus_logger.litellm_team_max_budget_metric = MagicMock()
-    prometheus_logger.litellm_team_budget_remaining_hours_metric = MagicMock()
+    prometheus_logger.token_iq_remaining_team_budget_metric = MagicMock()
+    prometheus_logger.token_iq_team_max_budget_metric = MagicMock()
+    prometheus_logger.token_iq_team_budget_remaining_hours_metric = MagicMock()
 
     db_team = MagicMock()
     db_team.max_budget = None
@@ -426,7 +426,7 @@ async def test_set_team_budget_metrics_after_api_request_inf_when_genuinely_no_b
         )
 
     set_call_args = (
-        prometheus_logger.litellm_remaining_team_budget_metric.labels().set.call_args
+        prometheus_logger.token_iq_remaining_team_budget_metric.labels().set.call_args
     )
     assert set_call_args is not None
     actual_value = set_call_args[0][0]
@@ -533,13 +533,13 @@ def test_set_user_budget_metrics_default_no_email_alias_labels(
         budget_reset_at=datetime(2026, 3, 1, tzinfo=timezone.utc),
     )
 
-    prometheus_logger.litellm_remaining_user_budget_metric = MagicMock()
-    prometheus_logger.litellm_user_max_budget_metric = MagicMock()
-    prometheus_logger.litellm_user_budget_remaining_hours_metric = MagicMock()
+    prometheus_logger.token_iq_remaining_user_budget_metric = MagicMock()
+    prometheus_logger.token_iq_user_max_budget_metric = MagicMock()
+    prometheus_logger.token_iq_user_budget_remaining_hours_metric = MagicMock()
 
     prometheus_logger._set_user_budget_metrics(user)
 
-    prometheus_logger.litellm_remaining_user_budget_metric.labels.assert_called_once_with(
+    prometheus_logger.token_iq_remaining_user_budget_metric.labels.assert_called_once_with(
         user="user-abc-123",
     )
 
@@ -568,26 +568,26 @@ def test_set_user_budget_metrics_includes_user_email_and_alias_labels_when_opted
             budget_reset_at=datetime(2026, 3, 1, tzinfo=timezone.utc),
         )
 
-        prometheus_logger.litellm_remaining_user_budget_metric = MagicMock()
-        prometheus_logger.litellm_user_max_budget_metric = MagicMock()
-        prometheus_logger.litellm_user_budget_remaining_hours_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_user_budget_metric = MagicMock()
+        prometheus_logger.token_iq_user_max_budget_metric = MagicMock()
+        prometheus_logger.token_iq_user_budget_remaining_hours_metric = MagicMock()
 
         prometheus_logger._set_user_budget_metrics(user)
 
-        prometheus_logger.litellm_remaining_user_budget_metric.labels.assert_called_once_with(
+        prometheus_logger.token_iq_remaining_user_budget_metric.labels.assert_called_once_with(
             user="user-abc-123",
             user_email="alice@example.com",
             user_alias="Alice",
         )
-        prometheus_logger.litellm_remaining_user_budget_metric.labels().set.assert_called_once_with(
+        prometheus_logger.token_iq_remaining_user_budget_metric.labels().set.assert_called_once_with(
             75.0
         )
-        prometheus_logger.litellm_user_max_budget_metric.labels.assert_called_once_with(
+        prometheus_logger.token_iq_user_max_budget_metric.labels.assert_called_once_with(
             user="user-abc-123",
             user_email="alice@example.com",
             user_alias="Alice",
         )
-        prometheus_logger.litellm_user_budget_remaining_hours_metric.labels.assert_called_once_with(
+        prometheus_logger.token_iq_user_budget_remaining_hours_metric.labels.assert_called_once_with(
             user="user-abc-123",
             user_email="alice@example.com",
             user_alias="Alice",
@@ -603,9 +603,9 @@ async def test_set_user_budget_metrics_after_api_request_no_inf_when_metadata_bu
     End-to-end: when user_max_budget is None in request metadata but the user
     has a real budget in the DB, the metric must NOT be set to +Inf.
     """
-    prometheus_logger.litellm_remaining_user_budget_metric = MagicMock()
-    prometheus_logger.litellm_user_max_budget_metric = MagicMock()
-    prometheus_logger.litellm_user_budget_remaining_hours_metric = MagicMock()
+    prometheus_logger.token_iq_remaining_user_budget_metric = MagicMock()
+    prometheus_logger.token_iq_user_max_budget_metric = MagicMock()
+    prometheus_logger.token_iq_user_budget_remaining_hours_metric = MagicMock()
 
     db_user = MagicMock()
     db_user.max_budget = 500.0
@@ -621,7 +621,7 @@ async def test_set_user_budget_metrics_after_api_request_no_inf_when_metadata_bu
         )
 
     set_call_args = (
-        prometheus_logger.litellm_remaining_user_budget_metric.labels().set.call_args
+        prometheus_logger.token_iq_remaining_user_budget_metric.labels().set.call_args
     )
     assert (
         set_call_args is not None
@@ -643,9 +643,9 @@ async def test_set_user_budget_metrics_after_api_request_inf_when_genuinely_no_b
     When the user genuinely has no budget (max_budget=None in both metadata and
     DB), +Inf is the correct value and must be preserved.
     """
-    prometheus_logger.litellm_remaining_user_budget_metric = MagicMock()
-    prometheus_logger.litellm_user_max_budget_metric = MagicMock()
-    prometheus_logger.litellm_user_budget_remaining_hours_metric = MagicMock()
+    prometheus_logger.token_iq_remaining_user_budget_metric = MagicMock()
+    prometheus_logger.token_iq_user_max_budget_metric = MagicMock()
+    prometheus_logger.token_iq_user_budget_remaining_hours_metric = MagicMock()
 
     db_user = MagicMock()
     db_user.max_budget = None
@@ -661,7 +661,7 @@ async def test_set_user_budget_metrics_after_api_request_inf_when_genuinely_no_b
         )
 
     set_call_args = (
-        prometheus_logger.litellm_remaining_user_budget_metric.labels().set.call_args
+        prometheus_logger.token_iq_remaining_user_budget_metric.labels().set.call_args
     )
     assert set_call_args is not None
     actual_value = set_call_args[0][0]
@@ -675,8 +675,8 @@ def test_per_request_metrics_emit_all_identity_labels(prometheus_logger):
     from token_iq import gateway
     from token_iq.gateway.types.integrations.prometheus import UserAPIKeyLabelValues
 
-    prometheus_logger.litellm_requests_metric = MagicMock()
-    prometheus_logger.litellm_spend_metric = MagicMock()
+    prometheus_logger.token_iq_requests_metric = MagicMock()
+    prometheus_logger.token_iq_spend_metric = MagicMock()
 
     enum_values = UserAPIKeyLabelValues(
         hashed_api_key="hashed-key",
@@ -706,7 +706,7 @@ def test_per_request_metrics_emit_all_identity_labels(prometheus_logger):
         prometheus_logger._increment_top_level_request_and_spend_metrics(
             **common_kwargs
         )
-        label_kwargs = prometheus_logger.litellm_requests_metric.labels.call_args.kwargs
+        label_kwargs = prometheus_logger.token_iq_requests_metric.labels.call_args.kwargs
         assert label_kwargs["org_id"] == "org-abc"
         assert label_kwargs["org_alias"] == "my-org"
         assert label_kwargs["team"] == "team-abc"
@@ -716,8 +716,8 @@ def test_per_request_metrics_emit_all_identity_labels(prometheus_logger):
         from token_iq.gateway.types.integrations.prometheus import PrometheusMetricLabels
 
         for metric in (
-            "litellm_remaining_api_key_budget_metric",
-            "litellm_remaining_team_budget_metric",
+            "token_iq_remaining_api_key_budget_metric",
+            "token_iq_remaining_team_budget_metric",
         ):
             labels = PrometheusMetricLabels.get_labels(metric)
             assert "org_id" not in labels, f"{metric} should not have org_id"
@@ -725,7 +725,7 @@ def test_per_request_metrics_emit_all_identity_labels(prometheus_logger):
 
         # org_id in custom_prometheus_metadata_labels must not produce duplicate labels
         gateway.custom_prometheus_metadata_labels = ["org_id"]
-        labels = PrometheusMetricLabels.get_labels("litellm_requests_metric")
+        labels = PrometheusMetricLabels.get_labels("token_iq_requests_metric")
         assert labels.count("org_id") == 1
     finally:
         gateway.custom_prometheus_metadata_labels = []
@@ -738,19 +738,19 @@ def test_per_request_metrics_emit_all_identity_labels(prometheus_logger):
 
 def test_org_budget_metrics_initialized(prometheus_logger):
     """Test that the 3 org budget gauge metrics are initialized."""
-    assert hasattr(prometheus_logger, "litellm_remaining_org_budget_metric")
-    assert hasattr(prometheus_logger, "litellm_org_max_budget_metric")
-    assert hasattr(prometheus_logger, "litellm_org_budget_remaining_hours_metric")
-    assert prometheus_logger.litellm_remaining_org_budget_metric is not None
-    assert prometheus_logger.litellm_org_max_budget_metric is not None
-    assert prometheus_logger.litellm_org_budget_remaining_hours_metric is not None
+    assert hasattr(prometheus_logger, "token_iq_remaining_org_budget_metric")
+    assert hasattr(prometheus_logger, "token_iq_org_max_budget_metric")
+    assert hasattr(prometheus_logger, "token_iq_org_budget_remaining_hours_metric")
+    assert prometheus_logger.token_iq_remaining_org_budget_metric is not None
+    assert prometheus_logger.token_iq_org_max_budget_metric is not None
+    assert prometheus_logger.token_iq_org_budget_remaining_hours_metric is not None
 
 
 def test_set_org_budget_metrics_remaining_budget(prometheus_logger):
     """_set_org_budget_metrics sets remaining budget gauge correctly."""
-    prometheus_logger.litellm_remaining_org_budget_metric = MagicMock()
-    prometheus_logger.litellm_org_max_budget_metric = MagicMock()
-    prometheus_logger.litellm_org_budget_remaining_hours_metric = MagicMock()
+    prometheus_logger.token_iq_remaining_org_budget_metric = MagicMock()
+    prometheus_logger.token_iq_org_max_budget_metric = MagicMock()
+    prometheus_logger.token_iq_org_budget_remaining_hours_metric = MagicMock()
 
     prometheus_logger._set_org_budget_metrics(
         org_id="org-abc",
@@ -760,7 +760,7 @@ def test_set_org_budget_metrics_remaining_budget(prometheus_logger):
         budget_reset_at=None,
     )
 
-    set_call = prometheus_logger.litellm_remaining_org_budget_metric.labels().set
+    set_call = prometheus_logger.token_iq_remaining_org_budget_metric.labels().set
     set_call.assert_called_once()
     actual = set_call.call_args[0][0]
     assert abs(actual - 300.0) < 0.01, f"Expected 300.0, got {actual}"
@@ -768,9 +768,9 @@ def test_set_org_budget_metrics_remaining_budget(prometheus_logger):
 
 def test_set_org_budget_metrics_max_budget(prometheus_logger):
     """_set_org_budget_metrics sets max budget gauge when max_budget is not None."""
-    prometheus_logger.litellm_remaining_org_budget_metric = MagicMock()
-    prometheus_logger.litellm_org_max_budget_metric = MagicMock()
-    prometheus_logger.litellm_org_budget_remaining_hours_metric = MagicMock()
+    prometheus_logger.token_iq_remaining_org_budget_metric = MagicMock()
+    prometheus_logger.token_iq_org_max_budget_metric = MagicMock()
+    prometheus_logger.token_iq_org_budget_remaining_hours_metric = MagicMock()
 
     prometheus_logger._set_org_budget_metrics(
         org_id="org-abc",
@@ -780,16 +780,16 @@ def test_set_org_budget_metrics_max_budget(prometheus_logger):
         budget_reset_at=None,
     )
 
-    prometheus_logger.litellm_org_max_budget_metric.labels().set.assert_called_once_with(
+    prometheus_logger.token_iq_org_max_budget_metric.labels().set.assert_called_once_with(
         1000.0
     )
 
 
 def test_set_org_budget_metrics_no_max_budget(prometheus_logger):
     """_set_org_budget_metrics does not set max budget gauge when max_budget is None."""
-    prometheus_logger.litellm_remaining_org_budget_metric = MagicMock()
-    prometheus_logger.litellm_org_max_budget_metric = MagicMock()
-    prometheus_logger.litellm_org_budget_remaining_hours_metric = MagicMock()
+    prometheus_logger.token_iq_remaining_org_budget_metric = MagicMock()
+    prometheus_logger.token_iq_org_max_budget_metric = MagicMock()
+    prometheus_logger.token_iq_org_budget_remaining_hours_metric = MagicMock()
 
     prometheus_logger._set_org_budget_metrics(
         org_id="org-abc",
@@ -799,14 +799,14 @@ def test_set_org_budget_metrics_no_max_budget(prometheus_logger):
         budget_reset_at=None,
     )
 
-    prometheus_logger.litellm_org_max_budget_metric.labels().set.assert_not_called()
+    prometheus_logger.token_iq_org_max_budget_metric.labels().set.assert_not_called()
 
 
 def test_set_org_budget_metrics_remaining_hours(prometheus_logger):
     """_set_org_budget_metrics sets remaining hours gauge when budget_reset_at is set."""
-    prometheus_logger.litellm_remaining_org_budget_metric = MagicMock()
-    prometheus_logger.litellm_org_max_budget_metric = MagicMock()
-    prometheus_logger.litellm_org_budget_remaining_hours_metric = MagicMock()
+    prometheus_logger.token_iq_remaining_org_budget_metric = MagicMock()
+    prometheus_logger.token_iq_org_max_budget_metric = MagicMock()
+    prometheus_logger.token_iq_org_budget_remaining_hours_metric = MagicMock()
 
     future_reset = datetime(2099, 1, 1, tzinfo=timezone.utc)
     prometheus_logger._set_org_budget_metrics(
@@ -817,7 +817,7 @@ def test_set_org_budget_metrics_remaining_hours(prometheus_logger):
         budget_reset_at=future_reset,
     )
 
-    prometheus_logger.litellm_org_budget_remaining_hours_metric.labels().set.assert_called_once()
+    prometheus_logger.token_iq_org_budget_remaining_hours_metric.labels().set.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -825,9 +825,9 @@ async def test_set_org_budget_metrics_after_api_request(prometheus_logger):
     """_set_org_budget_metrics_after_api_request uses cache helper and accounts for response_cost."""
     import sys
 
-    prometheus_logger.litellm_remaining_org_budget_metric = MagicMock()
-    prometheus_logger.litellm_org_max_budget_metric = MagicMock()
-    prometheus_logger.litellm_org_budget_remaining_hours_metric = MagicMock()
+    prometheus_logger.token_iq_remaining_org_budget_metric = MagicMock()
+    prometheus_logger.token_iq_org_max_budget_metric = MagicMock()
+    prometheus_logger.token_iq_org_budget_remaining_hours_metric = MagicMock()
 
     budget_mock = MagicMock()
     budget_mock.max_budget = 1000.0
@@ -858,32 +858,32 @@ async def test_set_org_budget_metrics_after_api_request(prometheus_logger):
 
     # remaining budget should reflect spend + response_cost (300 + 50 = 350, remaining = 1000 - 350 = 650)
     remaining_call = (
-        prometheus_logger.litellm_remaining_org_budget_metric.labels().set.call_args
+        prometheus_logger.token_iq_remaining_org_budget_metric.labels().set.call_args
     )
     assert remaining_call is not None
     assert remaining_call[0][0] == pytest.approx(650.0)
 
-    prometheus_logger.litellm_org_max_budget_metric.labels().set.assert_called_once_with(
+    prometheus_logger.token_iq_org_max_budget_metric.labels().set.assert_called_once_with(
         1000.0
     )
-    prometheus_logger.litellm_org_budget_remaining_hours_metric.labels().set.assert_called_once()
+    prometheus_logger.token_iq_org_budget_remaining_hours_metric.labels().set.assert_called_once()
 
 
 @pytest.mark.asyncio
 async def test_set_org_budget_metrics_after_api_request_no_org_id(prometheus_logger):
     """_set_org_budget_metrics_after_api_request is a no-op when org_id is None."""
-    prometheus_logger.litellm_remaining_org_budget_metric = MagicMock()
-    prometheus_logger.litellm_org_max_budget_metric = MagicMock()
-    prometheus_logger.litellm_org_budget_remaining_hours_metric = MagicMock()
+    prometheus_logger.token_iq_remaining_org_budget_metric = MagicMock()
+    prometheus_logger.token_iq_org_max_budget_metric = MagicMock()
+    prometheus_logger.token_iq_org_budget_remaining_hours_metric = MagicMock()
 
     await prometheus_logger._set_org_budget_metrics_after_api_request(
         org_id=None,
         response_cost=1.0,
     )
 
-    prometheus_logger.litellm_remaining_org_budget_metric.labels().set.assert_not_called()
-    prometheus_logger.litellm_org_max_budget_metric.labels().set.assert_not_called()
-    prometheus_logger.litellm_org_budget_remaining_hours_metric.labels().set.assert_not_called()
+    prometheus_logger.token_iq_remaining_org_budget_metric.labels().set.assert_not_called()
+    prometheus_logger.token_iq_org_max_budget_metric.labels().set.assert_not_called()
+    prometheus_logger.token_iq_org_budget_remaining_hours_metric.labels().set.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -891,9 +891,9 @@ async def test_initialize_org_budget_metrics(prometheus_logger):
     """_initialize_org_budget_metrics fetches all orgs and sets gauges for each."""
     import sys
 
-    prometheus_logger.litellm_remaining_org_budget_metric = MagicMock()
-    prometheus_logger.litellm_org_max_budget_metric = MagicMock()
-    prometheus_logger.litellm_org_budget_remaining_hours_metric = MagicMock()
+    prometheus_logger.token_iq_remaining_org_budget_metric = MagicMock()
+    prometheus_logger.token_iq_org_max_budget_metric = MagicMock()
+    prometheus_logger.token_iq_org_budget_remaining_hours_metric = MagicMock()
 
     budget_mock = MagicMock()
     budget_mock.max_budget = 500.0
@@ -917,8 +917,8 @@ async def test_initialize_org_budget_metrics(prometheus_logger):
     with patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": mock_proxy_server}):
         await prometheus_logger._initialize_org_budget_metrics()
 
-    prometheus_logger.litellm_remaining_org_budget_metric.labels().set.assert_called_once()
-    prometheus_logger.litellm_org_max_budget_metric.labels().set.assert_called_once_with(
+    prometheus_logger.token_iq_remaining_org_budget_metric.labels().set.assert_called_once()
+    prometheus_logger.token_iq_org_max_budget_metric.labels().set.assert_called_once_with(
         500.0
     )
 
@@ -963,17 +963,17 @@ def test_custom_latency_buckets():
 
 
 class TestSetTeamMembersMetric:
-    """litellm_team_members_metric tracks the current member count per team."""
+    """token_iq_team_members_metric tracks the current member count per team."""
 
     def _gauge_value(self, team_id, team_alias):
         return REGISTRY.get_sample_value(
-            "litellm_team_members_metric",
+            "token_iq_team_members_metric",
             {"team": team_id, "team_alias": team_alias},
         )
 
     def test_metric_initialized(self, prometheus_logger):
-        assert hasattr(prometheus_logger, "litellm_team_members_metric")
-        assert prometheus_logger.litellm_team_members_metric is not None
+        assert hasattr(prometheus_logger, "token_iq_team_members_metric")
+        assert prometheus_logger.token_iq_team_members_metric is not None
 
     @pytest.mark.parametrize("count", [0, 1, 3, 7])
     def test_sets_gauge_to_member_count(self, prometheus_logger, count):

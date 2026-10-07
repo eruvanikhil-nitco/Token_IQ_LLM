@@ -32,26 +32,26 @@ class TestPrometheusCacheMetrics:
 
         defined_metrics = get_args(DEFINED_PROMETHEUS_METRICS)
 
-        assert "litellm_cache_hits_metric" in defined_metrics
-        assert "litellm_cache_misses_metric" in defined_metrics
-        assert "litellm_cached_tokens_metric" in defined_metrics
-        assert "litellm_provider_cache_read_input_tokens_metric" in defined_metrics
-        assert "litellm_provider_cache_creation_input_tokens_metric" in defined_metrics
+        assert "token_iq_cache_hits_metric" in defined_metrics
+        assert "token_iq_cache_misses_metric" in defined_metrics
+        assert "token_iq_cached_tokens_metric" in defined_metrics
+        assert "token_iq_provider_cache_read_input_tokens_metric" in defined_metrics
+        assert "token_iq_provider_cache_creation_input_tokens_metric" in defined_metrics
 
     def test_cache_metric_labels_defined(self):
         """Test that cache metric labels are properly defined"""
         from token_iq.gateway.types.integrations.prometheus import PrometheusMetricLabels
 
         # Verify labels are defined for each cache metric
-        assert hasattr(PrometheusMetricLabels, "litellm_cache_hits_metric")
-        assert hasattr(PrometheusMetricLabels, "litellm_cache_misses_metric")
-        assert hasattr(PrometheusMetricLabels, "litellm_cached_tokens_metric")
+        assert hasattr(PrometheusMetricLabels, "token_iq_cache_hits_metric")
+        assert hasattr(PrometheusMetricLabels, "token_iq_cache_misses_metric")
+        assert hasattr(PrometheusMetricLabels, "token_iq_cached_tokens_metric")
         assert hasattr(
-            PrometheusMetricLabels, "litellm_provider_cache_read_input_tokens_metric"
+            PrometheusMetricLabels, "token_iq_provider_cache_read_input_tokens_metric"
         )
         assert hasattr(
             PrometheusMetricLabels,
-            "litellm_provider_cache_creation_input_tokens_metric",
+            "token_iq_provider_cache_creation_input_tokens_metric",
         )
 
         # Verify labels include expected keys
@@ -65,16 +65,16 @@ class TestPrometheusCacheMetrics:
             "user",
         ]
         for label in expected_labels:
-            assert label in PrometheusMetricLabels.litellm_cache_hits_metric
-            assert label in PrometheusMetricLabels.litellm_cache_misses_metric
-            assert label in PrometheusMetricLabels.litellm_cached_tokens_metric
+            assert label in PrometheusMetricLabels.token_iq_cache_hits_metric
+            assert label in PrometheusMetricLabels.token_iq_cache_misses_metric
+            assert label in PrometheusMetricLabels.token_iq_cached_tokens_metric
             assert (
                 label
-                in PrometheusMetricLabels.litellm_provider_cache_read_input_tokens_metric
+                in PrometheusMetricLabels.token_iq_provider_cache_read_input_tokens_metric
             )
             assert (
                 label
-                in PrometheusMetricLabels.litellm_provider_cache_creation_input_tokens_metric
+                in PrometheusMetricLabels.token_iq_provider_cache_creation_input_tokens_metric
             )
 
     def test_increment_cache_metrics_on_cache_hit(self, sample_enum_values):
@@ -102,11 +102,11 @@ class TestPrometheusCacheMetrics:
         }
 
         # Create mock metrics
-        mock_logger.litellm_cache_hits_metric = MagicMock()
-        mock_logger.litellm_cache_misses_metric = MagicMock()
-        mock_logger.litellm_cached_tokens_metric = MagicMock()
-        mock_logger.litellm_provider_cache_read_input_tokens_metric = MagicMock()
-        mock_logger.litellm_provider_cache_creation_input_tokens_metric = MagicMock()
+        mock_logger.token_iq_cache_hits_metric = MagicMock()
+        mock_logger.token_iq_cache_misses_metric = MagicMock()
+        mock_logger.token_iq_cached_tokens_metric = MagicMock()
+        mock_logger.token_iq_provider_cache_read_input_tokens_metric = MagicMock()
+        mock_logger.token_iq_provider_cache_creation_input_tokens_metric = MagicMock()
         mock_logger.get_labels_for_metric = MagicMock(
             return_value=[
                 "model",
@@ -127,23 +127,23 @@ class TestPrometheusCacheMetrics:
         )
 
         # Verify cache hits metric was incremented
-        mock_logger.litellm_cache_hits_metric.labels.assert_called()
-        mock_logger.litellm_cache_hits_metric.labels().inc.assert_called_once()
+        mock_logger.token_iq_cache_hits_metric.labels.assert_called()
+        mock_logger.token_iq_cache_hits_metric.labels().inc.assert_called_once()
 
         # Verify cached tokens metric was incremented with total_tokens
-        mock_logger.litellm_cached_tokens_metric.labels.assert_called()
-        mock_logger.litellm_cached_tokens_metric.labels().inc.assert_called_once_with(
+        mock_logger.token_iq_cached_tokens_metric.labels.assert_called()
+        mock_logger.token_iq_cached_tokens_metric.labels().inc.assert_called_once_with(
             100
         )
 
         # Verify cache misses metric was NOT called
-        mock_logger.litellm_cache_misses_metric.labels.assert_not_called()
+        mock_logger.token_iq_cache_misses_metric.labels.assert_not_called()
 
         # Verify provider prompt caching metrics were incremented
-        mock_logger.litellm_provider_cache_read_input_tokens_metric.labels().inc.assert_called_once_with(
+        mock_logger.token_iq_provider_cache_read_input_tokens_metric.labels().inc.assert_called_once_with(
             25
         )
-        mock_logger.litellm_provider_cache_creation_input_tokens_metric.labels().inc.assert_called_once_with(
+        mock_logger.token_iq_provider_cache_creation_input_tokens_metric.labels().inc.assert_called_once_with(
             10
         )
 
@@ -171,11 +171,11 @@ class TestPrometheusCacheMetrics:
         }
 
         # Create mock metrics
-        mock_logger.litellm_cache_hits_metric = MagicMock()
-        mock_logger.litellm_cache_misses_metric = MagicMock()
-        mock_logger.litellm_cached_tokens_metric = MagicMock()
-        mock_logger.litellm_provider_cache_read_input_tokens_metric = MagicMock()
-        mock_logger.litellm_provider_cache_creation_input_tokens_metric = MagicMock()
+        mock_logger.token_iq_cache_hits_metric = MagicMock()
+        mock_logger.token_iq_cache_misses_metric = MagicMock()
+        mock_logger.token_iq_cached_tokens_metric = MagicMock()
+        mock_logger.token_iq_provider_cache_read_input_tokens_metric = MagicMock()
+        mock_logger.token_iq_provider_cache_creation_input_tokens_metric = MagicMock()
         mock_logger.get_labels_for_metric = MagicMock(
             return_value=[
                 "model",
@@ -196,18 +196,18 @@ class TestPrometheusCacheMetrics:
         )
 
         # Verify cache misses metric was incremented
-        mock_logger.litellm_cache_misses_metric.labels.assert_called()
-        mock_logger.litellm_cache_misses_metric.labels().inc.assert_called_once()
+        mock_logger.token_iq_cache_misses_metric.labels.assert_called()
+        mock_logger.token_iq_cache_misses_metric.labels().inc.assert_called_once()
 
         # Verify cache hits and cached tokens metrics were NOT called
-        mock_logger.litellm_cache_hits_metric.labels.assert_not_called()
-        mock_logger.litellm_cached_tokens_metric.labels.assert_not_called()
+        mock_logger.token_iq_cache_hits_metric.labels.assert_not_called()
+        mock_logger.token_iq_cached_tokens_metric.labels.assert_not_called()
 
         # Provider prompt caching metrics should still be emitted
-        mock_logger.litellm_provider_cache_read_input_tokens_metric.labels().inc.assert_called_once_with(
+        mock_logger.token_iq_provider_cache_read_input_tokens_metric.labels().inc.assert_called_once_with(
             20
         )
-        mock_logger.litellm_provider_cache_creation_input_tokens_metric.labels.assert_not_called()
+        mock_logger.token_iq_provider_cache_creation_input_tokens_metric.labels.assert_not_called()
 
     def test_provider_cache_read_does_not_fallback_on_explicit_zero(
         self, sample_enum_values
@@ -232,11 +232,11 @@ class TestPrometheusCacheMetrics:
             },
         }
 
-        mock_logger.litellm_cache_hits_metric = MagicMock()
-        mock_logger.litellm_cache_misses_metric = MagicMock()
-        mock_logger.litellm_cached_tokens_metric = MagicMock()
-        mock_logger.litellm_provider_cache_read_input_tokens_metric = MagicMock()
-        mock_logger.litellm_provider_cache_creation_input_tokens_metric = MagicMock()
+        mock_logger.token_iq_cache_hits_metric = MagicMock()
+        mock_logger.token_iq_cache_misses_metric = MagicMock()
+        mock_logger.token_iq_cached_tokens_metric = MagicMock()
+        mock_logger.token_iq_provider_cache_read_input_tokens_metric = MagicMock()
+        mock_logger.token_iq_provider_cache_creation_input_tokens_metric = MagicMock()
         mock_logger.get_labels_for_metric = MagicMock(
             return_value=[
                 "model",
@@ -256,7 +256,7 @@ class TestPrometheusCacheMetrics:
         )
 
         # Should not emit read metric, because explicit provider value is zero.
-        mock_logger.litellm_provider_cache_read_input_tokens_metric.labels.assert_not_called()
+        mock_logger.token_iq_provider_cache_read_input_tokens_metric.labels.assert_not_called()
 
     def test_provider_cache_creation_fallback_to_cache_write_tokens(
         self, sample_enum_values
@@ -284,11 +284,11 @@ class TestPrometheusCacheMetrics:
             },
         }
 
-        mock_logger.litellm_cache_hits_metric = MagicMock()
-        mock_logger.litellm_cache_misses_metric = MagicMock()
-        mock_logger.litellm_cached_tokens_metric = MagicMock()
-        mock_logger.litellm_provider_cache_read_input_tokens_metric = MagicMock()
-        mock_logger.litellm_provider_cache_creation_input_tokens_metric = MagicMock()
+        mock_logger.token_iq_cache_hits_metric = MagicMock()
+        mock_logger.token_iq_cache_misses_metric = MagicMock()
+        mock_logger.token_iq_cached_tokens_metric = MagicMock()
+        mock_logger.token_iq_provider_cache_read_input_tokens_metric = MagicMock()
+        mock_logger.token_iq_provider_cache_creation_input_tokens_metric = MagicMock()
         mock_logger.get_labels_for_metric = MagicMock(
             return_value=[
                 "model",
@@ -307,7 +307,7 @@ class TestPrometheusCacheMetrics:
             enum_values=sample_enum_values,
         )
 
-        mock_logger.litellm_provider_cache_creation_input_tokens_metric.labels().inc.assert_called_once_with(
+        mock_logger.token_iq_provider_cache_creation_input_tokens_metric.labels().inc.assert_called_once_with(
             800
         )
 
@@ -334,11 +334,11 @@ class TestPrometheusCacheMetrics:
             },
         }
 
-        mock_logger.litellm_cache_hits_metric = MagicMock()
-        mock_logger.litellm_cache_misses_metric = MagicMock()
-        mock_logger.litellm_cached_tokens_metric = MagicMock()
-        mock_logger.litellm_provider_cache_read_input_tokens_metric = MagicMock()
-        mock_logger.litellm_provider_cache_creation_input_tokens_metric = MagicMock()
+        mock_logger.token_iq_cache_hits_metric = MagicMock()
+        mock_logger.token_iq_cache_misses_metric = MagicMock()
+        mock_logger.token_iq_cached_tokens_metric = MagicMock()
+        mock_logger.token_iq_provider_cache_read_input_tokens_metric = MagicMock()
+        mock_logger.token_iq_provider_cache_creation_input_tokens_metric = MagicMock()
         mock_logger.get_labels_for_metric = MagicMock(
             return_value=[
                 "model",
@@ -357,7 +357,7 @@ class TestPrometheusCacheMetrics:
             enum_values=sample_enum_values,
         )
 
-        mock_logger.litellm_provider_cache_creation_input_tokens_metric.labels().inc.assert_called_once_with(
+        mock_logger.token_iq_provider_cache_creation_input_tokens_metric.labels().inc.assert_called_once_with(
             42
         )
 
@@ -385,11 +385,11 @@ class TestPrometheusCacheMetrics:
             },
         }
 
-        mock_logger.litellm_cache_hits_metric = MagicMock()
-        mock_logger.litellm_cache_misses_metric = MagicMock()
-        mock_logger.litellm_cached_tokens_metric = MagicMock()
-        mock_logger.litellm_provider_cache_read_input_tokens_metric = MagicMock()
-        mock_logger.litellm_provider_cache_creation_input_tokens_metric = MagicMock()
+        mock_logger.token_iq_cache_hits_metric = MagicMock()
+        mock_logger.token_iq_cache_misses_metric = MagicMock()
+        mock_logger.token_iq_cached_tokens_metric = MagicMock()
+        mock_logger.token_iq_provider_cache_read_input_tokens_metric = MagicMock()
+        mock_logger.token_iq_provider_cache_creation_input_tokens_metric = MagicMock()
         mock_logger.get_labels_for_metric = MagicMock(
             return_value=[
                 "model",
@@ -408,7 +408,7 @@ class TestPrometheusCacheMetrics:
             enum_values=sample_enum_values,
         )
 
-        mock_logger.litellm_provider_cache_creation_input_tokens_metric.labels.assert_not_called()
+        mock_logger.token_iq_provider_cache_creation_input_tokens_metric.labels.assert_not_called()
 
     def test_increment_cache_metrics_when_cache_hit_is_none(self, sample_enum_values):
         """Test that no metrics are incremented when cache_hit is None"""
@@ -433,11 +433,11 @@ class TestPrometheusCacheMetrics:
         }
 
         # Create mock metrics
-        mock_logger.litellm_cache_hits_metric = MagicMock()
-        mock_logger.litellm_cache_misses_metric = MagicMock()
-        mock_logger.litellm_cached_tokens_metric = MagicMock()
-        mock_logger.litellm_provider_cache_read_input_tokens_metric = MagicMock()
-        mock_logger.litellm_provider_cache_creation_input_tokens_metric = MagicMock()
+        mock_logger.token_iq_cache_hits_metric = MagicMock()
+        mock_logger.token_iq_cache_misses_metric = MagicMock()
+        mock_logger.token_iq_cached_tokens_metric = MagicMock()
+        mock_logger.token_iq_provider_cache_read_input_tokens_metric = MagicMock()
+        mock_logger.token_iq_provider_cache_creation_input_tokens_metric = MagicMock()
         mock_logger.get_labels_for_metric = MagicMock(
             return_value=[
                 "model",
@@ -458,15 +458,15 @@ class TestPrometheusCacheMetrics:
         )
 
         # Verify NO metrics were called
-        mock_logger.litellm_cache_hits_metric.labels.assert_not_called()
-        mock_logger.litellm_cache_misses_metric.labels.assert_not_called()
-        mock_logger.litellm_cached_tokens_metric.labels.assert_not_called()
+        mock_logger.token_iq_cache_hits_metric.labels.assert_not_called()
+        mock_logger.token_iq_cache_misses_metric.labels.assert_not_called()
+        mock_logger.token_iq_cached_tokens_metric.labels.assert_not_called()
 
         # Provider prompt caching metrics should still be emitted
-        mock_logger.litellm_provider_cache_read_input_tokens_metric.labels().inc.assert_called_once_with(
+        mock_logger.token_iq_provider_cache_read_input_tokens_metric.labels().inc.assert_called_once_with(
             25
         )
-        mock_logger.litellm_provider_cache_creation_input_tokens_metric.labels.assert_not_called()
+        mock_logger.token_iq_provider_cache_creation_input_tokens_metric.labels.assert_not_called()
 
 
 if __name__ == "__main__":

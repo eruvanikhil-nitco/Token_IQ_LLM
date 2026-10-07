@@ -70,7 +70,7 @@ def test_a_name_without_the_old_name_in_it_is_left_alone() -> None:
         ("litellm_settings", ("token_iq/gateway/proxy/proxy_server.py",), "config key"),
         ("x-token-iq-model-id", ("token_iq/gateway/proxy/common_utils/http_parsing_utils.py",), "request header"),
         ("LiteLLM_TeamTable", ("schema.prisma",), "database model"),
-        ("litellm_requests_metric", ("token_iq/gateway/integrations/prometheus.py",), "metric name"),
+        ("token_iq_requests_metric", ("token_iq/gateway/integrations/prometheus.py",), "metric name"),
         ("LiteLLMRoutes", ("token_iq/gateway/proxy/_types.py",), "identifier"),
     ],
 )

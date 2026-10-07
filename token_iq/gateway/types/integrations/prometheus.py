@@ -208,102 +208,102 @@ class UserAPIKeyLabelNames(Enum):
 
 
 DEFINED_PROMETHEUS_METRICS = Literal[
-    "litellm_llm_api_latency_metric",
-    "litellm_llm_api_time_to_first_token_metric",
-    "litellm_request_total_latency_metric",
-    "litellm_overhead_latency_metric",
-    "litellm_overhead_with_guardrails_latency_metric",
-    "litellm_remaining_requests_metric",
-    "litellm_remaining_tokens_metric",
-    "litellm_proxy_total_requests_metric",
-    "litellm_proxy_failed_requests_metric",
-    "litellm_deployment_latency_per_output_token",
-    "litellm_requests_metric",
-    "litellm_spend_metric",
-    "litellm_total_tokens_metric",
-    "litellm_input_tokens_metric",
-    "litellm_output_tokens_metric",
-    "litellm_input_cached_tokens_metric",
-    "litellm_input_cache_creation_tokens_metric",
-    "litellm_input_audio_tokens_metric",
-    "litellm_output_reasoning_tokens_metric",
-    "litellm_output_audio_tokens_metric",
-    "litellm_video_duration_seconds_metric",
-    "litellm_images_generated_metric",
-    "litellm_deployment_successful_fallbacks",
-    "litellm_deployment_failed_fallbacks",
-    "litellm_remaining_team_budget_metric",
-    "litellm_team_max_budget_metric",
-    "litellm_team_budget_remaining_hours_metric",
-    "litellm_team_members_metric",
-    "litellm_remaining_org_budget_metric",
-    "litellm_org_max_budget_metric",
-    "litellm_org_budget_remaining_hours_metric",
-    "litellm_remaining_api_key_budget_metric",
-    "litellm_api_key_max_budget_metric",
-    "litellm_api_key_budget_remaining_hours_metric",
-    "litellm_remaining_user_budget_metric",
-    "litellm_user_max_budget_metric",
-    "litellm_user_budget_remaining_hours_metric",
-    "litellm_deployment_state",
-    "litellm_deployment_failure_responses",
-    "litellm_deployment_total_requests",
-    "litellm_deployment_success_responses",
-    "litellm_deployment_cooled_down",
+    "token_iq_llm_api_latency_metric",
+    "token_iq_llm_api_time_to_first_token_metric",
+    "token_iq_request_total_latency_metric",
+    "token_iq_overhead_latency_metric",
+    "token_iq_overhead_with_guardrails_latency_metric",
+    "token_iq_remaining_requests_metric",
+    "token_iq_remaining_tokens_metric",
+    "token_iq_proxy_total_requests_metric",
+    "token_iq_proxy_failed_requests_metric",
+    "token_iq_deployment_latency_per_output_token",
+    "token_iq_requests_metric",
+    "token_iq_spend_metric",
+    "token_iq_total_tokens_metric",
+    "token_iq_input_tokens_metric",
+    "token_iq_output_tokens_metric",
+    "token_iq_input_cached_tokens_metric",
+    "token_iq_input_cache_creation_tokens_metric",
+    "token_iq_input_audio_tokens_metric",
+    "token_iq_output_reasoning_tokens_metric",
+    "token_iq_output_audio_tokens_metric",
+    "token_iq_video_duration_seconds_metric",
+    "token_iq_images_generated_metric",
+    "token_iq_deployment_successful_fallbacks",
+    "token_iq_deployment_failed_fallbacks",
+    "token_iq_remaining_team_budget_metric",
+    "token_iq_team_max_budget_metric",
+    "token_iq_team_budget_remaining_hours_metric",
+    "token_iq_team_members_metric",
+    "token_iq_remaining_org_budget_metric",
+    "token_iq_org_max_budget_metric",
+    "token_iq_org_budget_remaining_hours_metric",
+    "token_iq_remaining_api_key_budget_metric",
+    "token_iq_api_key_max_budget_metric",
+    "token_iq_api_key_budget_remaining_hours_metric",
+    "token_iq_remaining_user_budget_metric",
+    "token_iq_user_max_budget_metric",
+    "token_iq_user_budget_remaining_hours_metric",
+    "token_iq_deployment_state",
+    "token_iq_deployment_failure_responses",
+    "token_iq_deployment_total_requests",
+    "token_iq_deployment_success_responses",
+    "token_iq_deployment_cooled_down",
     "litellm_pod_lock_manager_size",
     "litellm_in_memory_daily_spend_update_queue_size",
     "litellm_redis_daily_spend_update_queue_size",
     "litellm_in_memory_spend_update_queue_size",
     "litellm_redis_spend_update_queue_size",
-    "litellm_request_queue_time_seconds",
-    "litellm_guardrail_latency_seconds",
-    "litellm_guardrail_errors_total",
-    "litellm_guardrail_requests_total",
+    "token_iq_request_queue_time_seconds",
+    "token_iq_guardrail_latency_seconds",
+    "token_iq_guardrail_errors_total",
+    "token_iq_guardrail_requests_total",
     # Cache metrics
-    "litellm_cache_hits_metric",
-    "litellm_cache_misses_metric",
-    "litellm_cached_tokens_metric",
+    "token_iq_cache_hits_metric",
+    "token_iq_cache_misses_metric",
+    "token_iq_cached_tokens_metric",
     # Provider prompt-caching metrics (e.g. OpenAI/Anthropic/Bedrock/Gemini)
-    "litellm_provider_cache_read_input_tokens_metric",
-    "litellm_provider_cache_creation_input_tokens_metric",
-    "litellm_deployment_tpm_limit",
-    "litellm_deployment_rpm_limit",
-    "litellm_remaining_api_key_requests_for_model",
-    "litellm_remaining_api_key_tokens_for_model",
-    "litellm_api_key_rate_limit_allowed_metric",
-    "litellm_api_key_rate_limit_used_metric",
-    "litellm_team_rate_limit_allowed_metric",
-    "litellm_team_rate_limit_used_metric",
-    "litellm_llm_api_failed_requests_metric",
-    "litellm_callback_logging_failures_metric",
-    "litellm_in_flight_requests",
+    "token_iq_provider_cache_read_input_tokens_metric",
+    "token_iq_provider_cache_creation_input_tokens_metric",
+    "token_iq_deployment_tpm_limit",
+    "token_iq_deployment_rpm_limit",
+    "token_iq_remaining_api_key_requests_for_model",
+    "token_iq_remaining_api_key_tokens_for_model",
+    "token_iq_api_key_rate_limit_allowed_metric",
+    "token_iq_api_key_rate_limit_used_metric",
+    "token_iq_team_rate_limit_allowed_metric",
+    "token_iq_team_rate_limit_used_metric",
+    "token_iq_llm_api_failed_requests_metric",
+    "token_iq_callback_logging_failures_metric",
+    "token_iq_in_flight_requests",
     # Managed batch metrics
-    "litellm_managed_batch_created_total",
-    "litellm_managed_file_size_bytes",
-    "litellm_managed_batch_duration_seconds",
-    "litellm_managed_file_created_total",
-    "litellm_managed_file_deleted_total",
-    "litellm_check_batch_cost_jobs_polled",
-    "litellm_check_batch_cost_jobs_processed_total",
-    "litellm_check_batch_cost_errors_total",
-    "litellm_check_batch_cost_last_run_timestamp",
+    "token_iq_managed_batch_created_total",
+    "token_iq_managed_file_size_bytes",
+    "token_iq_managed_batch_duration_seconds",
+    "token_iq_managed_file_created_total",
+    "token_iq_managed_file_deleted_total",
+    "token_iq_check_batch_cost_jobs_polled",
+    "token_iq_check_batch_cost_jobs_processed_total",
+    "token_iq_check_batch_cost_errors_total",
+    "token_iq_check_batch_cost_last_run_timestamp",
     # MCP tool call metrics
-    "litellm_mcp_tool_calls_total",
-    "litellm_mcp_tool_call_spend_metric",
+    "token_iq_mcp_tool_calls_total",
+    "token_iq_mcp_tool_call_spend_metric",
 ]
 
 
 PROMETHEUS_DEPLOYMENT_AND_LATENCY_CALLER_IDENTITY_METRICS: Final[frozenset[str]] = frozenset(
     {
-        "litellm_deployment_total_requests",
-        "litellm_deployment_success_responses",
-        "litellm_deployment_failure_responses",
-        "litellm_request_total_latency_metric",
-        "litellm_llm_api_latency_metric",
-        "litellm_llm_api_time_to_first_token_metric",
-        "litellm_request_queue_time_seconds",
-        "litellm_overhead_latency_metric",
-        "litellm_deployment_latency_per_output_token",
+        "token_iq_deployment_total_requests",
+        "token_iq_deployment_success_responses",
+        "token_iq_deployment_failure_responses",
+        "token_iq_request_total_latency_metric",
+        "token_iq_llm_api_latency_metric",
+        "token_iq_llm_api_time_to_first_token_metric",
+        "token_iq_request_queue_time_seconds",
+        "token_iq_overhead_latency_metric",
+        "token_iq_deployment_latency_per_output_token",
     }
 )
 
@@ -386,7 +386,7 @@ def _resolve_deployment_and_latency_caller_identity_labels(
 
 
 class PrometheusMetricLabels:
-    litellm_llm_api_latency_metric = [
+    token_iq_llm_api_latency_metric = [
         UserAPIKeyLabelNames.v1_LITELLM_MODEL_NAME.value,
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
@@ -400,7 +400,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.SERVICE_TIER.value,
     ]
 
-    litellm_llm_api_time_to_first_token_metric = [
+    token_iq_llm_api_time_to_first_token_metric = [
         UserAPIKeyLabelNames.v1_LITELLM_MODEL_NAME.value,
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
@@ -414,7 +414,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.SERVICE_TIER.value,
     ]
 
-    litellm_request_total_latency_metric = [
+    token_iq_request_total_latency_metric = [
         UserAPIKeyLabelNames.END_USER.value,
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
@@ -428,7 +428,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.SERVICE_TIER.value,
     ]
 
-    litellm_request_queue_time_seconds = [
+    token_iq_request_queue_time_seconds = [
         UserAPIKeyLabelNames.END_USER.value,
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
@@ -443,11 +443,11 @@ class PrometheusMetricLabels:
 
     # Guardrail metrics - these use custom labels (guardrail_name, status, error_type, hook_type)
     # which are not part of UserAPIKeyLabelNames
-    litellm_guardrail_latency_seconds: list[str] = []
-    litellm_guardrail_errors_total: list[str] = []
-    litellm_guardrail_requests_total: list[str] = []
+    token_iq_guardrail_latency_seconds: list[str] = []
+    token_iq_guardrail_errors_total: list[str] = []
+    token_iq_guardrail_requests_total: list[str] = []
 
-    litellm_proxy_total_requests_metric = [
+    token_iq_proxy_total_requests_metric = [
         UserAPIKeyLabelNames.END_USER.value,
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
@@ -464,7 +464,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.API_PROVIDER.value,
     ]
 
-    litellm_proxy_failed_requests_metric = [
+    token_iq_proxy_failed_requests_metric = [
         UserAPIKeyLabelNames.END_USER.value,
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
@@ -486,7 +486,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.API_PROVIDER.value,
     ]
 
-    litellm_deployment_latency_per_output_token = [
+    token_iq_deployment_latency_per_output_token = [
         UserAPIKeyLabelNames.v2_LITELLM_MODEL_NAME.value,
         UserAPIKeyLabelNames.MODEL_ID.value,
         UserAPIKeyLabelNames.API_BASE.value,
@@ -497,7 +497,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.TEAM_ALIAS.value,
     ]
 
-    litellm_overhead_latency_metric = [
+    token_iq_overhead_latency_metric = [
         UserAPIKeyLabelNames.MODEL_GROUP.value,
         UserAPIKeyLabelNames.API_PROVIDER.value,
         UserAPIKeyLabelNames.API_BASE.value,
@@ -507,7 +507,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.MODEL_ID.value,
     ]
 
-    litellm_overhead_with_guardrails_latency_metric = [
+    token_iq_overhead_with_guardrails_latency_metric = [
         UserAPIKeyLabelNames.MODEL_GROUP.value,
         UserAPIKeyLabelNames.API_PROVIDER.value,
         UserAPIKeyLabelNames.API_BASE.value,
@@ -517,7 +517,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.MODEL_ID.value,
     ]
 
-    litellm_remaining_requests_metric = [
+    token_iq_remaining_requests_metric = [
         UserAPIKeyLabelNames.MODEL_GROUP.value,
         UserAPIKeyLabelNames.API_PROVIDER.value,
         UserAPIKeyLabelNames.API_BASE.value,
@@ -527,7 +527,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.MODEL_ID.value,
     ]
 
-    litellm_remaining_tokens_metric = [
+    token_iq_remaining_tokens_metric = [
         UserAPIKeyLabelNames.MODEL_GROUP.value,
         UserAPIKeyLabelNames.API_PROVIDER.value,
         UserAPIKeyLabelNames.API_BASE.value,
@@ -537,7 +537,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.MODEL_ID.value,
     ]
 
-    litellm_requests_metric = [
+    token_iq_requests_metric = [
         UserAPIKeyLabelNames.END_USER.value,
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
@@ -553,7 +553,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.API_PROVIDER.value,
     ]
 
-    litellm_spend_metric = [
+    token_iq_spend_metric = [
         UserAPIKeyLabelNames.END_USER.value,
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
@@ -570,7 +570,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.SERVICE_TIER.value,
     ]
 
-    litellm_input_tokens_metric = [
+    token_iq_input_tokens_metric = [
         UserAPIKeyLabelNames.END_USER.value,
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
@@ -584,7 +584,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.API_PROVIDER.value,
     ]
 
-    litellm_total_tokens_metric = [
+    token_iq_total_tokens_metric = [
         UserAPIKeyLabelNames.END_USER.value,
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
@@ -598,7 +598,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.API_PROVIDER.value,
     ]
 
-    litellm_output_tokens_metric = [
+    token_iq_output_tokens_metric = [
         UserAPIKeyLabelNames.END_USER.value,
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
@@ -613,36 +613,36 @@ class PrometheusMetricLabels:
     ]
 
     # Token-type detail metrics — reuse the same label set as
-    # litellm_input_tokens_metric / litellm_output_tokens_metric so dashboards
+    # token_iq_input_tokens_metric / token_iq_output_tokens_metric so dashboards
     # can join across them. Only emitted when the underlying usage detail is
     # populated by the provider (e.g. Anthropic cache_read_input_tokens,
     # OpenAI prompt_tokens_details.cached_tokens, reasoning_tokens, audio_tokens).
-    litellm_input_cached_tokens_metric = litellm_input_tokens_metric
-    litellm_input_cache_creation_tokens_metric = litellm_input_tokens_metric
-    litellm_input_audio_tokens_metric = litellm_input_tokens_metric
-    litellm_output_reasoning_tokens_metric = litellm_output_tokens_metric
-    litellm_output_audio_tokens_metric = litellm_output_tokens_metric
+    token_iq_input_cached_tokens_metric = token_iq_input_tokens_metric
+    token_iq_input_cache_creation_tokens_metric = token_iq_input_tokens_metric
+    token_iq_input_audio_tokens_metric = token_iq_input_tokens_metric
+    token_iq_output_reasoning_tokens_metric = token_iq_output_tokens_metric
+    token_iq_output_audio_tokens_metric = token_iq_output_tokens_metric
 
-    litellm_video_duration_seconds_metric = litellm_output_tokens_metric
-    litellm_images_generated_metric = litellm_output_tokens_metric
+    token_iq_video_duration_seconds_metric = token_iq_output_tokens_metric
+    token_iq_images_generated_metric = token_iq_output_tokens_metric
 
-    litellm_deployment_state = [
+    token_iq_deployment_state = [
         UserAPIKeyLabelNames.v2_LITELLM_MODEL_NAME.value,
         UserAPIKeyLabelNames.MODEL_ID.value,
         UserAPIKeyLabelNames.API_BASE.value,
         UserAPIKeyLabelNames.API_PROVIDER.value,
     ]
 
-    litellm_deployment_tpm_limit = [
+    token_iq_deployment_tpm_limit = [
         UserAPIKeyLabelNames.v2_LITELLM_MODEL_NAME.value,
         UserAPIKeyLabelNames.MODEL_ID.value,
         UserAPIKeyLabelNames.API_BASE.value,
         UserAPIKeyLabelNames.API_PROVIDER.value,
     ]
 
-    litellm_deployment_rpm_limit = litellm_deployment_tpm_limit
+    token_iq_deployment_rpm_limit = token_iq_deployment_tpm_limit
 
-    litellm_deployment_cooled_down = [
+    token_iq_deployment_cooled_down = [
         UserAPIKeyLabelNames.v2_LITELLM_MODEL_NAME.value,
         UserAPIKeyLabelNames.MODEL_ID.value,
         UserAPIKeyLabelNames.API_BASE.value,
@@ -650,7 +650,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.EXCEPTION_STATUS.value,
     ]
 
-    litellm_deployment_successful_fallbacks = [
+    token_iq_deployment_successful_fallbacks = [
         UserAPIKeyLabelNames.REQUESTED_MODEL.value,
         UserAPIKeyLabelNames.FALLBACK_MODEL.value,
         UserAPIKeyLabelNames.API_KEY_HASH.value,
@@ -662,78 +662,78 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.MODEL_ID.value,
     ]
 
-    litellm_deployment_failed_fallbacks = litellm_deployment_successful_fallbacks
+    token_iq_deployment_failed_fallbacks = token_iq_deployment_successful_fallbacks
 
-    litellm_remaining_team_budget_metric = [
+    token_iq_remaining_team_budget_metric = [
         UserAPIKeyLabelNames.TEAM.value,
         UserAPIKeyLabelNames.TEAM_ALIAS.value,
     ]
 
-    litellm_team_max_budget_metric = [
+    token_iq_team_max_budget_metric = [
         UserAPIKeyLabelNames.TEAM.value,
         UserAPIKeyLabelNames.TEAM_ALIAS.value,
     ]
 
-    litellm_team_budget_remaining_hours_metric = [
+    token_iq_team_budget_remaining_hours_metric = [
         UserAPIKeyLabelNames.TEAM.value,
         UserAPIKeyLabelNames.TEAM_ALIAS.value,
     ]
 
-    litellm_team_members_metric = [
+    token_iq_team_members_metric = [
         UserAPIKeyLabelNames.TEAM.value,
         UserAPIKeyLabelNames.TEAM_ALIAS.value,
     ]
 
-    litellm_remaining_org_budget_metric = [
+    token_iq_remaining_org_budget_metric = [
         UserAPIKeyLabelNames.ORG_ID.value,
         UserAPIKeyLabelNames.ORG_ALIAS.value,
     ]
 
-    litellm_org_max_budget_metric = [
+    token_iq_org_max_budget_metric = [
         UserAPIKeyLabelNames.ORG_ID.value,
         UserAPIKeyLabelNames.ORG_ALIAS.value,
     ]
 
-    litellm_org_budget_remaining_hours_metric = [
+    token_iq_org_budget_remaining_hours_metric = [
         UserAPIKeyLabelNames.ORG_ID.value,
         UserAPIKeyLabelNames.ORG_ALIAS.value,
     ]
 
-    litellm_remaining_api_key_budget_metric = [
+    token_iq_remaining_api_key_budget_metric = [
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
     ]
 
-    litellm_api_key_max_budget_metric = litellm_remaining_api_key_budget_metric
+    token_iq_api_key_max_budget_metric = token_iq_remaining_api_key_budget_metric
 
-    litellm_api_key_budget_remaining_hours_metric = litellm_remaining_api_key_budget_metric
+    token_iq_api_key_budget_remaining_hours_metric = token_iq_remaining_api_key_budget_metric
 
-    litellm_remaining_user_budget_metric = [
+    token_iq_remaining_user_budget_metric = [
         UserAPIKeyLabelNames.USER.value,
     ]
 
-    litellm_user_max_budget_metric = litellm_remaining_user_budget_metric
+    token_iq_user_max_budget_metric = token_iq_remaining_user_budget_metric
 
-    litellm_user_budget_remaining_hours_metric = litellm_remaining_user_budget_metric
+    token_iq_user_budget_remaining_hours_metric = token_iq_remaining_user_budget_metric
 
-    litellm_remaining_api_key_requests_for_model = [
+    token_iq_remaining_api_key_requests_for_model = [
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
         UserAPIKeyLabelNames.v1_LITELLM_MODEL_NAME.value,
     ]
 
-    litellm_remaining_api_key_tokens_for_model = [
+    token_iq_remaining_api_key_tokens_for_model = [
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
         UserAPIKeyLabelNames.v1_LITELLM_MODEL_NAME.value,
     ]
 
-    litellm_callback_logging_failures_metric = [
+    token_iq_callback_logging_failures_metric = [
         UserAPIKeyLabelNames.CALLBACK_NAME.value,
     ]
 
     # Add deployment metrics
-    litellm_deployment_failure_responses = [
+    token_iq_deployment_failure_responses = [
         UserAPIKeyLabelNames.REQUESTED_MODEL.value,
         UserAPIKeyLabelNames.v2_LITELLM_MODEL_NAME.value,
         UserAPIKeyLabelNames.MODEL_ID.value,
@@ -749,7 +749,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.USER_AGENT.value,
     ]
 
-    litellm_deployment_total_requests = [
+    token_iq_deployment_total_requests = [
         UserAPIKeyLabelNames.REQUESTED_MODEL.value,
         UserAPIKeyLabelNames.v2_LITELLM_MODEL_NAME.value,
         UserAPIKeyLabelNames.MODEL_ID.value,
@@ -763,39 +763,39 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.USER_AGENT.value,
     ]
 
-    litellm_deployment_success_responses = litellm_deployment_total_requests
+    token_iq_deployment_success_responses = token_iq_deployment_total_requests
 
-    litellm_remaining_api_key_requests_for_model = [
+    token_iq_remaining_api_key_requests_for_model = [
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
         UserAPIKeyLabelNames.v1_LITELLM_MODEL_NAME.value,
         UserAPIKeyLabelNames.MODEL_ID.value,
     ]
 
-    litellm_remaining_api_key_tokens_for_model = [
+    token_iq_remaining_api_key_tokens_for_model = [
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
         UserAPIKeyLabelNames.v1_LITELLM_MODEL_NAME.value,
         UserAPIKeyLabelNames.MODEL_ID.value,
     ]
 
-    litellm_api_key_rate_limit_allowed_metric: ClassVar[tuple[str, ...]] = (
+    token_iq_api_key_rate_limit_allowed_metric: ClassVar[tuple[str, ...]] = (
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
         UserAPIKeyLabelNames.RATE_LIMIT_TYPE.value,
     )
 
-    litellm_api_key_rate_limit_used_metric = litellm_api_key_rate_limit_allowed_metric
+    token_iq_api_key_rate_limit_used_metric = token_iq_api_key_rate_limit_allowed_metric
 
-    litellm_team_rate_limit_allowed_metric: ClassVar[tuple[str, ...]] = (
+    token_iq_team_rate_limit_allowed_metric: ClassVar[tuple[str, ...]] = (
         UserAPIKeyLabelNames.TEAM.value,
         UserAPIKeyLabelNames.TEAM_ALIAS.value,
         UserAPIKeyLabelNames.RATE_LIMIT_TYPE.value,
     )
 
-    litellm_team_rate_limit_used_metric = litellm_team_rate_limit_allowed_metric
+    token_iq_team_rate_limit_used_metric = token_iq_team_rate_limit_allowed_metric
 
-    litellm_llm_api_failed_requests_metric = [
+    token_iq_llm_api_failed_requests_metric = [
         UserAPIKeyLabelNames.END_USER.value,
         UserAPIKeyLabelNames.API_KEY_HASH.value,
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
@@ -830,31 +830,31 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.API_PROVIDER.value,
     ]
 
-    litellm_cache_hits_metric = _cache_metric_labels
-    litellm_cache_misses_metric = _cache_metric_labels
-    litellm_cached_tokens_metric = _cache_metric_labels
+    token_iq_cache_hits_metric = _cache_metric_labels
+    token_iq_cache_misses_metric = _cache_metric_labels
+    token_iq_cached_tokens_metric = _cache_metric_labels
 
     # Provider prompt-caching metrics - track tokens read/written to provider caches
-    litellm_provider_cache_read_input_tokens_metric = _cache_metric_labels
-    litellm_provider_cache_creation_input_tokens_metric = _cache_metric_labels
+    token_iq_provider_cache_read_input_tokens_metric = _cache_metric_labels
+    token_iq_provider_cache_creation_input_tokens_metric = _cache_metric_labels
 
     # Metrics whose emission paths supply org context (used by get_labels)
     _org_label_metrics: ClassVar[frozenset] = frozenset(
         {
-            "litellm_llm_api_latency_metric",
-            "litellm_llm_api_time_to_first_token_metric",
-            "litellm_request_total_latency_metric",
-            "litellm_request_queue_time_seconds",
-            "litellm_proxy_total_requests_metric",
-            "litellm_proxy_failed_requests_metric",
-            "litellm_deployment_latency_per_output_token",
-            "litellm_requests_metric",
-            "litellm_spend_metric",
-            "litellm_input_tokens_metric",
-            "litellm_total_tokens_metric",
-            "litellm_output_tokens_metric",
-            "litellm_video_duration_seconds_metric",
-            "litellm_images_generated_metric",
+            "token_iq_llm_api_latency_metric",
+            "token_iq_llm_api_time_to_first_token_metric",
+            "token_iq_request_total_latency_metric",
+            "token_iq_request_queue_time_seconds",
+            "token_iq_proxy_total_requests_metric",
+            "token_iq_proxy_failed_requests_metric",
+            "token_iq_deployment_latency_per_output_token",
+            "token_iq_requests_metric",
+            "token_iq_spend_metric",
+            "token_iq_input_tokens_metric",
+            "token_iq_total_tokens_metric",
+            "token_iq_output_tokens_metric",
+            "token_iq_video_duration_seconds_metric",
+            "token_iq_images_generated_metric",
         }
     )
     # Managed batch metrics
@@ -866,32 +866,32 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.API_KEY_ALIAS.value,
     ]
 
-    litellm_managed_batch_created_total = _batch_user_labels
+    token_iq_managed_batch_created_total = _batch_user_labels
 
-    litellm_managed_file_size_bytes: list[str] = []  # labels: purpose, file_type, model, api_provider, user (custom)
+    token_iq_managed_file_size_bytes: list[str] = []  # labels: purpose, file_type, model, api_provider, user (custom)
 
-    litellm_managed_batch_duration_seconds = [
+    token_iq_managed_batch_duration_seconds = [
         UserAPIKeyLabelNames.v1_LITELLM_MODEL_NAME.value,
         UserAPIKeyLabelNames.API_PROVIDER.value,
     ]
 
-    litellm_managed_file_created_total = _batch_user_labels
+    token_iq_managed_file_created_total = _batch_user_labels
 
-    litellm_managed_file_deleted_total: list[str] = []  # only "result" label, added at metric creation
+    token_iq_managed_file_deleted_total: list[str] = []  # only "result" label, added at metric creation
 
-    litellm_check_batch_cost_jobs_polled: list[str] = []
+    token_iq_check_batch_cost_jobs_polled: list[str] = []
 
-    litellm_check_batch_cost_jobs_processed_total = [
+    token_iq_check_batch_cost_jobs_processed_total = [
         UserAPIKeyLabelNames.v1_LITELLM_MODEL_NAME.value,
         UserAPIKeyLabelNames.API_PROVIDER.value,
     ]
 
-    litellm_check_batch_cost_errors_total: list[str] = []  # label: error_type (custom)
+    token_iq_check_batch_cost_errors_total: list[str] = []  # label: error_type (custom)
 
-    litellm_check_batch_cost_last_run_timestamp: list[str] = []
+    token_iq_check_batch_cost_last_run_timestamp: list[str] = []
 
     # MCP tool call metrics
-    litellm_mcp_tool_calls_total: list[str] = [
+    token_iq_mcp_tool_calls_total: list[str] = [
         UserAPIKeyLabelNames.MCP_TOOL_NAME.value,
         UserAPIKeyLabelNames.MCP_SERVER_NAME.value,
         UserAPIKeyLabelNames.API_KEY_HASH.value,
@@ -902,7 +902,7 @@ class PrometheusMetricLabels:
         UserAPIKeyLabelNames.END_USER.value,
     ]
 
-    litellm_mcp_tool_call_spend_metric: list[str] = list(litellm_mcp_tool_calls_total)
+    token_iq_mcp_tool_call_spend_metric: list[str] = list(token_iq_mcp_tool_calls_total)
 
     @staticmethod
     def get_labels(label_name: DEFINED_PROMETHEUS_METRICS) -> list[str]:
@@ -920,20 +920,20 @@ class PrometheusMetricLabels:
         # Add custom tags labels
         custom_labels.extend([_sanitize_prometheus_label_name(f"tag_{tag}") for tag in gateway.custom_prometheus_tags])
 
-        # Conditionally add stream label to litellm_proxy_total_requests_metric
+        # Conditionally add stream label to token_iq_proxy_total_requests_metric
         if (
-            label_name == "litellm_proxy_total_requests_metric"
+            label_name == "token_iq_proxy_total_requests_metric"
             and gateway.prometheus_emit_stream_label is True
             and UserAPIKeyLabelNames.STREAM.value not in default_labels
         ):
             custom_labels.append(UserAPIKeyLabelNames.STREAM.value)
 
         # Conditionally add unified rate-limit labels to
-        # litellm_proxy_failed_requests_metric. Off by default so the metric's
+        # token_iq_proxy_failed_requests_metric. Off by default so the metric's
         # historical label set is preserved across upgrade; enable via
         # ``litellm.prometheus_emit_rate_limit_labels`` once downstream
         # dashboards include the new labels in their matchers / aggregations.
-        if label_name == "litellm_proxy_failed_requests_metric" and gateway.prometheus_emit_rate_limit_labels is True:
+        if label_name == "token_iq_proxy_failed_requests_metric" and gateway.prometheus_emit_rate_limit_labels is True:
             for _rate_limit_label in (
                 UserAPIKeyLabelNames.RATE_LIMIT_CATEGORY.value,
                 UserAPIKeyLabelNames.RATE_LIMIT_TYPE.value,
@@ -942,9 +942,9 @@ class PrometheusMetricLabels:
                     custom_labels.append(_rate_limit_label)
 
         _user_budget_metrics: Final = {
-            "litellm_remaining_user_budget_metric",
-            "litellm_user_max_budget_metric",
-            "litellm_user_budget_remaining_hours_metric",
+            "token_iq_remaining_user_budget_metric",
+            "token_iq_user_max_budget_metric",
+            "token_iq_user_budget_remaining_hours_metric",
         }
         if label_name in _user_budget_metrics and gateway.prometheus_user_budget_label_include_email_alias is True:
             for label in [

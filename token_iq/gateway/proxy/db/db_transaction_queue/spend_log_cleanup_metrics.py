@@ -62,18 +62,18 @@ class SpendLogCleanupMetrics:
             from prometheus_client import Counter, Gauge, Histogram
 
             cls.rows_deleted = Counter(
-                "litellm_spend_log_cleanup_rows_deleted_total",
+                "token_iq_spend_log_cleanup_rows_deleted_total",
                 "Rows deleted by the spend-log retention cleanup job",
                 labelnames=_TABLE_LABEL,
             )
             cls.batch_duration = Histogram(
-                "litellm_spend_log_cleanup_batch_duration_seconds",
+                "token_iq_spend_log_cleanup_batch_duration_seconds",
                 "Wall-clock duration of one retention cleanup delete batch",
                 labelnames=_TABLE_LABEL,
                 buckets=_BATCH_DURATION_BUCKETS,
             )
             cls.rows_remaining = Gauge(
-                "litellm_spend_log_cleanup_rows_remaining",
+                "token_iq_spend_log_cleanup_rows_remaining",
                 "Expired rows still awaiting deletion, counted only up to "
                 "SPEND_LOG_CLEANUP_REMAINING_COUNT_CAP so the probe itself cannot scan a "
                 "large table; a value equal to that cap means at least that many remain",
@@ -81,12 +81,12 @@ class SpendLogCleanupMetrics:
                 multiprocess_mode="livemax",
             )
             cls.batch_failures = Counter(
-                "litellm_spend_log_cleanup_batch_failures_total",
+                "token_iq_spend_log_cleanup_batch_failures_total",
                 "Retention cleanup delete batches that raised",
                 labelnames=_TABLE_LABEL,
             )
             cls.runs = Counter(
-                "litellm_spend_log_cleanup_runs_total",
+                "token_iq_spend_log_cleanup_runs_total",
                 "Retention cleanup runs, labelled by why the run ended",
                 labelnames=_OUTCOME_LABEL,
             )

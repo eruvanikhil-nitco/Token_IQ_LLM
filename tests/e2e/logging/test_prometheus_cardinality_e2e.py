@@ -2,7 +2,7 @@
 
 The proxy exposes ``/metrics`` (prometheus is in the callbacks and
 ``require_auth_for_metrics_endpoint`` is off in the e2e config). The counter
-``litellm_requests_metric_total`` carries an ``api_key_alias`` label, so driving
+``token_iq_requests_metric_total`` carries an ``api_key_alias`` label, so driving
 traffic through keys with distinct aliases must produce a distinct labeled series
 per alias. This is the per-key cardinality contract: a regression that stops
 stamping ``api_key_alias`` (or collapses every key onto one series) would drop
@@ -30,7 +30,7 @@ from logging_client import LoggingClient
 pytestmark = pytest.mark.e2e
 
 DRIVER_MODEL = "gemini-2.5-flash"
-REQUESTS_METRIC = "litellm_requests_metric_total"
+REQUESTS_METRIC = "token_iq_requests_metric_total"
 ALIAS_LABEL = "api_key_alias"
 DISTINCT_KEYS = 3
 

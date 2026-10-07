@@ -3049,144 +3049,85 @@ request header,x-litellm-user-email,x-token-iq-user-email,,"phase 7, old name st
 request header,x-litellm-user-id,x-token-iq-user-id,,"phase 7, old name still accepted, only the new one is sent"
 request header,x-litellm-user-role,x-token-iq-user-role,,"phase 7, old name still accepted, only the new one is sent"
 request header,x-litellm-version,x-token-iq-version,,"phase 7, old name still accepted, only the new one is sent"
-metric name,litellm_core_utils,,1083,phase 9
-metric name,litellm_logging,,558,phase 9
-metric name,litellm_call_id,,285,phase 9
-metric name,litellm_metadata,,254,phase 9
-metric name,litellm_budget_table,,149,phase 9
-metric name,litellm_teamtable,,86,phase 9
-metric name,litellm_model_name,,80,phase 9
-metric name,litellm_usertable,,64,phase 9
-metric name,litellm_overhead_time_ms,,58,phase 9
-metric name,litellm_,,34,phase 9
-metric name,litellm_config,,34,phase 9
-metric name,litellm_router_instance,,29,phase 9
-metric name,litellm_organizationtable,,21,phase 9
-metric name,litellm_proxy_failed_requests_metric,,11,phase 9
-metric name,litellm_proxy_total_requests_metric,,9,phase 9
-metric name,litellm_spend_metric,,8,phase 9
-metric name,litellm_llm_api_latency_metric,,7,phase 9
-metric name,litellm_request_total_latency_metric,,7,phase 9
-metric name,litellm_output_tokens_metric,,6,phase 9
-metric name,litellm_remaining_api_key_requests_for_model,,6,phase 9
-metric name,litellm_remaining_api_key_tokens_for_model,,6,phase 9
-metric name,litellm_deployment_total_requests,,5,phase 9
-metric name,litellm_input_tokens_metric,,5,phase 9
-metric name,litellm_remaining_api_key_budget_metric,,5,phase 9
-metric name,litellm_remaining_requests_metric,,5,phase 9
-metric name,litellm_remaining_team_budget_metric,,5,phase 9
-metric name,litellm_remaining_user_budget_metric,,5,phase 9
-metric name,litellm_request_queue_time_seconds,,5,phase 9
-metric name,litellm_requests_metric,,5,phase 9
-metric name,litellm_spend_metric_total,,5,phase 9
-metric name,litellm_batch_rate_limit,,4,phase 9
-metric name,litellm_cache_hits_metric,,4,phase 9
-metric name,litellm_cache_misses_metric,,4,phase 9
-metric name,litellm_cached_tokens_metric,,4,phase 9
-metric name,litellm_deployment_failure_responses,,4,phase 9
-metric name,litellm_deployment_successful_fallbacks,,4,phase 9
-metric name,litellm_llm_api_failed_requests_metric,,4,phase 9
-metric name,litellm_llm_api_time_to_first_token_metric,,4,phase 9
-metric name,litellm_overhead_with_guardrails_latency_metric,,4,phase 9
-metric name,litellm_provider_cache_creation_input_tokens_metric,,4,phase 9
-metric name,litellm_provider_cache_read_input_tokens_metric,,4,phase 9
-metric name,litellm_rate_limit,,4,phase 9
-metric name,litellm_remaining_org_budget_metric,,4,phase 9
-metric name,litellm_remaining_tokens_metric,,4,phase 9
-metric name,litellm_team_budget_remaining_hours_metric,,4,phase 9
-metric name,litellm_team_max_budget_metric,,4,phase 9
-metric name,litellm_total_tokens_metric,,4,phase 9
-metric name,litellm_user_budget_remaining_hours_metric,,4,phase 9
-metric name,litellm_user_max_budget_metric,,4,phase 9
-metric name,litellm_api_key_budget_remaining_hours_metric,,3,phase 9
-metric name,litellm_api_key_max_budget_metric,,3,phase 9
-metric name,litellm_api_key_rate_limit_allowed_metric,,3,phase 9
-metric name,litellm_api_key_rate_limit_used_metric,,3,phase 9
-metric name,litellm_callback_logging_failures_metric,,3,phase 9
-metric name,litellm_deployment_failed_fallbacks,,3,phase 9
-metric name,litellm_deployment_success_responses,,3,phase 9
-metric name,litellm_guardrail_errors_total,,3,phase 9
-metric name,litellm_guardrail_latency_seconds,,3,phase 9
-metric name,litellm_guardrail_requests_total,,3,phase 9
-metric name,litellm_images_generated_metric,,3,phase 9
-metric name,litellm_input_audio_tokens_metric,,3,phase 9
-metric name,litellm_input_cache_creation_tokens_metric,,3,phase 9
-metric name,litellm_input_cached_tokens_metric,,3,phase 9
-metric name,litellm_llm_api_failed_requests_metric_total,,3,phase 9
-metric name,litellm_mcp_tool_call_spend_metric,,3,phase 9
-metric name,litellm_mcp_tool_calls_total,,3,phase 9
-metric name,litellm_org_budget_remaining_hours_metric,,3,phase 9
-metric name,litellm_org_max_budget_metric,,3,phase 9
-metric name,litellm_output_audio_tokens_metric,,3,phase 9
-metric name,litellm_output_reasoning_tokens_metric,,3,phase 9
-metric name,litellm_proxy_failed_requests_metric_total,,3,phase 9
-metric name,litellm_request_total_latency_metric_bucket,,3,phase 9
-metric name,litellm_requests_metric_total,,3,phase 9
-metric name,litellm_team_members_metric,,3,phase 9
-metric name,litellm_team_rate_limit_allowed_metric,,3,phase 9
-metric name,litellm_team_rate_limit_used_metric,,3,phase 9
-metric name,litellm_video_duration_seconds_metric,,3,phase 9
-metric name,litellm_active_users,,2,phase 9
-metric name,litellm_active_users_metric,,2,phase 9
-metric name,litellm_check_batch_cost_errors_total,,2,phase 9
-metric name,litellm_check_batch_cost_jobs_polled,,2,phase 9
-metric name,litellm_check_batch_cost_jobs_processed_total,,2,phase 9
-metric name,litellm_check_batch_cost_last_run_timestamp,,2,phase 9
-metric name,litellm_deployment_cooled_down,,2,phase 9
-metric name,litellm_deployment_failed_fallbacks_total,,2,phase 9
-metric name,litellm_deployment_latency_per_output_token,,2,phase 9
-metric name,litellm_deployment_rpm_limit,,2,phase 9
-metric name,litellm_deployment_state,,2,phase 9
-metric name,litellm_deployment_successful_fallbacks_total,,2,phase 9
-metric name,litellm_deployment_tpm_limit,,2,phase 9
-metric name,litellm_guardrail_latency_metric,,2,phase 9
-metric name,litellm_in_flight_requests,,2,phase 9
-metric name,litellm_llm_api_latency_metric_bucket,,2,phase 9
-metric name,litellm_managed_batch_created_total,,2,phase 9
-metric name,litellm_managed_batch_duration_seconds,,2,phase 9
-metric name,litellm_managed_file_created_total,,2,phase 9
-metric name,litellm_managed_file_deleted_total,,2,phase 9
-metric name,litellm_managed_file_size_bytes,,2,phase 9
-metric name,litellm_overhead_latency_metric,,2,phase 9
-metric name,litellm_proxy_total_requests_metric_total,,2,phase 9
-metric name,litellm_request_queue_time_metric,,2,phase 9
-metric name,litellm_request_total_latency_metric_count,,2,phase 9
-metric name,litellm_teams_count,,2,phase 9
-metric name,litellm_teams_count_metric,,2,phase 9
-metric name,litellm_total_users,,2,phase 9
-metric name,litellm_total_users_metric,,2,phase 9
-metric name,litellm_deployment_failure_responses_total,,1,phase 9
-metric name,litellm_deployment_latency_per_output_token_count,,1,phase 9
-metric name,litellm_deployment_success_responses_total,,1,phase 9
-metric name,litellm_deployment_total_requests_total,,1,phase 9
-metric name,litellm_in_memory_daily_spend_update_queue_size,,1,phase 9
-metric name,litellm_in_memory_spend_update_queue_size,,1,phase 9
-metric name,litellm_input_tokens_metric_total,,1,phase 9
-metric name,litellm_llm_api_latency_metric_count,,1,phase 9
-metric name,litellm_llm_api_time_to_first_token_metric_bucket,,1,phase 9
-metric name,litellm_llm_api_time_to_first_token_metric_count,,1,phase 9
-metric name,litellm_output_tokens_metric_total,,1,phase 9
-metric name,litellm_overhead_latency_metric_bucket,,1,phase 9
-metric name,litellm_overhead_latency_metric_count,,1,phase 9
-metric name,litellm_pod_lock_manager_size,,1,phase 9
-metric name,litellm_poll_xyz,,1,phase 9
-metric name,litellm_provider_remaining_budget_metric,,1,phase 9
-metric name,litellm_redis_daily_spend_update_queue_size,,1,phase 9
-metric name,litellm_redis_spend_update_queue_size,,1,phase 9
-metric name,litellm_request_queue_time_seconds_count,,1,phase 9
-metric name,litellm_service_,,1,phase 9
-metric name,litellm_service_0_latency,,1,phase 9
-metric name,litellm_service_79_total_requests,,1,phase 9
-metric name,litellm_service_latency,,1,phase 9
-metric name,litellm_spend_log_cleanup_batch_duration_seconds,,1,phase 9
-metric name,litellm_spend_log_cleanup_batch_failures_total,,1,phase 9
-metric name,litellm_spend_log_cleanup_rows_deleted_total,,1,phase 9
-metric name,litellm_spend_log_cleanup_rows_remaining,,1,phase 9
-metric name,litellm_spend_log_cleanup_runs_total,,1,phase 9
-metric name,litellm_teams_count_total,,1,phase 9
-metric name,litellm_test_service_size,,1,phase 9
-metric name,litellm_test_service_test_type_of_request,,1,phase 9
-metric name,litellm_tokens_metric,,1,phase 9
-metric name,litellm_total_tokens_metric_total,,1,phase 9
-metric name,litellm_total_users_total,,1,phase 9
-metric name,litellm_user_email_metric,,1,phase 9
+metric name,litellm_active_users,token_iq_active_users,,"phase 9, the old name stops being emitted"
+metric name,litellm_api_key_budget_remaining_hours_metric,token_iq_api_key_budget_remaining_hours_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_api_key_max_budget_metric,token_iq_api_key_max_budget_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_api_key_rate_limit_allowed_metric,token_iq_api_key_rate_limit_allowed_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_api_key_rate_limit_used_metric,token_iq_api_key_rate_limit_used_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_cache_hits_metric,token_iq_cache_hits_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_cache_misses_metric,token_iq_cache_misses_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_cached_tokens_metric,token_iq_cached_tokens_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_callback_logging_failures_metric,token_iq_callback_logging_failures_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_check_batch_cost_errors_total,token_iq_check_batch_cost_errors_total,,"phase 9, the old name stops being emitted"
+metric name,litellm_check_batch_cost_jobs_polled,token_iq_check_batch_cost_jobs_polled,,"phase 9, the old name stops being emitted"
+metric name,litellm_check_batch_cost_jobs_processed_total,token_iq_check_batch_cost_jobs_processed_total,,"phase 9, the old name stops being emitted"
+metric name,litellm_check_batch_cost_last_run_timestamp,token_iq_check_batch_cost_last_run_timestamp,,"phase 9, the old name stops being emitted"
+metric name,litellm_deployment_cooled_down,token_iq_deployment_cooled_down,,"phase 9, the old name stops being emitted"
+metric name,litellm_deployment_failed_fallbacks,token_iq_deployment_failed_fallbacks,,"phase 9, the old name stops being emitted"
+metric name,litellm_deployment_failure_responses,token_iq_deployment_failure_responses,,"phase 9, the old name stops being emitted"
+metric name,litellm_deployment_latency_per_output_token,token_iq_deployment_latency_per_output_token,,"phase 9, the old name stops being emitted"
+metric name,litellm_deployment_rpm_limit,token_iq_deployment_rpm_limit,,"phase 9, the old name stops being emitted"
+metric name,litellm_deployment_state,token_iq_deployment_state,,"phase 9, the old name stops being emitted"
+metric name,litellm_deployment_success_responses,token_iq_deployment_success_responses,,"phase 9, the old name stops being emitted"
+metric name,litellm_deployment_successful_fallbacks,token_iq_deployment_successful_fallbacks,,"phase 9, the old name stops being emitted"
+metric name,litellm_deployment_total_requests,token_iq_deployment_total_requests,,"phase 9, the old name stops being emitted"
+metric name,litellm_deployment_tpm_limit,token_iq_deployment_tpm_limit,,"phase 9, the old name stops being emitted"
+metric name,litellm_guardrail_errors_total,token_iq_guardrail_errors_total,,"phase 9, the old name stops being emitted"
+metric name,litellm_guardrail_latency_seconds,token_iq_guardrail_latency_seconds,,"phase 9, the old name stops being emitted"
+metric name,litellm_guardrail_requests_total,token_iq_guardrail_requests_total,,"phase 9, the old name stops being emitted"
+metric name,litellm_images_generated_metric,token_iq_images_generated_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_in_flight_requests,token_iq_in_flight_requests,,"phase 9, the old name stops being emitted"
+metric name,litellm_input_audio_tokens_metric,token_iq_input_audio_tokens_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_input_cache_creation_tokens_metric,token_iq_input_cache_creation_tokens_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_input_cached_tokens_metric,token_iq_input_cached_tokens_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_input_tokens_metric,token_iq_input_tokens_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_llm_api_failed_requests_metric,token_iq_llm_api_failed_requests_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_llm_api_latency_metric,token_iq_llm_api_latency_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_llm_api_time_to_first_token_metric,token_iq_llm_api_time_to_first_token_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_managed_batch_created_total,token_iq_managed_batch_created_total,,"phase 9, the old name stops being emitted"
+metric name,litellm_managed_batch_duration_seconds,token_iq_managed_batch_duration_seconds,,"phase 9, the old name stops being emitted"
+metric name,litellm_managed_file_created_total,token_iq_managed_file_created_total,,"phase 9, the old name stops being emitted"
+metric name,litellm_managed_file_deleted_total,token_iq_managed_file_deleted_total,,"phase 9, the old name stops being emitted"
+metric name,litellm_managed_file_size_bytes,token_iq_managed_file_size_bytes,,"phase 9, the old name stops being emitted"
+metric name,litellm_mcp_tool_call_spend_metric,token_iq_mcp_tool_call_spend_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_mcp_tool_calls_total,token_iq_mcp_tool_calls_total,,"phase 9, the old name stops being emitted"
+metric name,litellm_org_budget_remaining_hours_metric,token_iq_org_budget_remaining_hours_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_org_max_budget_metric,token_iq_org_max_budget_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_output_audio_tokens_metric,token_iq_output_audio_tokens_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_output_reasoning_tokens_metric,token_iq_output_reasoning_tokens_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_output_tokens_metric,token_iq_output_tokens_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_overhead_latency_metric,token_iq_overhead_latency_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_overhead_with_guardrails_latency_metric,token_iq_overhead_with_guardrails_latency_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_provider_cache_creation_input_tokens_metric,token_iq_provider_cache_creation_input_tokens_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_provider_cache_read_input_tokens_metric,token_iq_provider_cache_read_input_tokens_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_provider_remaining_budget_metric,token_iq_provider_remaining_budget_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_proxy_failed_requests_metric,token_iq_proxy_failed_requests_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_proxy_total_requests_metric,token_iq_proxy_total_requests_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_remaining_api_key_budget_metric,token_iq_remaining_api_key_budget_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_remaining_api_key_requests_for_model,token_iq_remaining_api_key_requests_for_model,,"phase 9, the old name stops being emitted"
+metric name,litellm_remaining_api_key_tokens_for_model,token_iq_remaining_api_key_tokens_for_model,,"phase 9, the old name stops being emitted"
+metric name,litellm_remaining_org_budget_metric,token_iq_remaining_org_budget_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_remaining_requests_metric,token_iq_remaining_requests_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_remaining_team_budget_metric,token_iq_remaining_team_budget_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_remaining_tokens_metric,token_iq_remaining_tokens_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_remaining_user_budget_metric,token_iq_remaining_user_budget_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_request_queue_time_seconds,token_iq_request_queue_time_seconds,,"phase 9, the old name stops being emitted"
+metric name,litellm_request_total_latency_metric,token_iq_request_total_latency_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_requests_metric,token_iq_requests_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_spend_log_cleanup_batch_duration_seconds,token_iq_spend_log_cleanup_batch_duration_seconds,,"phase 9, the old name stops being emitted"
+metric name,litellm_spend_log_cleanup_batch_failures_total,token_iq_spend_log_cleanup_batch_failures_total,,"phase 9, the old name stops being emitted"
+metric name,litellm_spend_log_cleanup_rows_deleted_total,token_iq_spend_log_cleanup_rows_deleted_total,,"phase 9, the old name stops being emitted"
+metric name,litellm_spend_log_cleanup_rows_remaining,token_iq_spend_log_cleanup_rows_remaining,,"phase 9, the old name stops being emitted"
+metric name,litellm_spend_log_cleanup_runs_total,token_iq_spend_log_cleanup_runs_total,,"phase 9, the old name stops being emitted"
+metric name,litellm_spend_metric,token_iq_spend_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_team_budget_remaining_hours_metric,token_iq_team_budget_remaining_hours_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_team_max_budget_metric,token_iq_team_max_budget_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_team_members_metric,token_iq_team_members_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_team_rate_limit_allowed_metric,token_iq_team_rate_limit_allowed_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_team_rate_limit_used_metric,token_iq_team_rate_limit_used_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_teams_count,token_iq_teams_count,,"phase 9, the old name stops being emitted"
+metric name,litellm_total_tokens_metric,token_iq_total_tokens_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_total_users,token_iq_total_users,,"phase 9, the old name stops being emitted"
+metric name,litellm_user_budget_remaining_hours_metric,token_iq_user_budget_remaining_hours_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_user_max_budget_metric,token_iq_user_max_budget_metric,,"phase 9, the old name stops being emitted"
+metric name,litellm_video_duration_seconds_metric,token_iq_video_duration_seconds_metric,,"phase 9, the old name stops being emitted"

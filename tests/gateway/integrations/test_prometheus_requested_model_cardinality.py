@@ -108,8 +108,8 @@ async def test_unknown_models_collapse_to_one_series_on_proxy_request_metrics(ro
             await _fire_proxy_failure(logger, f"agent-typo-{index}")
 
     for metric in (
-        logger.litellm_proxy_failed_requests_metric,
-        logger.litellm_proxy_total_requests_metric,
+        logger.token_iq_proxy_failed_requests_metric,
+        logger.token_iq_proxy_total_requests_metric,
     ):
         assert _requested_model_values(metric) == {UNRECOGNIZED_REQUESTED_MODEL_LABEL}
         assert _series_count(metric) == 1
@@ -127,8 +127,8 @@ async def test_known_alias_and_wildcard_models_keep_their_own_labels(router):
         await _fire_proxy_failure(logger, "agent-typo-hallucinated")
 
     for metric in (
-        logger.litellm_proxy_failed_requests_metric,
-        logger.litellm_proxy_total_requests_metric,
+        logger.token_iq_proxy_failed_requests_metric,
+        logger.token_iq_proxy_total_requests_metric,
     ):
         assert _requested_model_values(metric) == {
             "gpt-4o-mini",
@@ -148,8 +148,8 @@ async def test_team_alias_and_team_wildcard_models_keep_their_own_labels(team_ro
         await _fire_proxy_failure(logger, "agent-typo-hallucinated")
 
     for metric in (
-        logger.litellm_proxy_failed_requests_metric,
-        logger.litellm_proxy_total_requests_metric,
+        logger.token_iq_proxy_failed_requests_metric,
+        logger.token_iq_proxy_total_requests_metric,
     ):
         assert _requested_model_values(metric) == {
             "team-alias-gpt",
@@ -166,7 +166,7 @@ async def test_unknown_models_collapse_to_other_when_router_is_unavailable():
         await _fire_proxy_failure(logger, "agent-typo-no-router")
         await _fire_proxy_failure(logger, "gpt-4o-mini")
 
-    assert _requested_model_values(logger.litellm_proxy_failed_requests_metric) == {
+    assert _requested_model_values(logger.token_iq_proxy_failed_requests_metric) == {
         UNRECOGNIZED_REQUESTED_MODEL_LABEL
     }
 
@@ -190,8 +190,8 @@ async def test_sdk_router_originated_metrics_keep_labels_without_proxy_router():
             original_exception=_ClientSideError("upstream unavailable"),
         )
 
-    assert _requested_model_values(logger.litellm_deployment_failure_responses) == {"sdk-deployment-group"}
-    assert _requested_model_values(logger.litellm_deployment_failed_fallbacks) == {"sdk-fallback-group"}
+    assert _requested_model_values(logger.token_iq_deployment_failure_responses) == {"sdk-deployment-group"}
+    assert _requested_model_values(logger.token_iq_deployment_failed_fallbacks) == {"sdk-fallback-group"}
 
 
 @pytest.mark.asyncio
@@ -211,7 +211,7 @@ async def test_sdk_fallback_labels_survive_non_import_errors_from_proxy_module(m
         original_exception=_ClientSideError("upstream unavailable"),
     )
 
-    assert _requested_model_values(logger.litellm_deployment_failed_fallbacks) == {"sdk-fallback-group"}
+    assert _requested_model_values(logger.token_iq_deployment_failed_fallbacks) == {"sdk-fallback-group"}
 
 
 def test_unknown_models_collapse_to_one_series_on_deployment_metrics(router):
@@ -237,8 +237,8 @@ def test_unknown_models_collapse_to_one_series_on_deployment_metrics(router):
         )
 
     for metric in (
-        logger.litellm_deployment_failure_responses,
-        logger.litellm_deployment_total_requests,
+        logger.token_iq_deployment_failure_responses,
+        logger.token_iq_deployment_total_requests,
     ):
         assert _requested_model_values(metric) == {
             UNRECOGNIZED_REQUESTED_MODEL_LABEL,
@@ -270,10 +270,10 @@ async def test_fallback_event_requested_model_is_bounded(router):
             original_exception=_ClientSideError("upstream unavailable"),
         )
 
-    assert _requested_model_values(logger.litellm_deployment_failed_fallbacks) == {
+    assert _requested_model_values(logger.token_iq_deployment_failed_fallbacks) == {
         UNRECOGNIZED_REQUESTED_MODEL_LABEL,
         "gpt-4o-mini",
     }
-    assert _requested_model_values(logger.litellm_deployment_successful_fallbacks) == {
+    assert _requested_model_values(logger.token_iq_deployment_successful_fallbacks) == {
         UNRECOGNIZED_REQUESTED_MODEL_LABEL
     }

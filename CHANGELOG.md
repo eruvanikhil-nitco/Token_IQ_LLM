@@ -238,4 +238,111 @@ rather than the next.
 | `x-litellm-user-role` | `x-token-iq-user-role` |
 | `x-litellm-version` | `x-token-iq-version` |
 
+#### Prometheus metrics, 82 of them
+
+These are the one thing here that does break. A metric is what a dashboard panel and an alert rule query,
+so every one of those has to be edited, and the old name is not emitted alongside the new one: Prometheus
+would count the same event twice and no amount of compatibility makes a renamed series continue an old one.
+
+Remember the suffixes Prometheus adds when it exposes a metric. A counter named `token_iq_spend_metric` is
+queried as `token_iq_spend_metric_total`, and a histogram as `_bucket`, `_sum` and `_count`. Recording rules
+and alert expressions need the same edit as the panels.
+
+`prometheus_services` builds a family of names at runtime from the service and the kind of request, and
+those move with the prefix as well: `litellm_self_latency` becomes `token_iq_self_latency`.
+
+The Grafana dashboards under `cookbook/` have been updated, so a copy taken after this release queries the
+new names.
+
+| Before | Now |
+| --- | --- |
+| `litellm_active_users` | `token_iq_active_users` |
+| `litellm_api_key_budget_remaining_hours_metric` | `token_iq_api_key_budget_remaining_hours_metric` |
+| `litellm_api_key_max_budget_metric` | `token_iq_api_key_max_budget_metric` |
+| `litellm_api_key_rate_limit_allowed_metric` | `token_iq_api_key_rate_limit_allowed_metric` |
+| `litellm_api_key_rate_limit_used_metric` | `token_iq_api_key_rate_limit_used_metric` |
+| `litellm_cache_hits_metric` | `token_iq_cache_hits_metric` |
+| `litellm_cache_misses_metric` | `token_iq_cache_misses_metric` |
+| `litellm_cached_tokens_metric` | `token_iq_cached_tokens_metric` |
+| `litellm_callback_logging_failures_metric` | `token_iq_callback_logging_failures_metric` |
+| `litellm_check_batch_cost_errors_total` | `token_iq_check_batch_cost_errors_total` |
+| `litellm_check_batch_cost_jobs_polled` | `token_iq_check_batch_cost_jobs_polled` |
+| `litellm_check_batch_cost_jobs_processed_total` | `token_iq_check_batch_cost_jobs_processed_total` |
+| `litellm_check_batch_cost_last_run_timestamp` | `token_iq_check_batch_cost_last_run_timestamp` |
+| `litellm_deployment_cooled_down` | `token_iq_deployment_cooled_down` |
+| `litellm_deployment_failed_fallbacks` | `token_iq_deployment_failed_fallbacks` |
+| `litellm_deployment_failure_responses` | `token_iq_deployment_failure_responses` |
+| `litellm_deployment_latency_per_output_token` | `token_iq_deployment_latency_per_output_token` |
+| `litellm_deployment_rpm_limit` | `token_iq_deployment_rpm_limit` |
+| `litellm_deployment_state` | `token_iq_deployment_state` |
+| `litellm_deployment_success_responses` | `token_iq_deployment_success_responses` |
+| `litellm_deployment_successful_fallbacks` | `token_iq_deployment_successful_fallbacks` |
+| `litellm_deployment_total_requests` | `token_iq_deployment_total_requests` |
+| `litellm_deployment_tpm_limit` | `token_iq_deployment_tpm_limit` |
+| `litellm_guardrail_errors_total` | `token_iq_guardrail_errors_total` |
+| `litellm_guardrail_latency_seconds` | `token_iq_guardrail_latency_seconds` |
+| `litellm_guardrail_requests_total` | `token_iq_guardrail_requests_total` |
+| `litellm_images_generated_metric` | `token_iq_images_generated_metric` |
+| `litellm_in_flight_requests` | `token_iq_in_flight_requests` |
+| `litellm_input_audio_tokens_metric` | `token_iq_input_audio_tokens_metric` |
+| `litellm_input_cache_creation_tokens_metric` | `token_iq_input_cache_creation_tokens_metric` |
+| `litellm_input_cached_tokens_metric` | `token_iq_input_cached_tokens_metric` |
+| `litellm_input_tokens_metric` | `token_iq_input_tokens_metric` |
+| `litellm_llm_api_failed_requests_metric` | `token_iq_llm_api_failed_requests_metric` |
+| `litellm_llm_api_latency_metric` | `token_iq_llm_api_latency_metric` |
+| `litellm_llm_api_time_to_first_token_metric` | `token_iq_llm_api_time_to_first_token_metric` |
+| `litellm_managed_batch_created_total` | `token_iq_managed_batch_created_total` |
+| `litellm_managed_batch_duration_seconds` | `token_iq_managed_batch_duration_seconds` |
+| `litellm_managed_file_created_total` | `token_iq_managed_file_created_total` |
+| `litellm_managed_file_deleted_total` | `token_iq_managed_file_deleted_total` |
+| `litellm_managed_file_size_bytes` | `token_iq_managed_file_size_bytes` |
+| `litellm_mcp_tool_call_spend_metric` | `token_iq_mcp_tool_call_spend_metric` |
+| `litellm_mcp_tool_calls_total` | `token_iq_mcp_tool_calls_total` |
+| `litellm_org_budget_remaining_hours_metric` | `token_iq_org_budget_remaining_hours_metric` |
+| `litellm_org_max_budget_metric` | `token_iq_org_max_budget_metric` |
+| `litellm_output_audio_tokens_metric` | `token_iq_output_audio_tokens_metric` |
+| `litellm_output_reasoning_tokens_metric` | `token_iq_output_reasoning_tokens_metric` |
+| `litellm_output_tokens_metric` | `token_iq_output_tokens_metric` |
+| `litellm_overhead_latency_metric` | `token_iq_overhead_latency_metric` |
+| `litellm_overhead_with_guardrails_latency_metric` | `token_iq_overhead_with_guardrails_latency_metric` |
+| `litellm_provider_cache_creation_input_tokens_metric` | `token_iq_provider_cache_creation_input_tokens_metric` |
+| `litellm_provider_cache_read_input_tokens_metric` | `token_iq_provider_cache_read_input_tokens_metric` |
+| `litellm_provider_remaining_budget_metric` | `token_iq_provider_remaining_budget_metric` |
+| `litellm_proxy_failed_requests_metric` | `token_iq_proxy_failed_requests_metric` |
+| `litellm_proxy_total_requests_metric` | `token_iq_proxy_total_requests_metric` |
+| `litellm_remaining_api_key_budget_metric` | `token_iq_remaining_api_key_budget_metric` |
+| `litellm_remaining_api_key_requests_for_model` | `token_iq_remaining_api_key_requests_for_model` |
+| `litellm_remaining_api_key_tokens_for_model` | `token_iq_remaining_api_key_tokens_for_model` |
+| `litellm_remaining_org_budget_metric` | `token_iq_remaining_org_budget_metric` |
+| `litellm_remaining_requests_metric` | `token_iq_remaining_requests_metric` |
+| `litellm_remaining_team_budget_metric` | `token_iq_remaining_team_budget_metric` |
+| `litellm_remaining_tokens_metric` | `token_iq_remaining_tokens_metric` |
+| `litellm_remaining_user_budget_metric` | `token_iq_remaining_user_budget_metric` |
+| `litellm_request_queue_time_seconds` | `token_iq_request_queue_time_seconds` |
+| `litellm_request_total_latency_metric` | `token_iq_request_total_latency_metric` |
+| `litellm_requests_metric` | `token_iq_requests_metric` |
+| `litellm_spend_log_cleanup_batch_duration_seconds` | `token_iq_spend_log_cleanup_batch_duration_seconds` |
+| `litellm_spend_log_cleanup_batch_failures_total` | `token_iq_spend_log_cleanup_batch_failures_total` |
+| `litellm_spend_log_cleanup_rows_deleted_total` | `token_iq_spend_log_cleanup_rows_deleted_total` |
+| `litellm_spend_log_cleanup_rows_remaining` | `token_iq_spend_log_cleanup_rows_remaining` |
+| `litellm_spend_log_cleanup_runs_total` | `token_iq_spend_log_cleanup_runs_total` |
+| `litellm_spend_metric` | `token_iq_spend_metric` |
+| `litellm_team_budget_remaining_hours_metric` | `token_iq_team_budget_remaining_hours_metric` |
+| `litellm_team_max_budget_metric` | `token_iq_team_max_budget_metric` |
+| `litellm_team_members_metric` | `token_iq_team_members_metric` |
+| `litellm_team_rate_limit_allowed_metric` | `token_iq_team_rate_limit_allowed_metric` |
+| `litellm_team_rate_limit_used_metric` | `token_iq_team_rate_limit_used_metric` |
+| `litellm_teams_count` | `token_iq_teams_count` |
+| `litellm_total_tokens_metric` | `token_iq_total_tokens_metric` |
+| `litellm_total_users` | `token_iq_total_users` |
+| `litellm_user_budget_remaining_hours_metric` | `token_iq_user_budget_remaining_hours_metric` |
+| `litellm_user_max_budget_metric` | `token_iq_user_max_budget_metric` |
+| `litellm_video_duration_seconds_metric` | `token_iq_video_duration_seconds_metric` |
+
+#### What is not renamed
+
+The Prometheus label `litellm_model_name` keeps its name. It is also a key in the engine's hidden
+parameters, read in ten places, so moving it would be a change to something other than metrics. A query
+grouping by that label keeps working.
+
 <!-- end generated -->

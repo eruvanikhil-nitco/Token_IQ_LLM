@@ -52,7 +52,7 @@ def test_prometheus_end_user_series_are_capped_per_metric():
     gateway.prometheus_metrics_config = [
         {
             "group": "end-user-spend",
-            "metrics": ["litellm_spend_metric"],
+            "metrics": ["token_iq_spend_metric"],
             "include_labels": ["end_user"],
         }
     ]
@@ -63,14 +63,14 @@ def test_prometheus_end_user_series_are_capped_per_metric():
     for index in range(6):
         PrometheusLogger._inc_labeled_counter(
             logger,
-            logger.litellm_spend_metric,
-            "litellm_spend_metric",
+            logger.token_iq_spend_metric,
+            "token_iq_spend_metric",
             UserAPIKeyLabelValues(end_user=f"end-user-{index}"),
             amount=0.01,
         )
 
-    assert len(logger.litellm_spend_metric._metrics) == 3
-    assert set(logger.litellm_spend_metric._metrics) == {
+    assert len(logger.token_iq_spend_metric._metrics) == 3
+    assert set(logger.token_iq_spend_metric._metrics) == {
         ("end-user-3",),
         ("end-user-4",),
         ("end-user-5",),
@@ -134,7 +134,7 @@ def test_prometheus_end_user_series_expire_by_ttl(monkeypatch):
     gateway.prometheus_metrics_config = [
         {
             "group": "end-user-spend",
-            "metrics": ["litellm_spend_metric"],
+            "metrics": ["token_iq_spend_metric"],
             "include_labels": ["end_user"],
         }
     ]
@@ -151,8 +151,8 @@ def test_prometheus_end_user_series_expire_by_ttl(monkeypatch):
     )
     PrometheusLogger._inc_labeled_counter(
         logger,
-        logger.litellm_spend_metric,
-        "litellm_spend_metric",
+        logger.token_iq_spend_metric,
+        "token_iq_spend_metric",
         UserAPIKeyLabelValues(end_user="stale-end-user"),
         amount=0.01,
     )
@@ -160,18 +160,18 @@ def test_prometheus_end_user_series_expire_by_ttl(monkeypatch):
     current_time[0] += 11.0
     PrometheusLogger._inc_labeled_counter(
         logger,
-        logger.litellm_spend_metric,
-        "litellm_spend_metric",
+        logger.token_iq_spend_metric,
+        "token_iq_spend_metric",
         UserAPIKeyLabelValues(end_user="fresh-end-user"),
         amount=0.01,
     )
 
-    assert set(logger.litellm_spend_metric._metrics) == {("fresh-end-user",)}
+    assert set(logger.token_iq_spend_metric._metrics) == {("fresh-end-user",)}
 
 
 def test_prometheus_end_user_not_tracked_by_default():
     gateway.enable_end_user_cost_tracking_prometheus_only = None
-    labels = PrometheusLogger().get_labels_for_metric("litellm_spend_metric")
+    labels = PrometheusLogger().get_labels_for_metric("token_iq_spend_metric")
     assert "end_user" in labels
 
     label_values = UserAPIKeyLabelValues(end_user="not-exported")

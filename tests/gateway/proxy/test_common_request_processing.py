@@ -1402,7 +1402,7 @@ class TestProxyBaseLLMRequestProcessing:
         )
 
         # queue_time_seconds must end exactly where logging_obj.start_time begins
-        # (the same start_time litellm_request_total_latency_metric's window
+        # (the same start_time token_iq_request_total_latency_metric's window
         # starts from) so the two windows share a boundary, not an overlap.
         # A mutant that reintroduces a separately-captured processing_start_time
         # would make this assertion fail.

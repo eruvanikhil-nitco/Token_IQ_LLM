@@ -230,7 +230,7 @@ class TestPrometheusQueueTimeMetric:
 
 
 class TestPrometheusTotalLatencyMetric:
-    """litellm_request_total_latency_metric must be true end-to-end latency: start_time
+    """token_iq_request_total_latency_metric must be true end-to-end latency: start_time
     (set after auth already completed, see LIT-6012) plus queue_time_seconds (the
     auth + pre-call setup window queue_time_seconds itself covers), not start_time alone."""
 
@@ -267,7 +267,7 @@ class TestPrometheusTotalLatencyMetric:
         mock_metric = MagicMock()
         mock_labeled_metric = MagicMock()
         mock_metric.labels.return_value = mock_labeled_metric
-        prometheus_logger.litellm_request_total_latency_metric = mock_metric
+        prometheus_logger.token_iq_request_total_latency_metric = mock_metric
 
         start_time = datetime(2024, 1, 1, 0, 0, 0)
         end_time = datetime(2024, 1, 1, 0, 0, 2)  # 2.0s of LLM-call/post-call time
@@ -301,7 +301,7 @@ class TestPrometheusTotalLatencyMetric:
         mock_metric = MagicMock()
         mock_labeled_metric = MagicMock()
         mock_metric.labels.return_value = mock_labeled_metric
-        prometheus_logger.litellm_request_total_latency_metric = mock_metric
+        prometheus_logger.token_iq_request_total_latency_metric = mock_metric
 
         start_time = datetime(2024, 1, 1, 0, 0, 0)
         end_time = datetime(2024, 1, 1, 0, 0, 2)
@@ -334,7 +334,7 @@ class TestPrometheusTotalLatencyMetric:
         mock_metric = MagicMock()
         mock_labeled_metric = MagicMock()
         mock_metric.labels.return_value = mock_labeled_metric
-        prometheus_logger.litellm_request_total_latency_metric = mock_metric
+        prometheus_logger.token_iq_request_total_latency_metric = mock_metric
 
         start_time = datetime(2024, 1, 1, 0, 0, 0)
         end_time = datetime(2024, 1, 1, 0, 0, 2)
@@ -374,8 +374,8 @@ class TestPrometheusGuardrailMetrics:
         mock_errors_metric = MagicMock()
 
         prometheus_logger.litellm_guardrail_latency_metric = mock_latency_metric
-        prometheus_logger.litellm_guardrail_requests_total = mock_requests_metric
-        prometheus_logger.litellm_guardrail_errors_total = mock_errors_metric
+        prometheus_logger.token_iq_guardrail_requests_total = mock_requests_metric
+        prometheus_logger.token_iq_guardrail_errors_total = mock_errors_metric
 
         guardrail_name = "test_guardrail"
         latency_seconds = 0.15
@@ -425,8 +425,8 @@ class TestPrometheusGuardrailMetrics:
         mock_errors_metric = MagicMock()
 
         prometheus_logger.litellm_guardrail_latency_metric = mock_latency_metric
-        prometheus_logger.litellm_guardrail_requests_total = mock_requests_metric
-        prometheus_logger.litellm_guardrail_errors_total = mock_errors_metric
+        prometheus_logger.token_iq_guardrail_requests_total = mock_requests_metric
+        prometheus_logger.token_iq_guardrail_errors_total = mock_errors_metric
 
         guardrail_name = "test_guardrail"
         latency_seconds = 0.2
@@ -480,7 +480,7 @@ class TestPrometheusGuardrailMetrics:
         mock_requests_metric = MagicMock()
 
         prometheus_logger.litellm_guardrail_latency_metric = mock_latency_metric
-        prometheus_logger.litellm_guardrail_requests_total = mock_requests_metric
+        prometheus_logger.token_iq_guardrail_requests_total = mock_requests_metric
 
         guardrail_name = "moderation_guardrail"
         latency_seconds = 0.1
@@ -510,7 +510,7 @@ class TestPrometheusGuardrailMetrics:
         mock_metric = MagicMock()
         mock_metric.labels.side_effect = Exception("Test error")
         prometheus_logger.litellm_guardrail_latency_metric = mock_metric
-        prometheus_logger.litellm_guardrail_requests_total = MagicMock()
+        prometheus_logger.token_iq_guardrail_requests_total = MagicMock()
 
         # Act & Assert - should not raise exception
         try:
@@ -534,7 +534,7 @@ class TestPrometheusGuardrailMetrics:
         mock_requests_metric = MagicMock()
 
         prometheus_logger.litellm_guardrail_latency_metric = mock_latency_metric
-        prometheus_logger.litellm_guardrail_requests_total = mock_requests_metric
+        prometheus_logger.token_iq_guardrail_requests_total = mock_requests_metric
 
         guardrail_name = "custom_guardrail_name"
         latency_seconds = 0.1

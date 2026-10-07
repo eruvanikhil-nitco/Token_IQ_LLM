@@ -3,7 +3,7 @@ Tests for the Prometheus rate-limit labels added on top of PR #27687.
 
 Covers two follow-up gaps to the unified rate-limit error work:
 
-1. ``litellm_proxy_failed_requests_metric`` now carries
+1. ``token_iq_proxy_failed_requests_metric`` now carries
    ``rate_limit_category`` and ``rate_limit_type`` labels populated from
    :class:`litellm.RateLimitError` (vendor + ``ProxyRateLimitError``
    subclass). Closes the Prometheus side of LIT-2718.
@@ -50,7 +50,7 @@ def test_should_include_rate_limit_labels_on_failed_requests_metric():
     try:
         gateway.prometheus_emit_rate_limit_labels = True
         labels = PrometheusMetricLabels.get_labels(
-            "litellm_proxy_failed_requests_metric"
+            "token_iq_proxy_failed_requests_metric"
         )
         assert "rate_limit_category" in labels
         assert "rate_limit_type" in labels
@@ -63,12 +63,12 @@ def test_should_include_rate_limit_labels_on_failed_requests_metric():
 
 def test_should_omit_rate_limit_labels_by_default_for_back_compat():
     """Default-off preserves the metric's historical label set so existing
-    dashboards / recording rules keyed on `litellm_proxy_failed_requests_metric`
+    dashboards / recording rules keyed on `token_iq_proxy_failed_requests_metric`
     keep matching after upgrade."""
     from token_iq import gateway
 
     assert gateway.prometheus_emit_rate_limit_labels is False
-    labels = PrometheusMetricLabels.get_labels("litellm_proxy_failed_requests_metric")
+    labels = PrometheusMetricLabels.get_labels("token_iq_proxy_failed_requests_metric")
     assert "rate_limit_category" not in labels
     assert "rate_limit_type" not in labels
     # Pre-PR labels must still be present.
@@ -231,11 +231,11 @@ async def test_should_populate_rate_limit_labels_for_proxy_rate_limit_error_on_f
         "token_iq.gateway.integrations.prometheus.PrometheusLogger.__init__", return_value=None
     ):
         logger = PrometheusLogger()
-        logger.litellm_proxy_failed_requests_metric = MagicMock()
-        logger.litellm_proxy_total_requests_metric = MagicMock()
+        logger.token_iq_proxy_failed_requests_metric = MagicMock()
+        logger.token_iq_proxy_total_requests_metric = MagicMock()
         logger.get_labels_for_metric = MagicMock(
             return_value=PrometheusMetricLabels.get_labels(
-                "litellm_proxy_failed_requests_metric"
+                "token_iq_proxy_failed_requests_metric"
             )
         )
 
@@ -270,11 +270,11 @@ async def test_should_populate_rate_limit_labels_for_vendor_rate_limit_error_on_
         "token_iq.gateway.integrations.prometheus.PrometheusLogger.__init__", return_value=None
     ):
         logger = PrometheusLogger()
-        logger.litellm_proxy_failed_requests_metric = MagicMock()
-        logger.litellm_proxy_total_requests_metric = MagicMock()
+        logger.token_iq_proxy_failed_requests_metric = MagicMock()
+        logger.token_iq_proxy_total_requests_metric = MagicMock()
         logger.get_labels_for_metric = MagicMock(
             return_value=PrometheusMetricLabels.get_labels(
-                "litellm_proxy_failed_requests_metric"
+                "token_iq_proxy_failed_requests_metric"
             )
         )
 
@@ -305,11 +305,11 @@ async def test_should_leave_rate_limit_labels_blank_for_non_rate_limit_failure()
         "token_iq.gateway.integrations.prometheus.PrometheusLogger.__init__", return_value=None
     ):
         logger = PrometheusLogger()
-        logger.litellm_proxy_failed_requests_metric = MagicMock()
-        logger.litellm_proxy_total_requests_metric = MagicMock()
+        logger.token_iq_proxy_failed_requests_metric = MagicMock()
+        logger.token_iq_proxy_total_requests_metric = MagicMock()
         logger.get_labels_for_metric = MagicMock(
             return_value=PrometheusMetricLabels.get_labels(
-                "litellm_proxy_failed_requests_metric"
+                "token_iq_proxy_failed_requests_metric"
             )
         )
 
@@ -334,8 +334,8 @@ def _logger_with_mock_virtual_key_gauges() -> PrometheusLogger:
         "token_iq.gateway.integrations.prometheus.PrometheusLogger.__init__", return_value=None
     ):
         logger = PrometheusLogger()
-    logger.litellm_remaining_api_key_requests_for_model = MagicMock()
-    logger.litellm_remaining_api_key_tokens_for_model = MagicMock()
+    logger.token_iq_remaining_api_key_requests_for_model = MagicMock()
+    logger.token_iq_remaining_api_key_tokens_for_model = MagicMock()
     logger.get_labels_for_metric = MagicMock(return_value=[])
     return logger
 
@@ -381,10 +381,10 @@ def test_should_read_v3_remaining_headers_when_metadata_keys_absent():
 
     _set_virtual_key_metrics(logger, kwargs)
 
-    logger.litellm_remaining_api_key_requests_for_model.labels.return_value.set.assert_called_once_with(
+    logger.token_iq_remaining_api_key_requests_for_model.labels.return_value.set.assert_called_once_with(
         42
     )
-    logger.litellm_remaining_api_key_tokens_for_model.labels.return_value.set.assert_called_once_with(
+    logger.token_iq_remaining_api_key_tokens_for_model.labels.return_value.set.assert_called_once_with(
         900
     )
 
@@ -406,10 +406,10 @@ def test_should_prefer_legacy_metadata_keys_over_v3_headers():
 
     _set_virtual_key_metrics(logger, kwargs)
 
-    logger.litellm_remaining_api_key_requests_for_model.labels.return_value.set.assert_called_once_with(
+    logger.token_iq_remaining_api_key_requests_for_model.labels.return_value.set.assert_called_once_with(
         3
     )
-    logger.litellm_remaining_api_key_tokens_for_model.labels.return_value.set.assert_called_once_with(
+    logger.token_iq_remaining_api_key_tokens_for_model.labels.return_value.set.assert_called_once_with(
         200
     )
 
@@ -425,10 +425,10 @@ def test_should_treat_zero_v3_remaining_as_zero():
 
     _set_virtual_key_metrics(logger, kwargs)
 
-    logger.litellm_remaining_api_key_requests_for_model.labels.return_value.set.assert_called_once_with(
+    logger.token_iq_remaining_api_key_requests_for_model.labels.return_value.set.assert_called_once_with(
         0
     )
-    logger.litellm_remaining_api_key_tokens_for_model.labels.return_value.set.assert_called_once_with(
+    logger.token_iq_remaining_api_key_tokens_for_model.labels.return_value.set.assert_called_once_with(
         0
     )
 
@@ -444,10 +444,10 @@ def test_should_keep_maxsize_sentinel_when_no_rate_limit_source_present():
 
     _set_virtual_key_metrics(logger, kwargs)
 
-    logger.litellm_remaining_api_key_requests_for_model.labels.return_value.set.assert_called_once_with(
+    logger.token_iq_remaining_api_key_requests_for_model.labels.return_value.set.assert_called_once_with(
         sys.maxsize
     )
-    logger.litellm_remaining_api_key_tokens_for_model.labels.return_value.set.assert_called_once_with(
+    logger.token_iq_remaining_api_key_tokens_for_model.labels.return_value.set.assert_called_once_with(
         sys.maxsize
     )
 
@@ -466,19 +466,19 @@ def test_should_ignore_non_int_v3_header_values(bad_value):
 
     _set_virtual_key_metrics(logger, kwargs)
 
-    logger.litellm_remaining_api_key_requests_for_model.labels.return_value.set.assert_called_once_with(
+    logger.token_iq_remaining_api_key_requests_for_model.labels.return_value.set.assert_called_once_with(
         sys.maxsize
     )
-    logger.litellm_remaining_api_key_tokens_for_model.labels.return_value.set.assert_called_once_with(
+    logger.token_iq_remaining_api_key_tokens_for_model.labels.return_value.set.assert_called_once_with(
         sys.maxsize
     )
 
 
 KEY_AND_TEAM_RATE_LIMIT_METRICS = (
-    "litellm_api_key_rate_limit_allowed_metric",
-    "litellm_api_key_rate_limit_used_metric",
-    "litellm_team_rate_limit_allowed_metric",
-    "litellm_team_rate_limit_used_metric",
+    "token_iq_api_key_rate_limit_allowed_metric",
+    "token_iq_api_key_rate_limit_used_metric",
+    "token_iq_team_rate_limit_allowed_metric",
+    "token_iq_team_rate_limit_used_metric",
 )
 
 
@@ -607,19 +607,19 @@ async def test_should_emit_key_and_team_rate_limit_allowed_and_used_from_v3_head
             ("team_alias", "team-alias"),
         )
 
-        assert _collected_samples("litellm_api_key_rate_limit_allowed_metric") == {
+        assert _collected_samples("token_iq_api_key_rate_limit_allowed_metric") == {
             key_requests: 10,
             key_tokens: 20000,
         }
-        assert _collected_samples("litellm_api_key_rate_limit_used_metric") == {
+        assert _collected_samples("token_iq_api_key_rate_limit_used_metric") == {
             key_requests: 3,
             key_tokens: 53,
         }
-        assert _collected_samples("litellm_team_rate_limit_allowed_metric") == {
+        assert _collected_samples("token_iq_team_rate_limit_allowed_metric") == {
             team_requests: 50,
             team_tokens: 40000,
         }
-        assert _collected_samples("litellm_team_rate_limit_used_metric") == {
+        assert _collected_samples("token_iq_team_rate_limit_used_metric") == {
             team_requests: 3,
             team_tokens: 40,
         }
@@ -648,10 +648,10 @@ async def test_should_emit_only_the_dimensions_the_limiter_enforced():
             ("hashed_api_key", "key-hash"),
             ("rate_limit_type", "requests"),
         )
-        assert _collected_samples("litellm_api_key_rate_limit_allowed_metric") == {key_requests: 10}
-        assert _collected_samples("litellm_api_key_rate_limit_used_metric") == {key_requests: 0}
-        assert _collected_samples("litellm_team_rate_limit_allowed_metric") == {}
-        assert _collected_samples("litellm_team_rate_limit_used_metric") == {}
+        assert _collected_samples("token_iq_api_key_rate_limit_allowed_metric") == {key_requests: 10}
+        assert _collected_samples("token_iq_api_key_rate_limit_used_metric") == {key_requests: 0}
+        assert _collected_samples("token_iq_team_rate_limit_allowed_metric") == {}
+        assert _collected_samples("token_iq_team_rate_limit_used_metric") == {}
     finally:
         _clear_prometheus_registry()
 
@@ -693,10 +693,10 @@ async def test_should_drop_key_and_team_series_once_the_limiter_stops_reporting_
             ("team", "team-id"),
             ("team_alias", "team-alias"),
         )
-        assert _collected_samples("litellm_api_key_rate_limit_allowed_metric") == {}
-        assert _collected_samples("litellm_api_key_rate_limit_used_metric") == {}
-        assert _collected_samples("litellm_team_rate_limit_allowed_metric") == {team_requests: 50}
-        assert _collected_samples("litellm_team_rate_limit_used_metric") == {team_requests: 4}
+        assert _collected_samples("token_iq_api_key_rate_limit_allowed_metric") == {}
+        assert _collected_samples("token_iq_api_key_rate_limit_used_metric") == {}
+        assert _collected_samples("token_iq_team_rate_limit_allowed_metric") == {team_requests: 50}
+        assert _collected_samples("token_iq_team_rate_limit_used_metric") == {team_requests: 4}
     finally:
         _clear_prometheus_registry()
 

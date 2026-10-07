@@ -2052,7 +2052,7 @@ class ProxyLogging:
     async def _run_guardrail_with_metrics(callback: object, coro: Awaitable[_T], hook_type: str) -> _T:
         """
         Await `coro`, recording its latency and status to the
-        `litellm_guardrail_latency_seconds` metric under `hook_type`, and
+        `token_iq_guardrail_latency_seconds` metric under `hook_type`, and
         enriching any raised HTTPException with the originating callback's
         `guardrail_name`/`guardrail_mode` before re-raising.
         """

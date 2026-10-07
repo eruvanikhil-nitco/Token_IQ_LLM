@@ -150,3 +150,39 @@ def test_a_variable_the_engine_stops_reading_is_cleared_rather_than_left() -> No
     filled = fill_rename_map.filled(stale, fill_rename_map.literals())
 
     assert filled[0]["new"] == ""
+
+
+# --- metrics ----------------------------------------------------------------------------------------
+
+
+def test_every_metric_is_in_the_notes() -> None:
+    """A metric the engine emits that the notes never mention is a dashboard panel reading zero with nothing
+    saying why."""
+    text = CHANGELOG.read_text(encoding="utf-8")
+    missing = [old for old, new in renamed("metric name") if f"| `{old}` | `{new}` |" not in text]
+
+    assert missing == []
+
+
+def test_the_metric_rows_are_the_metrics_the_code_constructs() -> None:
+    """The inventory's 141 rows were a loose match on any quoted `litellm_…` string, so they were module
+    names and config keys. These come from the pass that renamed them."""
+    listed = {new for _old, new in renamed("metric name")}
+
+    assert len(listed) == 82
+    assert "token_iq_spend_metric" in listed
+    assert "token_iq_params" not in listed
+
+
+def test_the_notes_say_what_prometheus_appends() -> None:
+    """A customer editing a panel needs to know a counter is queried as `…_total`, or the rename looks wrong
+    rather than incomplete."""
+    text = CHANGELOG.read_text(encoding="utf-8")
+
+    assert "token_iq_spend_metric_total" in text
+    assert "`_bucket`" in text
+
+
+def test_the_notes_say_the_label_is_not_renamed() -> None:
+    """It is also a key in the engine's hidden parameters, so a query grouping by it keeps working."""
+    assert "`litellm_model_name` keeps its name" in CHANGELOG.read_text(encoding="utf-8")

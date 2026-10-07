@@ -123,7 +123,7 @@
             },
             "disableTextWrap": false,
             "editorMode": "code",
-            "expr": "sum(rate(litellm_proxy_total_requests_metric_total[2m]))",
+            "expr": "sum(rate(token_iq_proxy_total_requests_metric_total[2m]))",
             "fullMetaSearch": false,
             "includeNullMetadata": true,
             "legendFormat": "__auto",
@@ -224,7 +224,7 @@
             },
             "disableTextWrap": false,
             "editorMode": "code",
-            "expr": "sum(rate(litellm_proxy_failed_requests_metric_total[2m])) by (exception_class)",
+            "expr": "sum(rate(token_iq_proxy_failed_requests_metric_total[2m])) by (exception_class)",
             "fullMetaSearch": false,
             "includeNullMetadata": true,
             "legendFormat": "__auto",
@@ -299,7 +299,7 @@
             {
               "matcher": {
                 "id": "byName",
-                "options": "sum(rate(litellm_request_total_latency_metric_sum[2m]))/sum(rate(litellm_request_total_latency_metric_count[2m]))"
+                "options": "sum(rate(token_iq_request_total_latency_metric_sum[2m]))/sum(rate(token_iq_request_total_latency_metric_count[2m]))"
               },
               "properties": [
                 {
@@ -311,7 +311,7 @@
             {
               "matcher": {
                 "id": "byName",
-                "options": "histogram_quantile(0.5, sum(rate(litellm_request_total_latency_metric_bucket[2m])) by (le))"
+                "options": "histogram_quantile(0.5, sum(rate(token_iq_request_total_latency_metric_bucket[2m])) by (le))"
               },
               "properties": [
                 {
@@ -350,7 +350,7 @@
             },
             "disableTextWrap": false,
             "editorMode": "code",
-            "expr": "sum(rate(litellm_request_total_latency_metric_sum[2m]))/sum(rate(litellm_request_total_latency_metric_count[2m]))",
+            "expr": "sum(rate(token_iq_request_total_latency_metric_sum[2m]))/sum(rate(token_iq_request_total_latency_metric_count[2m]))",
             "fullMetaSearch": false,
             "includeNullMetadata": true,
             "legendFormat": "__auto",
@@ -364,7 +364,7 @@
               "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.5, sum(rate(litellm_request_total_latency_metric_bucket[2m])) by (le))",
+            "expr": "histogram_quantile(0.5, sum(rate(token_iq_request_total_latency_metric_bucket[2m])) by (le))",
             "hide": false,
             "instant": false,
             "legendFormat": "__auto",
@@ -476,7 +476,7 @@
               "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
-            "expr": "topk(5, sort(litellm_remaining_requests))",
+            "expr": "topk(5, sort(token_iq_remaining_requests))",
             "legendFormat": "__auto",
             "range": true,
             "refId": "A"
@@ -573,7 +573,7 @@
               "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
-            "expr": "topk(5, sort(litellm_remaining_tokens))",
+            "expr": "topk(5, sort(token_iq_remaining_tokens))",
             "legendFormat": "__auto",
             "range": true,
             "refId": "A"
@@ -682,7 +682,7 @@
               "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
-            "expr": "sum(rate(litellm_proxy_total_requests_metric_total[2m])) by (api_key_alias)\n",
+            "expr": "sum(rate(token_iq_proxy_total_requests_metric_total[2m])) by (api_key_alias)\n",
             "legendFormat": "__auto",
             "range": true,
             "refId": "A"
@@ -778,7 +778,7 @@
               "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
-            "expr": "sum(rate(litellm_proxy_total_requests_metric_total[2m])) by (team_alias)\n",
+            "expr": "sum(rate(token_iq_proxy_total_requests_metric_total[2m])) by (team_alias)\n",
             "legendFormat": "__auto",
             "range": true,
             "refId": "A"

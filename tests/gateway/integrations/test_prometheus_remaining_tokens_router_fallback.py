@@ -1,6 +1,6 @@
 """
-LIT-2719 — `litellm_remaining_tokens_metric` and
-`litellm_remaining_requests_metric` only fired for providers that return
+LIT-2719 — `token_iq_remaining_tokens_metric` and
+`token_iq_remaining_requests_metric` only fired for providers that return
 `x-ratelimit-remaining-*` response headers (OpenAI, Azure, Anthropic).
 
 This guarded the gauges behind a provider-specific code path, so Bedrock and
@@ -95,8 +95,8 @@ class TestRouterFallbackEmitsForBedrock:
             }
         )
 
-        prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
-        prometheus_logger.litellm_remaining_requests_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_tokens_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_requests_metric = MagicMock()
 
         with patch("token_iq.gateway.proxy.proxy_server.llm_router", fake_router, create=True):
             await prometheus_logger._async_set_router_remaining_metrics(
@@ -107,12 +107,12 @@ class TestRouterFallbackEmitsForBedrock:
         fake_router.get_remaining_model_group_usage.assert_awaited_once_with(
             "bedrock-claude-group"
         )
-        prometheus_logger.litellm_remaining_tokens_metric.labels.assert_called_once()
-        prometheus_logger.litellm_remaining_tokens_metric.labels().set.assert_called_once_with(
+        prometheus_logger.token_iq_remaining_tokens_metric.labels.assert_called_once()
+        prometheus_logger.token_iq_remaining_tokens_metric.labels().set.assert_called_once_with(
             75
         )
-        prometheus_logger.litellm_remaining_requests_metric.labels.assert_called_once()
-        prometheus_logger.litellm_remaining_requests_metric.labels().set.assert_called_once_with(
+        prometheus_logger.token_iq_remaining_requests_metric.labels.assert_called_once()
+        prometheus_logger.token_iq_remaining_requests_metric.labels().set.assert_called_once_with(
             9
         )
 
@@ -136,8 +136,8 @@ class TestRouterFallbackEmitsForVertex:
             }
         )
 
-        prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
-        prometheus_logger.litellm_remaining_requests_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_tokens_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_requests_metric = MagicMock()
 
         with patch("token_iq.gateway.proxy.proxy_server.llm_router", fake_router, create=True):
             await prometheus_logger._async_set_router_remaining_metrics(
@@ -148,10 +148,10 @@ class TestRouterFallbackEmitsForVertex:
         fake_router.get_remaining_model_group_usage.assert_awaited_once_with(
             "vertex-gemini-group"
         )
-        prometheus_logger.litellm_remaining_tokens_metric.labels().set.assert_called_once_with(
+        prometheus_logger.token_iq_remaining_tokens_metric.labels().set.assert_called_once_with(
             12345
         )
-        prometheus_logger.litellm_remaining_requests_metric.labels().set.assert_called_once_with(
+        prometheus_logger.token_iq_remaining_requests_metric.labels().set.assert_called_once_with(
             50
         )
 
@@ -171,8 +171,8 @@ class TestExistingHeadersShortCircuit:
         fake_router = MagicMock()
         fake_router.get_remaining_model_group_usage = AsyncMock()
 
-        prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
-        prometheus_logger.litellm_remaining_requests_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_tokens_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_requests_metric = MagicMock()
 
         with patch("token_iq.gateway.proxy.proxy_server.llm_router", fake_router, create=True):
             await prometheus_logger._async_set_router_remaining_metrics(
@@ -181,8 +181,8 @@ class TestExistingHeadersShortCircuit:
             )
 
         fake_router.get_remaining_model_group_usage.assert_not_called()
-        prometheus_logger.litellm_remaining_tokens_metric.labels.assert_not_called()
-        prometheus_logger.litellm_remaining_requests_metric.labels.assert_not_called()
+        prometheus_logger.token_iq_remaining_tokens_metric.labels.assert_not_called()
+        prometheus_logger.token_iq_remaining_requests_metric.labels.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_should_only_fill_missing_dimension_when_one_header_present(
@@ -202,8 +202,8 @@ class TestExistingHeadersShortCircuit:
             }
         )
 
-        prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
-        prometheus_logger.litellm_remaining_requests_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_tokens_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_requests_metric = MagicMock()
 
         with patch("token_iq.gateway.proxy.proxy_server.llm_router", fake_router, create=True):
             await prometheus_logger._async_set_router_remaining_metrics(
@@ -211,10 +211,10 @@ class TestExistingHeadersShortCircuit:
                 enum_values=_enum_values(),
             )
 
-        prometheus_logger.litellm_remaining_tokens_metric.labels().set.assert_called_once_with(
+        prometheus_logger.token_iq_remaining_tokens_metric.labels().set.assert_called_once_with(
             555
         )
-        prometheus_logger.litellm_remaining_requests_metric.labels.assert_not_called()
+        prometheus_logger.token_iq_remaining_requests_metric.labels.assert_not_called()
 
 
 class TestRouterFallbackDefensivePaths:
@@ -222,8 +222,8 @@ class TestRouterFallbackDefensivePaths:
     async def test_should_noop_when_llm_router_is_none(self, prometheus_logger):
         payload = _build_payload()
 
-        prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
-        prometheus_logger.litellm_remaining_requests_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_tokens_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_requests_metric = MagicMock()
 
         with patch("token_iq.gateway.proxy.proxy_server.llm_router", None, create=True):
             await prometheus_logger._async_set_router_remaining_metrics(
@@ -231,8 +231,8 @@ class TestRouterFallbackDefensivePaths:
                 enum_values=_enum_values(),
             )
 
-        prometheus_logger.litellm_remaining_tokens_metric.labels.assert_not_called()
-        prometheus_logger.litellm_remaining_requests_metric.labels.assert_not_called()
+        prometheus_logger.token_iq_remaining_tokens_metric.labels.assert_not_called()
+        prometheus_logger.token_iq_remaining_requests_metric.labels.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_should_noop_when_model_group_missing(self, prometheus_logger):
@@ -242,8 +242,8 @@ class TestRouterFallbackDefensivePaths:
         fake_router = MagicMock()
         fake_router.get_remaining_model_group_usage = AsyncMock()
 
-        prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
-        prometheus_logger.litellm_remaining_requests_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_tokens_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_requests_metric = MagicMock()
 
         with patch("token_iq.gateway.proxy.proxy_server.llm_router", fake_router, create=True):
             await prometheus_logger._async_set_router_remaining_metrics(
@@ -252,7 +252,7 @@ class TestRouterFallbackDefensivePaths:
             )
 
         fake_router.get_remaining_model_group_usage.assert_not_called()
-        prometheus_logger.litellm_remaining_tokens_metric.labels.assert_not_called()
+        prometheus_logger.token_iq_remaining_tokens_metric.labels.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_should_noop_when_router_returns_empty_dict(self, prometheus_logger):
@@ -261,8 +261,8 @@ class TestRouterFallbackDefensivePaths:
         fake_router = MagicMock()
         fake_router.get_remaining_model_group_usage = AsyncMock(return_value={})
 
-        prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
-        prometheus_logger.litellm_remaining_requests_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_tokens_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_requests_metric = MagicMock()
 
         with patch("token_iq.gateway.proxy.proxy_server.llm_router", fake_router, create=True):
             await prometheus_logger._async_set_router_remaining_metrics(
@@ -270,8 +270,8 @@ class TestRouterFallbackDefensivePaths:
                 enum_values=_enum_values(),
             )
 
-        prometheus_logger.litellm_remaining_tokens_metric.labels.assert_not_called()
-        prometheus_logger.litellm_remaining_requests_metric.labels.assert_not_called()
+        prometheus_logger.token_iq_remaining_tokens_metric.labels.assert_not_called()
+        prometheus_logger.token_iq_remaining_requests_metric.labels.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_should_swallow_router_exception(self, prometheus_logger):
@@ -282,8 +282,8 @@ class TestRouterFallbackDefensivePaths:
             side_effect=RuntimeError("router boom")
         )
 
-        prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
-        prometheus_logger.litellm_remaining_requests_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_tokens_metric = MagicMock()
+        prometheus_logger.token_iq_remaining_requests_metric = MagicMock()
 
         with patch("token_iq.gateway.proxy.proxy_server.llm_router", fake_router, create=True):
             # Must not raise.
@@ -292,4 +292,4 @@ class TestRouterFallbackDefensivePaths:
                 enum_values=_enum_values(),
             )
 
-        prometheus_logger.litellm_remaining_tokens_metric.labels.assert_not_called()
+        prometheus_logger.token_iq_remaining_tokens_metric.labels.assert_not_called()

@@ -3,7 +3,7 @@ Unit tests for ProxyLogging._init_litellm_callbacks.
 
 Validates that string callbacks in litellm.callbacks are replaced in-place
 with their initialized instances, preventing duplicate entries (string + instance)
-that caused double-counting of metrics like litellm_proxy_total_requests_metric.
+that caused double-counting of metrics like token_iq_proxy_total_requests_metric.
 """
 
 from typing import List, Union

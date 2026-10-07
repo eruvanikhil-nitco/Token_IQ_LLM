@@ -52,6 +52,7 @@ def section() -> str:
     variables: Final = renamed("env var")
     keys: Final = renamed("config key")
     headers: Final = renamed("request header")
+    metrics: Final = renamed("metric name")
     return f"""{BEGIN}
 
 ### Upgrading to this release
@@ -91,6 +92,30 @@ the old one droppable later, so anything reading a response header has to be upd
 rather than the next.
 
 {table(headers, "Before", "Now")}
+
+#### Prometheus metrics, {len(metrics)} of them
+
+These are the one thing here that does break. A metric is what a dashboard panel and an alert rule query,
+so every one of those has to be edited, and the old name is not emitted alongside the new one: Prometheus
+would count the same event twice and no amount of compatibility makes a renamed series continue an old one.
+
+Remember the suffixes Prometheus adds when it exposes a metric. A counter named `token_iq_spend_metric` is
+queried as `token_iq_spend_metric_total`, and a histogram as `_bucket`, `_sum` and `_count`. Recording rules
+and alert expressions need the same edit as the panels.
+
+`prometheus_services` builds a family of names at runtime from the service and the kind of request, and
+those move with the prefix as well: `litellm_self_latency` becomes `token_iq_self_latency`.
+
+The Grafana dashboards under `cookbook/` have been updated, so a copy taken after this release queries the
+new names.
+
+{table(metrics, "Before", "Now")}
+
+#### What is not renamed
+
+The Prometheus label `litellm_model_name` keeps its name. It is also a key in the engine's hidden
+parameters, read in ten places, so moving it would be a change to something other than metrics. A query
+grouping by that label keeps working.
 
 {END}"""
 

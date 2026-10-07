@@ -23,8 +23,8 @@ from token_iq.gateway.types.integrations.prometheus import (
 
 
 MCP_METRICS = (
-    "litellm_mcp_tool_calls_total",
-    "litellm_mcp_tool_call_spend_metric",
+    "token_iq_mcp_tool_calls_total",
+    "token_iq_mcp_tool_call_spend_metric",
 )
 
 
@@ -33,7 +33,7 @@ def _make_mock_logger():
     for name in MCP_METRICS:
         setattr(logger, name, MagicMock())
     logger.get_labels_for_metric = MagicMock(
-        return_value=PrometheusMetricLabels.litellm_mcp_tool_calls_total,
+        return_value=PrometheusMetricLabels.token_iq_mcp_tool_calls_total,
     )
     return logger
 
@@ -104,18 +104,18 @@ class TestMCPMetricRegistration:
             assert hasattr(PrometheusMetricLabels, name), f"{name} missing from PrometheusMetricLabels"
 
     def test_mcp_labels_include_tool_and_server_name(self):
-        labels = PrometheusMetricLabels.litellm_mcp_tool_calls_total
+        labels = PrometheusMetricLabels.token_iq_mcp_tool_calls_total
         assert UserAPIKeyLabelNames.MCP_TOOL_NAME.value in labels
         assert UserAPIKeyLabelNames.MCP_SERVER_NAME.value in labels
 
     def test_spend_metric_shares_label_set_with_calls_metric(self):
         assert (
-            PrometheusMetricLabels.litellm_mcp_tool_call_spend_metric
-            == PrometheusMetricLabels.litellm_mcp_tool_calls_total
+            PrometheusMetricLabels.token_iq_mcp_tool_call_spend_metric
+            == PrometheusMetricLabels.token_iq_mcp_tool_calls_total
         )
         assert (
-            PrometheusMetricLabels.litellm_mcp_tool_call_spend_metric
-            is not PrometheusMetricLabels.litellm_mcp_tool_calls_total
+            PrometheusMetricLabels.token_iq_mcp_tool_call_spend_metric
+            is not PrometheusMetricLabels.token_iq_mcp_tool_calls_total
         )
 
     def test_enum_values_accept_mcp_fields(self):
@@ -142,8 +142,8 @@ class TestIncrementMCPToolCallMetrics:
             response_cost=0.005,
         )
 
-        logger.litellm_mcp_tool_calls_total.labels.assert_called_once()
-        logger.litellm_mcp_tool_calls_total.labels().inc.assert_called_once_with(1.0)
+        logger.token_iq_mcp_tool_calls_total.labels.assert_called_once()
+        logger.token_iq_mcp_tool_calls_total.labels().inc.assert_called_once_with(1.0)
 
     def test_increments_spend_counter_when_cost_positive(self):
         logger = _make_mock_logger()
@@ -157,8 +157,8 @@ class TestIncrementMCPToolCallMetrics:
             response_cost=0.01,
         )
 
-        logger.litellm_mcp_tool_call_spend_metric.labels.assert_called_once()
-        logger.litellm_mcp_tool_call_spend_metric.labels().inc.assert_called_once_with(0.01)
+        logger.token_iq_mcp_tool_call_spend_metric.labels.assert_called_once()
+        logger.token_iq_mcp_tool_call_spend_metric.labels().inc.assert_called_once_with(0.01)
 
     def test_skips_spend_counter_when_cost_zero(self):
         logger = _make_mock_logger()
@@ -172,8 +172,8 @@ class TestIncrementMCPToolCallMetrics:
             response_cost=0.0,
         )
 
-        logger.litellm_mcp_tool_calls_total.labels.assert_called_once()
-        logger.litellm_mcp_tool_call_spend_metric.labels.assert_not_called()
+        logger.token_iq_mcp_tool_calls_total.labels.assert_called_once()
+        logger.token_iq_mcp_tool_call_spend_metric.labels.assert_not_called()
 
     def test_noop_when_no_mcp_metadata(self):
         logger = _make_mock_logger()
@@ -221,7 +221,7 @@ class TestIncrementMCPToolCallMetrics:
             response_cost=0.005,
         )
 
-        labels_passed = logger.litellm_mcp_tool_calls_total.labels.call_args
+        labels_passed = logger.token_iq_mcp_tool_calls_total.labels.call_args
         assert labels_passed.kwargs["mcp_tool_name"] == "search_docs"
         assert labels_passed.kwargs["mcp_server_name"] == "docs-mcp"
 
@@ -244,7 +244,7 @@ class TestIncrementMCPToolCallMetrics:
             response_cost=0.005,
         )
 
-        labels_passed = logger.litellm_mcp_tool_calls_total.labels.call_args
+        labels_passed = logger.token_iq_mcp_tool_calls_total.labels.call_args
         assert labels_passed.kwargs["hashed_api_key"] == "sk-parent-key"
         assert labels_passed.kwargs["team"] == "parent-team"
         assert labels_passed.kwargs["team_alias"] == "Parent Team"
@@ -267,7 +267,7 @@ class TestIncrementMCPToolCallMetrics:
             response_cost=0.0,
         )
 
-        labels_passed = logger.litellm_mcp_tool_calls_total.labels.call_args
+        labels_passed = logger.token_iq_mcp_tool_calls_total.labels.call_args
         assert labels_passed.kwargs["mcp_tool_name"] == "standalone_tool"
         assert labels_passed.kwargs["mcp_server_name"] is None
 

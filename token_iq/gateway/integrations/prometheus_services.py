@@ -116,7 +116,7 @@ class PrometheusServicesLogger:
         return self.REGISTRY._names_to_collectors.get(metric_name)
 
     def create_histogram(self, service: str, type_of_request: str):
-        metric_name: Final = f"litellm_{service}_{type_of_request}"
+        metric_name: Final = f"token_iq_{service}_{type_of_request}"
         is_registered: Final = self.is_metric_registered(metric_name)
         if is_registered:
             return self._get_metric(metric_name)
@@ -128,7 +128,7 @@ class PrometheusServicesLogger:
         )
 
     def create_gauge(self, service: str, type_of_request: str):
-        metric_name: Final = f"litellm_{service}_{type_of_request}"
+        metric_name: Final = f"token_iq_{service}_{type_of_request}"
         is_registered: Final = self.is_metric_registered(metric_name)
         if is_registered:
             return self._get_metric(metric_name)
@@ -140,7 +140,7 @@ class PrometheusServicesLogger:
         type_of_request: str,
         additional_labels: list[str] | None = None,
     ):
-        metric_name: Final = f"litellm_{service}_{type_of_request}"
+        metric_name: Final = f"token_iq_{service}_{type_of_request}"
         is_registered: Final = self.is_metric_registered(metric_name)
         if is_registered:
             return self._get_metric(metric_name)

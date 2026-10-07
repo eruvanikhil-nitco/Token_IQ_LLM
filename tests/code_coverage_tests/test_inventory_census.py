@@ -49,7 +49,7 @@ class TestCategories:
 
     def test_counts_metrics_separately_from_other_snake_case_names(self, tmp_path: pathlib.Path) -> None:
         """A metric is declared, not merely mentioned, so a bare identifier must not count."""
-        _tree(tmp_path, {"a.py": 'Counter("litellm_spend_metric")\nGauge("litellm_requests")\nlitellm_logging.foo()'})
+        _tree(tmp_path, {"a.py": 'Counter("token_iq_spend_metric")\nGauge("litellm_requests")\nlitellm_logging.foo()'})
         assert count_tree(tmp_path).categories["metrics"] == 2
 
     def test_separates_python_from_ui_source(self, tmp_path: pathlib.Path) -> None:

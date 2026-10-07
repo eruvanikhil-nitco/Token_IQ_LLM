@@ -23,11 +23,11 @@ from token_iq.gateway.types.integrations.prometheus import (
 
 
 TOKEN_DETAIL_METRICS = [
-    "litellm_input_cached_tokens_metric",
-    "litellm_input_cache_creation_tokens_metric",
-    "litellm_input_audio_tokens_metric",
-    "litellm_output_reasoning_tokens_metric",
-    "litellm_output_audio_tokens_metric",
+    "token_iq_input_cached_tokens_metric",
+    "token_iq_input_cache_creation_tokens_metric",
+    "token_iq_input_audio_tokens_metric",
+    "token_iq_output_reasoning_tokens_metric",
+    "token_iq_output_audio_tokens_metric",
 ]
 
 
@@ -81,26 +81,26 @@ class TestTokenDetailMetricsRegistration:
         # Detail metrics should reuse the parent input/output label set so
         # dashboards can join token totals against per-type detail.
         assert (
-            PrometheusMetricLabels.litellm_input_cached_tokens_metric
-            == PrometheusMetricLabels.litellm_input_tokens_metric
+            PrometheusMetricLabels.token_iq_input_cached_tokens_metric
+            == PrometheusMetricLabels.token_iq_input_tokens_metric
         )
         assert (
-            PrometheusMetricLabels.litellm_input_cache_creation_tokens_metric
-            == PrometheusMetricLabels.litellm_input_tokens_metric
+            PrometheusMetricLabels.token_iq_input_cache_creation_tokens_metric
+            == PrometheusMetricLabels.token_iq_input_tokens_metric
         )
         assert (
-            PrometheusMetricLabels.litellm_input_audio_tokens_metric
-            == PrometheusMetricLabels.litellm_input_tokens_metric
+            PrometheusMetricLabels.token_iq_input_audio_tokens_metric
+            == PrometheusMetricLabels.token_iq_input_tokens_metric
         )
 
     def test_output_detail_metrics_share_output_label_set(self):
         assert (
-            PrometheusMetricLabels.litellm_output_reasoning_tokens_metric
-            == PrometheusMetricLabels.litellm_output_tokens_metric
+            PrometheusMetricLabels.token_iq_output_reasoning_tokens_metric
+            == PrometheusMetricLabels.token_iq_output_tokens_metric
         )
         assert (
-            PrometheusMetricLabels.litellm_output_audio_tokens_metric
-            == PrometheusMetricLabels.litellm_output_tokens_metric
+            PrometheusMetricLabels.token_iq_output_audio_tokens_metric
+            == PrometheusMetricLabels.token_iq_output_tokens_metric
         )
 
 
@@ -134,19 +134,19 @@ class TestIncrementTokenDetailMetrics:
             enum_values=sample_enum_values,
         )
 
-        logger.litellm_input_cached_tokens_metric.labels().inc.assert_called_once_with(
+        logger.token_iq_input_cached_tokens_metric.labels().inc.assert_called_once_with(
             40.0
         )
-        logger.litellm_input_cache_creation_tokens_metric.labels().inc.assert_called_once_with(
+        logger.token_iq_input_cache_creation_tokens_metric.labels().inc.assert_called_once_with(
             25.0
         )
-        logger.litellm_input_audio_tokens_metric.labels().inc.assert_called_once_with(
+        logger.token_iq_input_audio_tokens_metric.labels().inc.assert_called_once_with(
             15.0
         )
-        logger.litellm_output_reasoning_tokens_metric.labels().inc.assert_called_once_with(
+        logger.token_iq_output_reasoning_tokens_metric.labels().inc.assert_called_once_with(
             60.0
         )
-        logger.litellm_output_audio_tokens_metric.labels().inc.assert_called_once_with(
+        logger.token_iq_output_audio_tokens_metric.labels().inc.assert_called_once_with(
             10.0
         )
 
@@ -172,7 +172,7 @@ class TestIncrementTokenDetailMetrics:
             enum_values=sample_enum_values,
         )
 
-        logger.litellm_input_cache_creation_tokens_metric.labels().inc.assert_called_once_with(
+        logger.token_iq_input_cache_creation_tokens_metric.labels().inc.assert_called_once_with(
             800.0
         )
 
@@ -197,7 +197,7 @@ class TestIncrementTokenDetailMetrics:
             enum_values=sample_enum_values,
         )
 
-        logger.litellm_input_cache_creation_tokens_metric.labels().inc.assert_called_once_with(
+        logger.token_iq_input_cache_creation_tokens_metric.labels().inc.assert_called_once_with(
             800.0
         )
 
@@ -249,13 +249,13 @@ class TestIncrementTokenDetailMetrics:
         )
 
         # Only audio_tokens was non-zero — only that counter should fire.
-        logger.litellm_input_cached_tokens_metric.labels.assert_not_called()
-        logger.litellm_input_cache_creation_tokens_metric.labels.assert_not_called()
-        logger.litellm_input_audio_tokens_metric.labels().inc.assert_called_once_with(
+        logger.token_iq_input_cached_tokens_metric.labels.assert_not_called()
+        logger.token_iq_input_cache_creation_tokens_metric.labels.assert_not_called()
+        logger.token_iq_input_audio_tokens_metric.labels().inc.assert_called_once_with(
             12.0
         )
-        logger.litellm_output_reasoning_tokens_metric.labels.assert_not_called()
-        logger.litellm_output_audio_tokens_metric.labels.assert_not_called()
+        logger.token_iq_output_reasoning_tokens_metric.labels.assert_not_called()
+        logger.token_iq_output_audio_tokens_metric.labels.assert_not_called()
 
     def test_no_usage_object_is_a_noop(self, sample_enum_values):
         logger = _make_mock_logger()
@@ -303,8 +303,8 @@ class TestIncrementTokenDetailMetrics:
             enum_values=sample_enum_values,
         )
 
-        logger.litellm_input_cached_tokens_metric.labels.assert_not_called()
-        logger.litellm_output_reasoning_tokens_metric.labels.assert_not_called()
+        logger.token_iq_input_cached_tokens_metric.labels.assert_not_called()
+        logger.token_iq_output_reasoning_tokens_metric.labels.assert_not_called()
 
 
 if __name__ == "__main__":

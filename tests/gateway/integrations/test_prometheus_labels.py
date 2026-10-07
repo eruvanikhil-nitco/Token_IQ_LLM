@@ -34,23 +34,23 @@ def _collected_samples(metric_name: str):
 def test_user_email_in_required_metrics():
     """
     Test that user_email label is present in all the metrics that should have it:
-    - litellm_proxy_total_requests_metric (already had it)
-    - litellm_proxy_failed_requests_metric (added)
-    - litellm_input_tokens_metric (added)
-    - litellm_output_tokens_metric (added)
-    - litellm_requests_metric (already had it)
-    - litellm_spend_metric (added)
+    - token_iq_proxy_total_requests_metric (already had it)
+    - token_iq_proxy_failed_requests_metric (added)
+    - token_iq_input_tokens_metric (added)
+    - token_iq_output_tokens_metric (added)
+    - token_iq_requests_metric (already had it)
+    - token_iq_spend_metric (added)
     """
     user_email_label = UserAPIKeyLabelNames.USER_EMAIL.value
 
     # Metrics that should have user_email
     metrics_with_user_email = [
-        "litellm_proxy_total_requests_metric",
-        "litellm_proxy_failed_requests_metric",
-        "litellm_input_tokens_metric",
-        "litellm_output_tokens_metric",
-        "litellm_requests_metric",
-        "litellm_spend_metric",
+        "token_iq_proxy_total_requests_metric",
+        "token_iq_proxy_failed_requests_metric",
+        "token_iq_input_tokens_metric",
+        "token_iq_output_tokens_metric",
+        "token_iq_requests_metric",
+        "token_iq_spend_metric",
     ]
 
     for metric_name in metrics_with_user_email:
@@ -69,20 +69,20 @@ def test_model_id_in_extended_metric_set():
 
     # Metrics that should have model_id
     metrics_with_model_id = [
-        "litellm_proxy_total_requests_metric",
-        "litellm_proxy_failed_requests_metric",
-        "litellm_input_tokens_metric",
-        "litellm_output_tokens_metric",
-        "litellm_requests_metric",
-        "litellm_spend_metric",
-        "litellm_llm_api_latency_metric",
-        "litellm_remaining_requests_metric",
-        "litellm_deployment_successful_fallbacks",
-        "litellm_cache_hits_metric",
-        "litellm_cache_misses_metric",
-        "litellm_remaining_api_key_requests_for_model",
-        "litellm_remaining_api_key_tokens_for_model",
-        "litellm_llm_api_failed_requests_metric",
+        "token_iq_proxy_total_requests_metric",
+        "token_iq_proxy_failed_requests_metric",
+        "token_iq_input_tokens_metric",
+        "token_iq_output_tokens_metric",
+        "token_iq_requests_metric",
+        "token_iq_spend_metric",
+        "token_iq_llm_api_latency_metric",
+        "token_iq_remaining_requests_metric",
+        "token_iq_deployment_successful_fallbacks",
+        "token_iq_cache_hits_metric",
+        "token_iq_cache_misses_metric",
+        "token_iq_remaining_api_key_requests_for_model",
+        "token_iq_remaining_api_key_tokens_for_model",
+        "token_iq_llm_api_failed_requests_metric",
     ]
 
     for metric_name in metrics_with_model_id:
@@ -100,7 +100,7 @@ def test_api_provider_in_spend_and_requests_metrics():
     """
     api_provider_label = UserAPIKeyLabelNames.API_PROVIDER.value
 
-    for metric_name in ["litellm_spend_metric", "litellm_requests_metric"]:
+    for metric_name in ["token_iq_spend_metric", "token_iq_requests_metric"]:
         labels = PrometheusMetricLabels.get_labels(metric_name)
         assert (
             api_provider_label in labels
@@ -113,8 +113,8 @@ def test_api_provider_in_token_latency_and_request_metrics():
     Regression test for LIT-4178.
 
     These metrics are all emitted from the same call site (async_log_success_event
-    / async_post_call_failure_hook) as litellm_spend_metric and
-    litellm_requests_metric, which already carry api_provider. They were the odd
+    / async_post_call_failure_hook) as token_iq_spend_metric and
+    token_iq_requests_metric, which already carry api_provider. They were the odd
     ones out with no way to break down tokens, latency, request counts or cache
     hits by upstream provider, even though the provider is available on the
     payload as custom_llm_provider.
@@ -122,23 +122,23 @@ def test_api_provider_in_token_latency_and_request_metrics():
     api_provider_label = UserAPIKeyLabelNames.API_PROVIDER.value
 
     metrics_with_api_provider = [
-        "litellm_llm_api_latency_metric",
-        "litellm_llm_api_time_to_first_token_metric",
-        "litellm_request_total_latency_metric",
-        "litellm_request_queue_time_seconds",
-        "litellm_proxy_total_requests_metric",
-        "litellm_proxy_failed_requests_metric",
-        "litellm_input_tokens_metric",
-        "litellm_total_tokens_metric",
-        "litellm_output_tokens_metric",
-        "litellm_cache_hits_metric",
-        "litellm_cache_misses_metric",
+        "token_iq_llm_api_latency_metric",
+        "token_iq_llm_api_time_to_first_token_metric",
+        "token_iq_request_total_latency_metric",
+        "token_iq_request_queue_time_seconds",
+        "token_iq_proxy_total_requests_metric",
+        "token_iq_proxy_failed_requests_metric",
+        "token_iq_input_tokens_metric",
+        "token_iq_total_tokens_metric",
+        "token_iq_output_tokens_metric",
+        "token_iq_cache_hits_metric",
+        "token_iq_cache_misses_metric",
         # The remaining cache metrics share _cache_metric_labels, so they pick up
         # api_provider from the same change. Assert them explicitly so the shared
         # list can't silently drop the label from them.
-        "litellm_cached_tokens_metric",
-        "litellm_provider_cache_read_input_tokens_metric",
-        "litellm_provider_cache_creation_input_tokens_metric",
+        "token_iq_cached_tokens_metric",
+        "token_iq_provider_cache_read_input_tokens_metric",
+        "token_iq_provider_cache_creation_input_tokens_metric",
     ]
 
     for metric_name in metrics_with_api_provider:
@@ -179,13 +179,13 @@ def test_api_provider_value_flows_through_label_factory():
     )
 
     for metric_name in [
-        "litellm_input_tokens_metric",
-        "litellm_total_tokens_metric",
-        "litellm_output_tokens_metric",
-        "litellm_llm_api_latency_metric",
-        "litellm_request_total_latency_metric",
-        "litellm_proxy_total_requests_metric",
-        "litellm_cache_hits_metric",
+        "token_iq_input_tokens_metric",
+        "token_iq_total_tokens_metric",
+        "token_iq_output_tokens_metric",
+        "token_iq_llm_api_latency_metric",
+        "token_iq_request_total_latency_metric",
+        "token_iq_proxy_total_requests_metric",
+        "token_iq_cache_hits_metric",
     ]:
         labels = prometheus_label_factory(
             supported_enum_labels=prometheus_logger.get_labels_for_metric(
@@ -281,11 +281,11 @@ def test_prometheus_metric_labels_structure():
 
     # Test a few key metrics to ensure they have proper label structure
     test_metrics = [
-        "litellm_proxy_total_requests_metric",
-        "litellm_proxy_failed_requests_metric",
-        "litellm_input_tokens_metric",
-        "litellm_output_tokens_metric",
-        "litellm_spend_metric",
+        "token_iq_proxy_total_requests_metric",
+        "token_iq_proxy_failed_requests_metric",
+        "token_iq_input_tokens_metric",
+        "token_iq_output_tokens_metric",
+        "token_iq_spend_metric",
     ]
 
     for metric_name in test_metrics:
@@ -308,19 +308,19 @@ def test_prometheus_metric_labels_structure():
 def test_model_id_in_required_metrics():
     """
     Test that model_id label is present in all the metrics that should have it:
-    - litellm_proxy_total_requests_metric
-    - litellm_proxy_failed_requests_metric
-    - litellm_request_total_latency_metric
-    - litellm_llm_api_time_to_first_token_metric
+    - token_iq_proxy_total_requests_metric
+    - token_iq_proxy_failed_requests_metric
+    - token_iq_request_total_latency_metric
+    - token_iq_llm_api_time_to_first_token_metric
     """
     model_id_label = UserAPIKeyLabelNames.MODEL_ID.value
 
     # Metrics that should have model_id
     metrics_with_model_id = [
-        "litellm_proxy_total_requests_metric",
-        "litellm_proxy_failed_requests_metric",
-        "litellm_request_total_latency_metric",
-        "litellm_llm_api_time_to_first_token_metric",
+        "token_iq_proxy_total_requests_metric",
+        "token_iq_proxy_failed_requests_metric",
+        "token_iq_request_total_latency_metric",
+        "token_iq_llm_api_time_to_first_token_metric",
     ]
 
     for metric_name in metrics_with_model_id:
@@ -335,7 +335,7 @@ def test_requested_model_in_spend_and_requests_metrics():
     """
     Regression test for LIT-3796.
 
-    litellm_spend_metric and litellm_requests_metric must expose the
+    token_iq_spend_metric and token_iq_requests_metric must expose the
     requested_model label so spend and request counts can be grouped by the
     model alias the caller asked for, not just the backend deployment that
     served the request. The sibling token metrics (input/output/total)
@@ -345,11 +345,11 @@ def test_requested_model_in_spend_and_requests_metrics():
     requested_model_label = UserAPIKeyLabelNames.REQUESTED_MODEL.value
 
     metrics_with_requested_model = [
-        "litellm_spend_metric",
-        "litellm_requests_metric",
-        "litellm_input_tokens_metric",
-        "litellm_output_tokens_metric",
-        "litellm_total_tokens_metric",
+        "token_iq_spend_metric",
+        "token_iq_requests_metric",
+        "token_iq_input_tokens_metric",
+        "token_iq_output_tokens_metric",
+        "token_iq_total_tokens_metric",
     ]
 
     for metric_name in metrics_with_requested_model:
@@ -514,7 +514,7 @@ def test_prometheus_metrics_use_normalized_routes():
 
     labels = prometheus_label_factory(
         supported_enum_labels=prometheus_logger.get_labels_for_metric(
-            metric_name="litellm_proxy_total_requests_metric"
+            metric_name="token_iq_proxy_total_requests_metric"
         ),
         enum_values=enum_values,
     )
@@ -561,7 +561,7 @@ def test_prometheus_label_value_sanitization():
 
     labels = prometheus_label_factory(
         supported_enum_labels=prometheus_logger.get_labels_for_metric(
-            metric_name="litellm_proxy_total_requests_metric"
+            metric_name="token_iq_proxy_total_requests_metric"
         ),
         enum_values=enum_values,
     )
@@ -620,7 +620,7 @@ async def test_success_hook_emits_api_provider_value_on_token_metric():
     the production api_provider=standard_logging_payload["custom_llm_provider"]
     assignment in async_log_success_event would still pass them. This drives
     async_log_success_event with a payload whose provider is openai and asserts
-    the collected litellm_total_tokens_metric sample actually carries
+    the collected token_iq_total_tokens_metric sample actually carries
     api_provider="openai"; it fails if that assignment is removed.
     """
     import datetime
@@ -675,8 +675,8 @@ async def test_success_hook_emits_api_provider_value_on_token_metric():
             now,
             now,
         )
-        samples = _collected_samples("litellm_total_tokens_metric_total")
-        assert samples, "expected litellm_total_tokens_metric to be emitted"
+        samples = _collected_samples("token_iq_total_tokens_metric_total")
+        assert samples, "expected token_iq_total_tokens_metric to be emitted"
         assert all(s.labels.get("api_provider") == "openai" for s in samples), (
             "collected token metric must carry api_provider=openai, got "
             f"{[s.labels.get('api_provider') for s in samples]}"
@@ -691,7 +691,7 @@ async def test_failure_hook_emits_api_provider_value_on_failed_requests_metric()
     End-to-end emit wiring for the failure path.
 
     async_post_call_failure_hook on a request whose model resolves to openai must
-    emit litellm_proxy_failed_requests_metric with api_provider="openai". This
+    emit token_iq_proxy_failed_requests_metric with api_provider="openai". This
     fails if the api_provider assignment in the failure hook is removed, which the
     helper-only test cannot catch.
     """
@@ -706,8 +706,8 @@ async def test_failure_hook_emits_api_provider_value_on_failed_requests_metric()
             original_exception=Exception("boom"),
             user_api_key_dict=UserAPIKeyAuth(token="tok"),
         )
-        samples = _collected_samples("litellm_proxy_failed_requests_metric_total")
-        assert samples, "expected litellm_proxy_failed_requests_metric to be emitted"
+        samples = _collected_samples("token_iq_proxy_failed_requests_metric_total")
+        assert samples, "expected token_iq_proxy_failed_requests_metric to be emitted"
         assert any(s.labels.get("api_provider") == "openai" for s in samples), (
             "collected failed-requests metric must carry api_provider=openai, got "
             f"{[s.labels.get('api_provider') for s in samples]}"

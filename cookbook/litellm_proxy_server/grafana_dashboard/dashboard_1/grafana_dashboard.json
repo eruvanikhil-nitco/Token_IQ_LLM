@@ -113,7 +113,7 @@
               "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.99, sum(rate(litellm_self_latency_bucket{self=\"self\"}[1m])) by (le))",
+            "expr": "histogram_quantile(0.99, sum(rate(token_iq_self_latency_bucket{self=\"self\"}[1m])) by (le))",
             "legendFormat": "Time to first token",
             "range": true,
             "refId": "A"
@@ -219,7 +219,7 @@
               "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
-            "expr": "sum(increase(litellm_spend_metric_total[30d])) by (hashed_api_key)",
+            "expr": "sum(increase(token_iq_spend_metric_total[30d])) by (hashed_api_key)",
             "legendFormat": "{{team}}",
             "range": true,
             "refId": "A"
@@ -312,7 +312,7 @@
               "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
-            "expr": "sum by (model) (increase(litellm_requests_metric_total[5m]))",
+            "expr": "sum by (model) (increase(token_iq_requests_metric_total[5m]))",
             "legendFormat": "{{model}}",
             "range": true,
             "refId": "A"
@@ -378,7 +378,7 @@
               "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
-            "expr": "sum(increase(litellm_llm_api_failed_requests_metric_total[1h]))",
+            "expr": "sum(increase(token_iq_llm_api_failed_requests_metric_total[1h]))",
             "legendFormat": "__auto",
             "range": true,
             "refId": "A"
@@ -471,7 +471,7 @@
               "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
-            "expr": "sum(increase(litellm_spend_metric_total[30d])) by (model)",
+            "expr": "sum(increase(token_iq_spend_metric_total[30d])) by (model)",
             "legendFormat": "{{model}}",
             "range": true,
             "refId": "A"
@@ -563,7 +563,7 @@
               "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
-            "expr": "sum(increase(litellm_total_tokens_total[5m])) by (model)",
+            "expr": "sum(increase(token_iq_total_tokens_total[5m])) by (model)",
             "legendFormat": "__auto",
             "range": true,
             "refId": "A"

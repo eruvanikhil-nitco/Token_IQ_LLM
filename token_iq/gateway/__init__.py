@@ -460,7 +460,7 @@ prometheus_deployment_and_latency_caller_identity: Literal[
     "both",
 ] = "api_key_alias"
 # Opt-in: emit `rate_limit_category` and `rate_limit_type` labels on
-# `litellm_proxy_failed_requests_metric`. Off by default to preserve the
+# `token_iq_proxy_failed_requests_metric`. Off by default to preserve the
 # pre-unification label set so existing dashboards / recording rules keyed on
 # that metric keep matching after upgrade. Enable when downstream consumers
 # are ready to split 429s by source (vendor vs. litellm) and dimension
