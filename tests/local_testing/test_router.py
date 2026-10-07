@@ -12,7 +12,6 @@ import pytest
 import token_iq.gateway.types
 from token_iq import gateway
 import token_iq.gateway.types.router
-from token_iq import gateway
 
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
@@ -21,7 +20,6 @@ import httpx
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.router import Deployment, LiteLLM_Params
 from token_iq.gateway.types.router import ModelInfo

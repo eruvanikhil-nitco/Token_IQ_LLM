@@ -471,7 +471,6 @@ def test_configurable_string_length_env_var(monkeypatch):
     import token_iq.gateway.constants
     from token_iq import gateway
     import token_iq.gateway.proxy.spend_tracking.spend_tracking_utils
-    from token_iq import gateway
 
     importlib.reload(gateway.constants)
     importlib.reload(gateway.proxy.spend_tracking.spend_tracking_utils)

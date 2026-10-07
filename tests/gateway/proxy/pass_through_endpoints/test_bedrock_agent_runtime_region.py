@@ -37,7 +37,7 @@ def test_no_region_configured_is_an_explicit_error(monkeypatch):
     for name in ("AWS_REGION_NAME", "AWS_REGION", "AWS_DEFAULT_REGION"):
         monkeypatch.delenv(name, raising=False)
 
-    with pytest.raises(Exception) as exc:
+    with pytest.raises(Exception, match=r"(?i)region") as exc:
         _resolve_bedrock_agent_runtime_region()
 
     message = str(exc.value)

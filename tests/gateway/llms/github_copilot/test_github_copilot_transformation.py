@@ -14,7 +14,6 @@ from token_iq import gateway
 
 # Import at the top to make the patch work correctly
 import token_iq.gateway.llms.github_copilot.chat.transformation
-from token_iq import gateway
 from token_iq.gateway import Choices, Message, ModelResponse, Usage, acompletion, completion
 from token_iq.gateway.exceptions import AuthenticationError
 from token_iq.gateway.llms.github_copilot.authenticator import Authenticator
@@ -146,7 +145,6 @@ def test_completion_github_copilot_mock_response(
 
 def test_transform_messages_disable_copilot_system_to_assistant(monkeypatch):
     """Test that system messages are converted to assistant unless disable_copilot_system_to_assistant is True."""
-    from token_iq import gateway
     from token_iq.gateway.llms.github_copilot.chat.transformation import GithubCopilotConfig
 
     # Save original value

@@ -14,13 +14,11 @@ import io
 import token_iq.gateway.types
 from token_iq import gateway
 import token_iq.gateway.types.utils
-from token_iq import gateway
 from token_iq.gateway.router import Router
 from typing import Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
-from token_iq import gateway
 from typing import Callable, Any
 
 import gc

@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 import token_iq.gateway.types
 from token_iq import gateway
 import token_iq.gateway.types.utils
-from token_iq import gateway
 from token_iq.gateway.llms.anthropic.chat import ModelResponseIterator
 import httpx
 import json
@@ -26,7 +25,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.types.utils import StandardLoggingPayload

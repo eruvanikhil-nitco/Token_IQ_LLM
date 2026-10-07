@@ -1,10 +1,16 @@
 import json
 import os
 import stat
+from typing import Final
 
 import pytest
 
 from token_iq.gateway.core_utils.private_json import overwrite_private_json, write_private_json
+
+IGNORES_FILE_PERMISSIONS: Final = not hasattr(os, "geteuid") or os.geteuid() == 0
+"""Whether the permission checks below mean anything. `os.geteuid` does not exist off POSIX, and a
+`skipif` argument is evaluated at import time, so calling it there made these files fail to collect on
+Windows rather than skip. Root ignores permissions, which is the case this always covered."""
 
 
 class TestOverwritePrivateJson:
@@ -27,7 +33,7 @@ class TestOverwritePrivateJson:
 
         assert not path.exists()
 
-    @pytest.mark.skipif(os.geteuid() == 0, reason="root ignores file permissions")
+    @pytest.mark.skipif(IGNORES_FILE_PERMISSIONS, reason="root, or a platform without POSIX permissions")
     def test_keeps_the_owner_only_mode_the_file_was_created_with(self, tmp_path):
         path = tmp_path / "token.json"
         write_private_json(str(path), {"key": "sk-live"})

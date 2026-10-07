@@ -16,7 +16,6 @@ from pydantic import BaseModel
 import token_iq.gateway.core_utils
 from token_iq import gateway
 import token_iq.gateway.core_utils.litellm_logging
-from token_iq import gateway
 from token_iq.gateway.utils import ModelResponseListIterator
 from token_iq.gateway.types.utils import ModelResponseStream
 
@@ -25,7 +24,6 @@ from dotenv import load_dotenv
 load_dotenv()
 import random
 
-from token_iq import gateway
 from token_iq.gateway import (
     AuthenticationError,
     BadRequestError,

@@ -58,6 +58,9 @@ class TestProcessAudioFile:
             assert isinstance(result, ProcessedAudioFile)
             assert result.file_content == test_content
             assert result.filename == os.path.basename(temp_file_path)
+            # Said separately because the two differ only off POSIX: the filename was built by splitting on
+            # "/", so on Windows the whole local path travelled to the provider as the upload's name.
+            assert os.sep not in result.filename
             assert result.content_type == "audio/mpeg"
         finally:
             os.unlink(temp_file_path)
@@ -193,6 +196,9 @@ class TestProcessAudioFile:
             assert isinstance(result, ProcessedAudioFile)
             assert result.file_content == test_content
             assert result.filename == os.path.basename(temp_file_path)
+            # Said separately because the two differ only off POSIX: the filename was built by splitting on
+            # "/", so on Windows the whole local path travelled to the provider as the upload's name.
+            assert os.sep not in result.filename
             assert result.content_type == "audio/wav"
         finally:
             os.unlink(temp_file_path)

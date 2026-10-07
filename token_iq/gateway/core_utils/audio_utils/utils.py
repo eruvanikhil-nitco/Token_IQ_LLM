@@ -5,6 +5,7 @@ Utils used for litellm.transcription() and litellm.atranscription()
 import hashlib
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Final
 
 from token_iq.gateway.types.files import (
@@ -72,10 +73,13 @@ def process_audio_file(audio_file: FileTypes) -> ProcessedAudioFile:
     elif isinstance(audio_file, os.PathLike):
         # File path or PathLike — PathLike is a Python-level type that
         # HTTP form values can't fabricate.
-        file_path: Final = str(audio_file)
+        file_path: Final = Path(audio_file)
         with open(file_path, "rb") as f:
             file_content = f.read()
-        filename = file_path.split("/")[-1]
+        # `.name`, not a split on "/": on Windows the separator is a backslash, so splitting left the whole
+        # local path as the filename and sent it to the provider as the upload's name. `extract_file_data`
+        # next door already reads it this way.
+        filename = file_path.name
     elif isinstance(audio_file, tuple):
         # Tuple format: (filename, content, content_type) or (filename, content)
         if len(audio_file) >= 2:

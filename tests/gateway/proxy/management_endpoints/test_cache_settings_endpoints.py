@@ -874,9 +874,6 @@ async def test_update_cache_settings_is_refused_in_this_build():
     refusing them."""
     from fastapi import HTTPException
 
-    from token_iq.gateway.proxy.management_endpoints.cache_settings_endpoints import (
-        update_cache_settings,
-    )
 
     with pytest.raises(HTTPException) as excinfo:
         await update_cache_settings(

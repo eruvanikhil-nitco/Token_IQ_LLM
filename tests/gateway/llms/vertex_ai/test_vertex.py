@@ -6,16 +6,13 @@ from dotenv import load_dotenv
 import token_iq.gateway.core_utils
 from token_iq import gateway
 import token_iq.gateway.core_utils.prompt_templates
-from token_iq import gateway
 import token_iq.gateway.core_utils.prompt_templates.factory
-from token_iq import gateway
 
 load_dotenv()
 from unittest.mock import MagicMock
 
 import pytest
 
-from token_iq import gateway
 from token_iq.gateway import get_optional_params
 from token_iq.gateway.llms.vertex_ai.gemini.transformation import _process_gemini_media
 from token_iq.gateway.types.llms.vertex_ai import BlobType

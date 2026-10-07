@@ -12,7 +12,6 @@ import pytest
 
 from token_iq import gateway
 import token_iq.gateway.utils
-from token_iq import gateway
 from token_iq.gateway.core_utils.get_model_cost_map import GetModelCostMap
 from token_iq.gateway.llms.moonshot.chat.transformation import MoonshotChatConfig
 

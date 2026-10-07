@@ -6,6 +6,7 @@ import sys
 import tempfile
 import threading
 import time
+from typing import Final
 
 import pytest
 
@@ -38,6 +39,15 @@ from token_iq.gateway.core_utils.cli_token_utils import (
     load_cli_token,
     save_cli_token,
 )
+
+IGNORES_FILE_PERMISSIONS: Final = not hasattr(os, "geteuid") or os.geteuid() == 0
+"""Whether a permission the code sets can still keep this process out. `os.geteuid` does not exist off
+POSIX, and a `skipif` argument runs at import time, so calling it there made this file fail to collect on
+Windows rather than skip. Root ignores permissions, which is the case this always covered."""
+
+POSIX_MODE_BITS: Final = os.name == "posix"
+"""Whether `chmod` means what the assertions below read back. Windows reports 0o777 on a directory the code
+created 0o700, so those tests check a guarantee that platform does not offer."""
 
 SERVER = "https://proxy.example.com"
 OTHER_SERVER = "https://other-proxy.example.com"
@@ -217,9 +227,7 @@ class TestLoadCliToken:
         assert json.loads(vault.blob)["key"] == "sk-live"
         assert json.loads(vault.blob)["refresh_token"] == "rt-live"
 
-    def test_a_superseded_refresh_token_on_disk_never_outlives_the_keychain(
-        self, isolated_home, secret_vault_factory
-    ):
+    def test_a_superseded_refresh_token_on_disk_never_outlives_the_keychain(self, isolated_home, secret_vault_factory):
         """Two stores, two sign-ins, and the newer one is in the keychain. Handing back its key with
         the older one's refresh token would build a credential neither store ever held, and would
         renew the login the user already replaced."""
@@ -231,6 +239,7 @@ class TestLoadCliToken:
         assert (record.key, record.refresh_token) == ("sk-new", "rt-new")
         assert "rt-old" not in path.read_text()
 
+    @pytest.mark.skipif(not POSIX_MODE_BITS, reason="chmod mode bits are a POSIX guarantee")
     def test_legacy_plaintext_file_still_authenticates_and_is_migrated(self, isolated_home, secret_vault_factory):
         """A token.json written by an older `lite` keeps working, and reading it moves the secret
         into the keychain and scrubs it from disk."""
@@ -246,6 +255,7 @@ class TestLoadCliToken:
         assert on_disk["user_email"] == "user@example.com"
         assert stat.S_IMODE(path.stat().st_mode) == 0o600
 
+    @pytest.mark.skipif(not POSIX_MODE_BITS, reason="chmod mode bits are a POSIX guarantee")
     def test_migration_tightens_a_world_readable_legacy_file(self, isolated_home, secret_vault_factory):
         """An older `lite`, a loose umask, or a restored backup can leave token.json readable by
         every account on the box. Migrating it must not preserve those permissions."""
@@ -280,9 +290,7 @@ class TestLoadCliToken:
         assert json.loads(vault.blob)["key"] == "sk-fresh"
         assert "key" not in json.loads(path.read_text())
 
-    def test_a_login_the_file_could_not_record_is_the_one_that_gets_used(
-        self, isolated_home, secret_vault_factory
-    ):
+    def test_a_login_the_file_could_not_record_is_the_one_that_gets_used(self, isolated_home, secret_vault_factory):
         """A login the keychain took and the file could not be pointed at afterwards leaves the
         superseded secret sitting on disk in front of the fresh one. Serving the file's copy would
         put a credential the user just replaced, and may well have just revoked, back into every
@@ -297,9 +305,7 @@ class TestLoadCliToken:
         assert json.loads(vault.blob)["key"] == "sk-fresh"
         assert "key" not in json.loads(path.read_text())
 
-    def test_a_secret_written_to_disk_after_the_keychain_entry_still_wins(
-        self, isolated_home, secret_vault_factory
-    ):
+    def test_a_secret_written_to_disk_after_the_keychain_entry_still_wins(self, isolated_home, secret_vault_factory):
         """The other direction of the same rule, which is the common one: a login that fell back to
         the file because the keychain refused it is newer than whatever the keychain kept."""
         path = _write_legacy_file(isolated_home, key="sk-fresh", timestamp=2000.0)
@@ -311,9 +317,7 @@ class TestLoadCliToken:
         assert json.loads(vault.blob)["key"] == "sk-fresh"
         assert "key" not in json.loads(path.read_text())
 
-    def test_a_disk_secret_survives_when_the_stale_vault_refuses_the_rewrite(
-        self, isolated_home, secret_vault_factory
-    ):
+    def test_a_disk_secret_survives_when_the_stale_vault_refuses_the_rewrite(self, isolated_home, secret_vault_factory):
         path = _write_legacy_file(isolated_home, key="sk-fresh")
         before = path.read_text()
 
@@ -431,9 +435,7 @@ class TestSaveCliToken:
         assert json.loads(vault.blob)["key"] == "sk-new"
         assert load_cli_token(vault=vault).key == "sk-new"
 
-    def test_the_refresh_token_goes_to_the_keychain_and_never_to_the_file(
-        self, isolated_home, secret_vault_factory
-    ):
+    def test_the_refresh_token_goes_to_the_keychain_and_never_to_the_file(self, isolated_home, secret_vault_factory):
         vault = secret_vault_factory()
 
         stored = save_cli_token(
@@ -461,6 +463,7 @@ class TestSaveCliToken:
         assert json.loads(_token_file(isolated_home).read_text())["refresh_token"] == "rt-new"
         assert load_cli_token(vault=vault).refresh_token == "rt-new"
 
+    @pytest.mark.skipif(not POSIX_MODE_BITS, reason="chmod mode bits are a POSIX guarantee")
     def test_falls_back_to_the_owner_only_file_when_there_is_no_keychain(self, isolated_home, secret_vault_factory):
         stored = save_cli_token(
             CliTokenRecord(base_url=SERVER, key="sk-new", timestamp=time.time()),
@@ -473,6 +476,7 @@ class TestSaveCliToken:
         assert stat.S_IMODE(path.stat().st_mode) == 0o600
         assert list(path.parent.glob(".tmp-*")) == []
 
+    @pytest.mark.skipif(not POSIX_MODE_BITS, reason="chmod mode bits are a POSIX guarantee")
     def test_creates_the_config_directory_owner_only(self, isolated_home, secret_vault_factory):
         """A 0755 ~/.litellm lets any local process list, and in the fallback case read, the
         credential's directory."""
@@ -480,6 +484,7 @@ class TestSaveCliToken:
 
         assert stat.S_IMODE((isolated_home / ".litellm").stat().st_mode) == 0o700
 
+    @pytest.mark.skipif(not POSIX_MODE_BITS, reason="chmod mode bits are a POSIX guarantee")
     def test_tightens_a_directory_left_group_readable_by_an_older_cli(self, isolated_home, secret_vault_factory):
         config_dir = isolated_home / ".litellm"
         config_dir.mkdir(mode=0o755)
@@ -522,10 +527,8 @@ class TestSaveCliToken:
 
         assert vault.blob is None
 
-    @pytest.mark.skipif(os.geteuid() == 0, reason="root ignores directory permissions")
-    def test_a_login_that_cannot_be_saved_leaves_the_working_one_alone(
-        self, isolated_home, secret_vault_factory
-    ):
+    @pytest.mark.skipif(IGNORES_FILE_PERMISSIONS, reason="root, or a platform without POSIX permissions")
+    def test_a_login_that_cannot_be_saved_leaves_the_working_one_alone(self, isolated_home, secret_vault_factory):
         """Signing in again on a machine whose ~/.litellm has gone read-only must not cost the user
         the credential they already had. Overwriting the keychain and then failing to record it, or
         undoing that write afterwards, would take a login that still works out from under them."""
@@ -558,9 +561,7 @@ class TestSaveCliToken:
         assert isinstance(outcome, CredentialNotRecorded)
         assert json.loads(vault.blob)["key"] == "sk-new"
 
-    def test_the_credential_the_file_cannot_name_is_left_in_the_keychain(
-        self, isolated_home, secret_vault_factory
-    ):
+    def test_the_credential_the_file_cannot_name_is_left_in_the_keychain(self, isolated_home, secret_vault_factory):
         """The keychain holds one entry, so the secret that was there went the moment this one
         landed. Taking the new one back out would turn a login this machine may still be able to
         use into no login at all, and it cannot restore the old one either way."""
@@ -573,7 +574,9 @@ class TestSaveCliToken:
 
         assert vault.blob is not None
 
-    def test_a_failed_write_leaves_the_previous_credential_intact(self, isolated_home, secret_vault_factory, monkeypatch):
+    def test_a_failed_write_leaves_the_previous_credential_intact(
+        self, isolated_home, secret_vault_factory, monkeypatch
+    ):
         path = _write_legacy_file(isolated_home)
         before = path.read_text()
 
@@ -615,9 +618,7 @@ class TestSaveCliToken:
 
         assert load_cli_token(vault=vault).key == "sk-fresh"
 
-    def test_a_login_on_a_clock_that_moved_forwards_keeps_its_own_time(
-        self, isolated_home, secret_vault_factory
-    ):
+    def test_a_login_on_a_clock_that_moved_forwards_keeps_its_own_time(self, isolated_home, secret_vault_factory):
         """Pinning the stamp above the previous login is only ever a floor. The ordinary case has
         to record when the user actually signed in, because that is what decides expiry."""
         _write_legacy_file(isolated_home, key="sk-old", timestamp=1000.0)
@@ -646,7 +647,7 @@ class TestScrubFailure:
     """A keychain that took the secret while the file kept it is the worst of both stores: the
     credential is live, it is in cleartext on disk, and every command reports success."""
 
-    @pytest.mark.skipif(os.geteuid() == 0, reason="root ignores directory permissions")
+    @pytest.mark.skipif(IGNORES_FILE_PERMISSIONS, reason="root, or a platform without POSIX permissions")
     def test_a_file_that_will_not_give_its_copy_up_rolls_the_vault_write_back(
         self, isolated_home, secret_vault_factory
     ):
@@ -703,7 +704,7 @@ class TestScrubFailure:
         assert json.loads(path.read_text()).get("key") is None
         assert list(path.parent.glob(".tmp-*")) == []
 
-    @pytest.mark.skipif(os.geteuid() == 0, reason="root ignores file permissions")
+    @pytest.mark.skipif(IGNORES_FILE_PERMISSIONS, reason="root, or a platform without POSIX permissions")
     def test_a_rollback_the_keychain_refuses_is_finished_by_the_next_read(
         self, isolated_home, secret_vault_factory, monkeypatch
     ):
@@ -727,8 +728,7 @@ class TestScrubFailure:
         assert load_cli_token(vault=vault).key == "sk-legacy"
         assert json.loads(path.read_text()).get("key") is None
 
-
-    @pytest.mark.skipif(os.geteuid() == 0, reason="root ignores file permissions")
+    @pytest.mark.skipif(IGNORES_FILE_PERMISSIONS, reason="root, or a platform without POSIX permissions")
     def test_a_rejoin_the_file_refuses_never_takes_the_key_with_it(
         self, isolated_home, secret_vault_factory, monkeypatch
     ):
@@ -777,9 +777,7 @@ class TestClearCliToken:
         assert clear_cli_token(vault=vault) == SecretStranded()
         assert load_cli_token(vault=vault) is None
 
-    @pytest.mark.parametrize(
-        "failure", [KeyringDisabled(), KeyringUnreachable(), KeyringNotInstalled()]
-    )
+    @pytest.mark.parametrize("failure", [KeyringDisabled(), KeyringUnreachable(), KeyringNotInstalled()])
     def test_a_secret_in_the_file_is_no_evidence_about_a_keychain_that_exists(
         self, isolated_home, secret_vault_factory, failure
     ):
@@ -796,9 +794,7 @@ class TestClearCliToken:
         assert clear_cli_token(vault=vault) == failure
         assert json.loads(_token_file(isolated_home).read_text()).get("key") is None
 
-    def test_a_second_logout_still_reports_the_keychain_it_could_not_clear(
-        self, isolated_home, secret_vault_factory
-    ):
+    def test_a_second_logout_still_reports_the_keychain_it_could_not_clear(self, isolated_home, secret_vault_factory):
         """The first logout deletes the file and tells the user to run it again once the keychain is
         reachable. If the second run reads that missing file as proof of a clean keychain, the advice
         turns into the very false all-clear it was issued to prevent."""
@@ -846,9 +842,7 @@ class TestClearCliToken:
         assert "sk-legacy" not in left_on_disk
         assert "rt-legacy" not in left_on_disk
 
-    def test_a_repeat_logout_never_answers_its_own_warning_with_an_all_clear(
-        self, isolated_home, secret_vault_factory
-    ):
+    def test_a_repeat_logout_never_answers_its_own_warning_with_an_all_clear(self, isolated_home, secret_vault_factory):
         """Sign in while the keychain works, sign in again once it has gone out of reach so the
         second secret lands in the file, then log out twice. The first logout cannot say the first
         login's entry is gone, and says so. If the second one reads the file the first one took
@@ -892,7 +886,7 @@ class TestClearCliToken:
         assert vault.blob is not None
         assert "sk-in-file" not in _token_file(isolated_home).read_text()
 
-    @pytest.mark.skipif(os.geteuid() == 0, reason="root ignores file permissions")
+    @pytest.mark.skipif(IGNORES_FILE_PERMISSIONS, reason="root, or a platform without POSIX permissions")
     def test_a_file_that_gives_up_neither_its_secret_nor_itself_is_reported_not_raised(
         self, isolated_home, secret_vault_factory
     ):
@@ -913,7 +907,7 @@ class TestClearCliToken:
         assert isinstance(outcome, CredentialNotCleared)
         assert json.loads(path.read_text())["key"] == "sk-legacy"
 
-    @pytest.mark.skipif(os.geteuid() == 0, reason="root ignores directory permissions")
+    @pytest.mark.skipif(IGNORES_FILE_PERMISSIONS, reason="root, or a platform without POSIX permissions")
     def test_a_directory_that_takes_no_new_file_still_gives_up_the_secret_in_the_old_one(
         self, isolated_home, secret_vault_factory
     ):
@@ -935,7 +929,7 @@ class TestClearCliToken:
 
         assert json.loads(path.read_text()).get("key") is None
 
-    @pytest.mark.skipif(os.geteuid() == 0, reason="root ignores file permissions")
+    @pytest.mark.skipif(IGNORES_FILE_PERMISSIONS, reason="root, or a platform without POSIX permissions")
     def test_a_note_the_logout_had_to_remove_is_written_again_for_the_next_one(
         self, isolated_home, secret_vault_factory, monkeypatch
     ):
@@ -959,7 +953,7 @@ class TestClearCliToken:
 
         assert json.loads(path.read_text()).get("key") is None
 
-    @pytest.mark.skipif(os.geteuid() == 0, reason="root ignores directory permissions")
+    @pytest.mark.skipif(IGNORES_FILE_PERMISSIONS, reason="root, or a platform without POSIX permissions")
     def test_a_metadata_file_that_will_not_go_is_not_worth_alarming_the_user_over(
         self, isolated_home, secret_vault_factory
     ):
@@ -1214,9 +1208,7 @@ class TestKeyringVault:
         finally:
             keyring.set_keyring(previous)
 
-    def test_a_credential_survives_a_backend_that_keeps_nothing(
-        self, isolated_home, install_fake_keyring
-    ):
+    def test_a_credential_survives_a_backend_that_keeps_nothing(self, isolated_home, install_fake_keyring):
         """The end of the same story: the credential must still be usable afterwards. Reporting the
         discard is only worth anything if the token file then keeps the copy the keychain refused."""
         install_fake_keyring(_FakeKeyringModule(discard=True))

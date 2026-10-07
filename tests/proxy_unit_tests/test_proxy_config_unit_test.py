@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 import token_iq.gateway.proxy
 from token_iq import gateway
 import token_iq.gateway.proxy.proxy_server
-from token_iq import gateway
 
 load_dotenv()
 import io

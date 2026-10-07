@@ -19,7 +19,6 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from token_iq import gateway
 from token_iq.gateway import (
     ModelResponse,
     RateLimitError,

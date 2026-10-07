@@ -17,7 +17,6 @@ import pytest
 
 from token_iq import gateway
 import token_iq.gateway.llms.vertex_ai.rerank.transformation
-from token_iq import gateway
 
 
 def _extract_body(call_kwargs):

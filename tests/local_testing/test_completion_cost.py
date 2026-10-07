@@ -11,7 +11,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import base64
 import pytest
 
-from token_iq import gateway
 from token_iq.gateway import (
     TranscriptionResponse,
     completion_cost,

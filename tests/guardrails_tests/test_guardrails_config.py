@@ -13,12 +13,10 @@ from pydantic import BaseModel
 import token_iq.gateway.core_utils
 from token_iq import gateway
 import token_iq.gateway.core_utils.litellm_logging
-from token_iq import gateway
 
 from typing import Any, List, Literal, Optional, Tuple, Union
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from token_iq import gateway
 from token_iq.gateway import Cache, completion, embedding
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.types.utils import GatewayCommonStrings

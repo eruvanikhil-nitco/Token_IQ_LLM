@@ -10,7 +10,6 @@ import pytest
 
 from token_iq import gateway
 import token_iq.gateway.proxy.proxy_server
-from token_iq import gateway
 
 
 # Top-level assignments of these types are the ones importlib.reload(litellm)

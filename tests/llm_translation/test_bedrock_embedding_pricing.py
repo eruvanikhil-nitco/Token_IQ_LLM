@@ -21,7 +21,6 @@ class TestBedrockEmbeddingPricing:
 
         import token_iq.gateway.core_utils.get_model_cost_map
         from token_iq import gateway
-        from token_iq import gateway
 
         # Reload so the cost map is re-read from the local file with the flag set.
         importlib.reload(gateway.core_utils.get_model_cost_map)

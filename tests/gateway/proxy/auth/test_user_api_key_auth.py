@@ -1,7 +1,7 @@
 import asyncio
 import json
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
@@ -11,7 +11,6 @@ from fastapi import status
 
 from token_iq import gateway
 import token_iq.gateway.proxy.proxy_server
-from token_iq import gateway
 from token_iq.gateway.caching.dual_cache import DualCache
 from token_iq.gateway.proxy._types import (
     GatewayRoutes,
@@ -41,6 +40,7 @@ from token_iq.gateway.proxy.auth.user_api_key_auth import (
     _run_post_custom_auth_checks,
     _user_api_key_auth_builder,
     get_api_key,
+    key_expiry_in_utc,
     user_api_key_auth,
 )
 
@@ -186,9 +186,7 @@ async def test_budget_reservation_runs_when_not_disabled():
         ({}, False),
     ],
 )
-async def test_fail_closed_budget_enforcement_reaches_reservation(
-    general_settings, expected_flag
-):
+async def test_fail_closed_budget_enforcement_reaches_reservation(general_settings, expected_flag):
     """#33923: the strict flag must be threaded into reserve_budget_for_request so a
     failed reservation write can reject instead of failing open."""
     user_api_key_auth_obj = UserAPIKeyAuth(token="test_token")
@@ -211,10 +209,7 @@ async def test_fail_closed_budget_enforcement_reaches_reservation(
             general_settings=general_settings,
         )
 
-    assert (
-        mock_reserve.await_args.kwargs["fail_closed_budget_enforcement"]
-        is expected_flag
-    )
+    assert mock_reserve.await_args.kwargs["fail_closed_budget_enforcement"] is expected_flag
 
 
 @pytest.mark.asyncio
@@ -226,9 +221,7 @@ async def test_fail_closed_budget_enforcement_reaches_reservation(
         ({}, False),
     ],
 )
-async def test_apply_user_budget_to_team_keys_reaches_reservation(
-    general_settings, expected_flag
-):
+async def test_apply_user_budget_to_team_keys_reaches_reservation(general_settings, expected_flag):
     """The opt-in lives in general_settings but is consumed inside
     _get_budget_counters, so it has to be threaded through reserve_budget_for_request
     or the reservation path keeps exempting team keys while the read path enforces."""
@@ -252,9 +245,7 @@ async def test_apply_user_budget_to_team_keys_reaches_reservation(
             general_settings=general_settings,
         )
 
-    assert (
-        mock_reserve.await_args.kwargs["apply_user_budget_to_team_keys"] is expected_flag
-    )
+    assert mock_reserve.await_args.kwargs["apply_user_budget_to_team_keys"] is expected_flag
 
 
 @pytest.mark.asyncio
@@ -326,9 +317,12 @@ async def test_custom_auth_does_not_enforce_key_model_access_by_default():
 
 @pytest.mark.asyncio
 async def test_post_custom_auth_expired_key_returns_unauthorized():
+    # Aware UTC, not `datetime.now()`. The check reads a naive `expires` as UTC, which is what the database
+    # stores, so a naive local timestamp from a zone ahead of UTC arrives in the future and an expired key
+    # was accepted. This passed only where local time is UTC.
     expired_token = UserAPIKeyAuth(
         token="test_token",
-        expires=datetime.now() - timedelta(minutes=1),
+        expires=datetime.now(timezone.utc) - timedelta(minutes=1),
     )
 
     with pytest.raises(ProxyException) as exc_info:
@@ -345,6 +339,45 @@ async def test_post_custom_auth_expired_key_returns_unauthorized():
 
 
 @pytest.mark.asyncio
+async def test_post_custom_auth_reads_a_naive_expiry_as_utc():
+    """The convention the test above leans on, which nothing stated. A key whose `expires` carries no zone
+    is read as UTC, because that is what the database holds. Read as local time instead, every key in a zone
+    behind UTC would be rejected early and every key ahead of it would outlive its expiry."""
+    expired_token = UserAPIKeyAuth(
+        token="test_token",
+        expires=(datetime.now(timezone.utc) - timedelta(minutes=1)).replace(tzinfo=None),
+    )
+
+    with pytest.raises(ProxyException) as exc_info:
+        await _run_post_custom_auth_checks(
+            valid_token=expired_token,
+            request=MagicMock(),
+            request_data={},
+            route="/v1/chat/completions",
+            parent_otel_span=None,
+        )
+
+    assert exc_info.value.type == ProxyErrorTypes.expired_key
+
+
+@pytest.mark.asyncio
+async def test_post_custom_auth_lets_a_key_that_has_not_expired_through():
+    """Guards both tests above, which pass just as well against a check that rejects every key."""
+    live_token = UserAPIKeyAuth(
+        token="test_token",
+        expires=datetime.now(timezone.utc) + timedelta(minutes=5),
+    )
+
+    assert await _run_post_custom_auth_checks(
+        valid_token=live_token,
+        request=MagicMock(),
+        request_data={},
+        route="/v1/chat/completions",
+        parent_otel_span=None,
+    )
+
+
+@pytest.mark.asyncio
 async def test_custom_auth_honors_key_level_model_access_restriction_allowed_with_opt_in():
     valid_token = UserAPIKeyAuth(token="test_token", models=["gpt-4o-mini"])
     request_data = {"model": "gpt-4o-mini"}
@@ -354,9 +387,7 @@ async def test_custom_auth_honors_key_level_model_access_restriction_allowed_wit
             "token_iq.gateway.proxy.auth.user_api_key_auth.can_key_call_model",
             new_callable=AsyncMock,
         ) as mock_can_key,
-        patch(
-            "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock
-        ),
+        patch("token_iq.gateway.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock),
         patch(
             "token_iq.gateway.proxy.proxy_server.general_settings",
             {"custom_auth_run_common_checks": True},
@@ -387,9 +418,7 @@ async def test_custom_auth_enforces_key_model_access_from_file_route_header_with
             "token_iq.gateway.proxy.auth.user_api_key_auth.can_key_call_model",
             new_callable=AsyncMock,
         ) as mock_can_key,
-        patch(
-            "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock
-        ),
+        patch("token_iq.gateway.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock),
         patch(
             "token_iq.gateway.proxy.proxy_server.general_settings",
             {"custom_auth_run_common_checks": True},
@@ -420,9 +449,7 @@ async def test_custom_auth_honors_key_level_model_access_restriction_denied_with
             "token_iq.gateway.proxy.auth.user_api_key_auth.can_key_call_model",
             new_callable=AsyncMock,
         ) as mock_can_key,
-        patch(
-            "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock
-        ),
+        patch("token_iq.gateway.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock),
         patch(
             "token_iq.gateway.proxy.proxy_server.general_settings",
             {"custom_auth_run_common_checks": True},
@@ -458,9 +485,7 @@ def _proxy_server_attrs_for_custom_auth(*, user_custom_auth):
     mock_proxy_logging_obj = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache.dual_cache = AsyncMock()
-    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = (
-        AsyncMock()
-    )
+    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = AsyncMock()
     mock_proxy_logging_obj.post_call_failure_hook = AsyncMock(return_value=None)
 
     return {
@@ -722,9 +747,7 @@ async def test_enterprise_custom_auth_runs_post_custom_auth_checks_when_opt_in()
         gateway.enable_post_custom_auth_checks = original_flag
 
 
-def _assert_get_api_key_with_custom_gateway_key_header(
-    custom_gateway_key_header, api_key, passed_in_key
-):
+def _assert_get_api_key_with_custom_gateway_key_header(custom_gateway_key_header, api_key, passed_in_key):
     assert get_api_key(
         custom_gateway_key_header=custom_gateway_key_header,
         api_key=None,
@@ -781,9 +804,7 @@ def _assert_get_api_key_with_custom_gateway_key_header(
         ("App:LiteLLM", None, False, False),
     ],
 )
-def test_routing_selector_matches_claim_parametrized(
-    selector_value, claim_value, expected, split_space_delimited
-):
+def test_routing_selector_matches_claim_parametrized(selector_value, claim_value, expected, split_space_delimited):
     assert (
         _routing_selector_matches_claim(
             selector_value=selector_value,
@@ -877,10 +898,7 @@ def test_routing_selector_matches_claim_parametrized(
     ],
 )
 def test_matches_routing_override_parametrized(override, token_claims, expected):
-    assert (
-        _matches_routing_override(token_claims=token_claims, override=override)
-        is expected
-    )
+    assert _matches_routing_override(token_claims=token_claims, override=override) is expected
 
 
 def test_get_api_key_with_custom_gateway_key_header_bearer_prefix():
@@ -959,12 +977,9 @@ def test_team_metadata_with_tags_flows_through_jwt_auth():
     )
 
     # Verify team_metadata is set
-    assert (
-        user_api_key_auth.team_metadata is not None
-    ), "team_metadata should be populated"
+    assert user_api_key_auth.team_metadata is not None, "team_metadata should be populated"
     assert user_api_key_auth.team_metadata == team_object.metadata, (
-        f"team_metadata not correctly mapped. "
-        f"Expected: {team_object.metadata}, Got: {user_api_key_auth.team_metadata}"
+        f"team_metadata not correctly mapped. Expected: {team_object.metadata}, Got: {user_api_key_auth.team_metadata}"
     )
 
     # Specifically verify tags are present
@@ -1003,9 +1018,7 @@ def test_route_checks_is_llm_api_route():
     ]
 
     for route in openai_routes:
-        assert RouteChecks.is_llm_api_route(
-            route=route
-        ), f"Route {route} should be identified as LLM API route"
+        assert RouteChecks.is_llm_api_route(route=route), f"Route {route} should be identified as LLM API route"
 
     # Test Anthropic routes
     anthropic_routes = [
@@ -1014,9 +1027,7 @@ def test_route_checks_is_llm_api_route():
     ]
 
     for route in anthropic_routes:
-        assert RouteChecks.is_llm_api_route(
-            route=route
-        ), f"Route {route} should be identified as LLM API route"
+        assert RouteChecks.is_llm_api_route(route=route), f"Route {route} should be identified as LLM API route"
 
     # Test passthrough routes (this is the key improvement over the old route checking)
     passthrough_routes = [
@@ -1036,9 +1047,7 @@ def test_route_checks_is_llm_api_route():
     ]
 
     for route in passthrough_routes:
-        assert RouteChecks.is_llm_api_route(
-            route=route
-        ), f"Route {route} should be identified as LLM API route"
+        assert RouteChecks.is_llm_api_route(route=route), f"Route {route} should be identified as LLM API route"
 
     # Test MCP routes
     mcp_routes = [
@@ -1048,9 +1057,7 @@ def test_route_checks_is_llm_api_route():
     ]
 
     for route in mcp_routes:
-        assert RouteChecks.is_llm_api_route(
-            route=route
-        ), f"Route {route} should be identified as LLM API route"
+        assert RouteChecks.is_llm_api_route(route=route), f"Route {route} should be identified as LLM API route"
 
     # Test LiteLLM native RAG routes
     rag_routes = [
@@ -1060,9 +1067,7 @@ def test_route_checks_is_llm_api_route():
         "/v1/rag/query",
     ]
     for route in rag_routes:
-        assert RouteChecks.is_llm_api_route(
-            route=route
-        ), f"Route {route} should be identified as LLM API route"
+        assert RouteChecks.is_llm_api_route(route=route), f"Route {route} should be identified as LLM API route"
 
     # Test routes with placeholders
     placeholder_routes = [
@@ -1077,9 +1082,7 @@ def test_route_checks_is_llm_api_route():
     ]
 
     for route in placeholder_routes:
-        assert RouteChecks.is_llm_api_route(
-            route=route
-        ), f"Route {route} should be identified as LLM API route"
+        assert RouteChecks.is_llm_api_route(route=route), f"Route {route} should be identified as LLM API route"
 
     # Test Azure OpenAI routes
     azure_routes = [
@@ -1090,9 +1093,7 @@ def test_route_checks_is_llm_api_route():
     ]
 
     for route in azure_routes:
-        assert RouteChecks.is_llm_api_route(
-            route=route
-        ), f"Route {route} should be identified as LLM API route"
+        assert RouteChecks.is_llm_api_route(route=route), f"Route {route} should be identified as LLM API route"
 
     # Test non-LLM routes (should return False)
     non_llm_routes = [
@@ -1111,9 +1112,7 @@ def test_route_checks_is_llm_api_route():
     ]
 
     for route in non_llm_routes:
-        assert not RouteChecks.is_llm_api_route(
-            route=route
-        ), f"Route {route} should NOT be identified as LLM API route"
+        assert not RouteChecks.is_llm_api_route(route=route), f"Route {route} should NOT be identified as LLM API route"
 
     # Test invalid inputs
     invalid_inputs = [
@@ -1125,9 +1124,9 @@ def test_route_checks_is_llm_api_route():
     ]
 
     for invalid_input in invalid_inputs:
-        assert not RouteChecks.is_llm_api_route(
-            route=invalid_input
-        ), f"Invalid input {invalid_input} should return False"
+        assert not RouteChecks.is_llm_api_route(route=invalid_input), (
+            f"Invalid input {invalid_input} should return False"
+        )
 
 
 @pytest.mark.asyncio
@@ -1174,9 +1173,7 @@ async def test_proxy_admin_expired_key_from_cache():
     mock_proxy_logging_obj = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache.dual_cache = AsyncMock()
-    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = (
-        AsyncMock()
-    )
+    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = AsyncMock()
     # Mock post_call_failure_hook as async function returning None (no transformation)
     mock_proxy_logging_obj.post_call_failure_hook = AsyncMock(return_value=None)
 
@@ -1213,9 +1210,7 @@ async def test_proxy_admin_expired_key_from_cache():
             "jwt_handler": None,
             "litellm_proxy_admin_name": "admin",
         }
-        _original_values = {
-            attr: getattr(_proxy_server_mod, attr, None) for attr in _attrs_to_set
-        }
+        _original_values = {attr: getattr(_proxy_server_mod, attr, None) for attr in _attrs_to_set}
         try:
             for attr, val in _attrs_to_set.items():
                 setattr(_proxy_server_mod, attr, val)
@@ -1239,36 +1234,30 @@ async def test_proxy_admin_expired_key_from_cache():
                 )
 
             # Verify that ProxyException was raised with expired_key type
-            assert hasattr(
-                exc_info.value, "type"
-            ), "Exception should have 'type' attribute"
-            assert (
-                exc_info.value.type == ProxyErrorTypes.expired_key
-            ), f"Expected expired_key error type, got {exc_info.value.type}"
+            assert hasattr(exc_info.value, "type"), "Exception should have 'type' attribute"
+            assert exc_info.value.type == ProxyErrorTypes.expired_key, (
+                f"Expected expired_key error type, got {exc_info.value.type}"
+            )
             assert int(exc_info.value.code) == status.HTTP_401_UNAUTHORIZED
-            assert "Expired Key" in str(
-                exc_info.value.message
-            ), f"Exception message should mention 'Expired Key', got: {exc_info.value.message}"
+            assert "Expired Key" in str(exc_info.value.message), (
+                f"Exception message should mention 'Expired Key', got: {exc_info.value.message}"
+            )
 
             # Verify that the param field does NOT leak the full API key (Issue #18731)
             # The param should be abbreviated like "sk-...XXXX" not the full plaintext key
-            assert (
-                exc_info.value.param is not None
-            ), "Exception should have 'param' attribute"
+            assert exc_info.value.param is not None, "Exception should have 'param' attribute"
             assert exc_info.value.param != api_key, (
                 f"SECURITY: Full API key should NOT be in param field! "
                 f"Got: {exc_info.value.param}, Expected abbreviated format like 'sk-...XXXX'"
             )
-            assert exc_info.value.param.startswith(
-                "sk-..."
-            ), f"Param should be abbreviated to 'sk-...XXXX' format. Got: {exc_info.value.param}"
+            assert exc_info.value.param.startswith("sk-..."), (
+                f"Param should be abbreviated to 'sk-...XXXX' format. Got: {exc_info.value.param}"
+            )
 
             # Verify that cache deletion was called
             mock_delete_cache.assert_called_once()
             call_args = mock_delete_cache.call_args
-            assert (
-                call_args[1]["hashed_token"] == hashed_key
-            ), "Cache deletion should be called with the hashed key"
+            assert call_args[1]["hashed_token"] == hashed_key, "Cache deletion should be called with the hashed key"
         finally:
             # Restore all module-level attributes so subsequent tests are not affected
             for attr, val in _original_values.items():
@@ -1306,9 +1295,7 @@ async def test_scim_deactivated_user_key_is_rejected():
     mock_proxy_logging_obj = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache.dual_cache = AsyncMock()
-    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = (
-        AsyncMock()
-    )
+    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = AsyncMock()
     mock_proxy_logging_obj.post_call_failure_hook = AsyncMock(return_value=None)
 
     mock_prisma_client = MagicMock()
@@ -1329,9 +1316,7 @@ async def test_scim_deactivated_user_key_is_rejected():
         "jwt_handler": None,
         "litellm_proxy_admin_name": "admin",
     }
-    _original_values = {
-        attr: getattr(_proxy_server_mod, attr, None) for attr in _attrs_to_set
-    }
+    _original_values = {attr: getattr(_proxy_server_mod, attr, None) for attr in _attrs_to_set}
     try:
         for attr, val in _attrs_to_set.items():
             setattr(_proxy_server_mod, attr, val)
@@ -1398,9 +1383,7 @@ async def test_cached_proxy_admin_key_sets_via_virtual_key_marker():
     mock_proxy_logging_obj = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache.dual_cache = AsyncMock()
-    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = (
-        AsyncMock()
-    )
+    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = AsyncMock()
     mock_proxy_logging_obj.post_call_failure_hook = AsyncMock(return_value=None)
 
     import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
@@ -1419,9 +1402,7 @@ async def test_cached_proxy_admin_key_sets_via_virtual_key_marker():
         "jwt_handler": None,
         "litellm_proxy_admin_name": "admin",
     }
-    _original_values = {
-        attr: getattr(_proxy_server_mod, attr, None) for attr in _attrs_to_set
-    }
+    _original_values = {attr: getattr(_proxy_server_mod, attr, None) for attr in _attrs_to_set}
     try:
         for attr, val in _attrs_to_set.items():
             setattr(_proxy_server_mod, attr, val)
@@ -1473,9 +1454,7 @@ async def test_master_key_auth_sets_via_virtual_key_marker():
     mock_proxy_logging_obj = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache.dual_cache = AsyncMock()
-    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = (
-        AsyncMock()
-    )
+    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = AsyncMock()
     mock_proxy_logging_obj.post_call_failure_hook = AsyncMock(return_value=None)
 
     import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
@@ -1494,9 +1473,7 @@ async def test_master_key_auth_sets_via_virtual_key_marker():
         "jwt_handler": None,
         "litellm_proxy_admin_name": "admin",
     }
-    _original_values = {
-        attr: getattr(_proxy_server_mod, attr, None) for attr in _attrs_to_set
-    }
+    _original_values = {attr: getattr(_proxy_server_mod, attr, None) for attr in _attrs_to_set}
     try:
         for attr, val in _attrs_to_set.items():
             setattr(_proxy_server_mod, attr, val)
@@ -1549,9 +1526,7 @@ async def test_db_virtual_key_auth_sets_via_virtual_key_marker():
     mock_proxy_logging_obj = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache.dual_cache = AsyncMock()
-    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = (
-        AsyncMock()
-    )
+    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = AsyncMock()
     mock_proxy_logging_obj.post_call_failure_hook = AsyncMock(return_value=None)
 
     mock_prisma_client = MagicMock()
@@ -1572,9 +1547,7 @@ async def test_db_virtual_key_auth_sets_via_virtual_key_marker():
         "jwt_handler": None,
         "litellm_proxy_admin_name": "admin",
     }
-    _original_values = {
-        attr: getattr(_proxy_server_mod, attr, None) for attr in _attrs_to_set
-    }
+    _original_values = {attr: getattr(_proxy_server_mod, attr, None) for attr in _attrs_to_set}
     try:
         for attr, val in _attrs_to_set.items():
             setattr(_proxy_server_mod, attr, val)
@@ -1994,10 +1967,7 @@ class TestJWTOAuth2Coexistence:
     def test_is_jwt_detects_jwt_tokens(self):
         """JWT tokens have 3 dot-separated parts."""
         assert JWTHandler.is_jwt("header.payload.signature") is True
-        assert (
-            JWTHandler.is_jwt("eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyMSJ9.sig123")
-            is True
-        )
+        assert JWTHandler.is_jwt("eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyMSJ9.sig123") is True
 
     def test_is_jwt_rejects_opaque_tokens(self):
         """Opaque OAuth2 tokens do not have 3 dot-separated parts."""
@@ -2301,9 +2271,7 @@ class TestJWTOAuth2Coexistence:
         assert mock_auto_register.call_args.kwargs["team_id"] == "validated-team"
         assert mock_auto_register.call_args.kwargs["user_id"] == "validated-user"
         assert mock_auto_register.call_args.kwargs["org_id"] == "validated-org"
-        assert (
-            mock_auto_register.call_args.kwargs["end_user_id"] == "validated-end-user"
-        )
+        assert mock_auto_register.call_args.kwargs["end_user_id"] == "validated-end-user"
         assert result.org_id == "validated-org"
         assert result.user_email == "validated@example.com"
 
@@ -2381,10 +2349,7 @@ class TestJWTOAuth2Coexistence:
 
         assert result.user_id == "mapped-user"
         assert result.user_email == "mapped@example.com"
-        assert (
-            mock_get_user_object.call_args_list[0].kwargs["user_email"]
-            == "mapped@example.com"
-        )
+        assert mock_get_user_object.call_args_list[0].kwargs["user_email"] == "mapped@example.com"
 
     @pytest.mark.asyncio
     async def test_mapped_virtual_key_does_not_backfill_mismatched_owner(self):
@@ -2460,8 +2425,7 @@ class TestJWTOAuth2Coexistence:
         assert result.user_id == "other-owner"
         assert result.user_email is None
         assert all(
-            call.kwargs.get("user_email") != "principal@example.com"
-            for call in mock_get_user_object.call_args_list
+            call.kwargs.get("user_email") != "principal@example.com" for call in mock_get_user_object.call_args_list
         )
 
     @pytest.mark.asyncio
@@ -3266,9 +3230,7 @@ async def test_user_api_key_auth_builder_no_blocking_calls():
     mock_proxy_logging_obj = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache.dual_cache = AsyncMock()
-    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = (
-        AsyncMock()
-    )
+    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = AsyncMock()
     mock_proxy_logging_obj.post_call_failure_hook = AsyncMock(return_value=None)
 
     import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
@@ -3400,9 +3362,7 @@ async def test_team_metadata_refreshed_from_team_object_during_auth():
     mock_proxy_logging_obj = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache = MagicMock()
     mock_proxy_logging_obj.internal_usage_cache.dual_cache = AsyncMock()
-    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = (
-        AsyncMock()
-    )
+    mock_proxy_logging_obj.internal_usage_cache.dual_cache.async_delete_cache = AsyncMock()
     mock_proxy_logging_obj.post_call_failure_hook = AsyncMock(return_value=None)
 
     import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
@@ -3452,9 +3412,9 @@ async def test_team_metadata_refreshed_from_team_object_during_auth():
                 request_data={},
             )
 
-        assert result.team_metadata == {
-            "guardrails": ["test-guardrail-333"]
-        }, f"team_metadata was not updated from fresh team object. Got: {result.team_metadata}"
+        assert result.team_metadata == {"guardrails": ["test-guardrail-333"]}, (
+            f"team_metadata was not updated from fresh team object. Got: {result.team_metadata}"
+        )
 
     finally:
         for k, v in _originals.items():
@@ -3779,9 +3739,7 @@ async def test_auth_flow_fallback_team_object_permission_none_when_unreadable():
 # ---------------------------------------------------------------------------
 
 
-def _proxy_attrs_for_centralized_checks(
-    user_custom_auth=None, flag=False, master_key="sk-test-master"
-):
+def _proxy_attrs_for_centralized_checks(user_custom_auth=None, flag=False, master_key="sk-test-master"):
     """Build the minimal proxy_server module attributes that
     _run_centralized_common_checks reads.
 
@@ -3910,9 +3868,7 @@ async def test_centralized_common_checks_skipped_for_custom_auth_without_flag():
     request = Request(scope={"type": "http"})
     request._url = URL(url="/chat/completions")
 
-    attrs = _proxy_attrs_for_centralized_checks(
-        user_custom_auth=AsyncMock(), flag=False
-    )
+    attrs = _proxy_attrs_for_centralized_checks(user_custom_auth=AsyncMock(), flag=False)
     originals = {a: getattr(_proxy_server_mod, a, None) for a in attrs}
     try:
         for k, v in attrs.items():
@@ -4317,9 +4273,7 @@ async def test_centralized_common_checks_reserves_request_end_user_budget():
             "applied_adjustment": 0.0,
         }
     ]
-    assert counter_cache.in_memory_cache.get_cache(
-        key="spend:end_user:alice"
-    ) == pytest.approx(0.6)
+    assert counter_cache.in_memory_cache.get_cache(key="spend:end_user:alice") == pytest.approx(0.6)
 
 
 @pytest.mark.asyncio
@@ -4334,9 +4288,7 @@ async def test_centralized_common_checks_short_circuits_when_master_key_unset():
 
     from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    token = UserAPIKeyAuth(
-        api_key="sk-test", user_id="u", user_role=GatewayUserRoles.INTERNAL_USER
-    )
+    token = UserAPIKeyAuth(api_key="sk-test", user_id="u", user_role=GatewayUserRoles.INTERNAL_USER)
     request = Request(scope={"type": "http"})
     request._url = URL(url="/get/config/callbacks")
 
@@ -5137,9 +5089,7 @@ async def test_centralized_common_checks_user_http_exception_isolates_to_user_on
     request._url = URL(url="/chat/completions")
     request._body = json.dumps({"user": "alice", "model": "gpt-4o"}).encode()
 
-    fetched_team = LiteLLM_TeamTableCachedObj(
-        team_id="t1", max_budget=20.0, models=["gpt-4o"]
-    )
+    fetched_team = LiteLLM_TeamTableCachedObj(team_id="t1", max_budget=20.0, models=["gpt-4o"])
     fetched_end_user = LiteLLM_EndUserTable(user_id="alice", blocked=False, spend=1.0)
     fetched_project = LiteLLM_ProjectTableCachedObj(
         project_id="proj-1",
@@ -5434,9 +5384,7 @@ async def test_user_api_key_auth_sets_end_user_id_when_builder_skips_it():
         }
     )
     request._url = URL(url="/chat/completions")
-    request._body = json.dumps(
-        {"model": "gpt-4o", "user": "alice@example.com"}
-    ).encode()
+    request._body = json.dumps({"model": "gpt-4o", "user": "alice@example.com"}).encode()
 
     attrs = _proxy_attrs_for_centralized_checks(user_custom_auth=None)
     originals = {a: getattr(_proxy_server_mod, a, None) for a in attrs}
@@ -5480,9 +5428,7 @@ async def test_user_api_key_auth_does_not_overwrite_end_user_id_set_by_builder()
 
     import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
-    builder_token = UserAPIKeyAuth(
-        api_key="sk-test", user_id="u1", end_user_id="builder-resolved-id"
-    )
+    builder_token = UserAPIKeyAuth(api_key="sk-test", user_id="u1", end_user_id="builder-resolved-id")
 
     request = Request(
         scope={
@@ -5492,9 +5438,7 @@ async def test_user_api_key_auth_does_not_overwrite_end_user_id_set_by_builder()
         }
     )
     request._url = URL(url="/chat/completions")
-    request._body = json.dumps(
-        {"model": "gpt-4o", "user": "different-id-from-body"}
-    ).encode()
+    request._body = json.dumps({"model": "gpt-4o", "user": "different-id-from-body"}).encode()
 
     attrs = _proxy_attrs_for_centralized_checks(user_custom_auth=None)
     originals = {a: getattr(_proxy_server_mod, a, None) for a in attrs}
@@ -5892,9 +5836,7 @@ def _mint_cli_session_token(monkeypatch, *, user_id="cli-admin"):
         models=["gpt-3.5-turbo"],
         max_budget=100.0,
     )
-    return ExperimentalUIJWTToken.get_cli_jwt_auth_token(
-        user_info, team_id="cli-team", team_alias="cli-team-alias"
-    )
+    return ExperimentalUIJWTToken.get_cli_jwt_auth_token(user_info, team_id="cli-team", team_alias="cli-team-alias")
 
 
 @pytest.mark.asyncio
@@ -5944,7 +5886,7 @@ async def test_random_non_sk_token_is_rejected(monkeypatch):
         patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
     ):
-        with pytest.raises(Exception, match='LiteLLM Virtual Key expected\\.') as exc_info:
+        with pytest.raises(Exception, match="LiteLLM Virtual Key expected\\.") as exc_info:
             await user_api_key_auth(
                 request=mock_request,
                 api_key="Bearer not-a-real-token",
@@ -6023,9 +5965,7 @@ async def test_non_admin_cli_session_token_reaches_production_auth_path(monkeypa
         user_role=GatewayUserRoles.INTERNAL_USER.value,
         models=[],
     )
-    cli_token = ExperimentalUIJWTToken.get_cli_jwt_auth_token(
-        user_info, team_id="team-abc", team_alias="my-team"
-    )
+    cli_token = ExperimentalUIJWTToken.get_cli_jwt_auth_token(user_info, team_id="team-abc", team_alias="my-team")
 
     import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
@@ -6146,7 +6086,9 @@ async def test_real_jwt_still_requires_license_when_jwt_auth_enabled(monkeypatch
         patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
     ):
-        with pytest.raises(Exception, match="JWT auth: This feature is not included in this installation's Token IQ plan") as exc_info:
+        with pytest.raises(
+            Exception, match="JWT auth: This feature is not included in this installation's Token IQ plan"
+        ) as exc_info:
             await user_api_key_auth(
                 request=mock_request,
                 api_key=f"Bearer {jwt_token}",
@@ -6186,13 +6128,9 @@ async def test_auth_does_not_rewrite_cached_key_object_back_into_cache():
         metadata={"model_rpm_limit": {"gpt-5.4-mini": 3}},
         last_refreshed_at=1000.0,
     )
-    await key_cache.async_set_cache(
-        key=hashed_key, value=stale_token, model_type=UserAPIKeyAuth
-    )
+    await key_cache.async_set_cache(key=hashed_key, value=stale_token, model_type=UserAPIKeyAuth)
 
-    fetch_from_db = AsyncMock(
-        side_effect=AssertionError("cache-hit auth must not touch the DB")
-    )
+    fetch_from_db = AsyncMock(side_effect=AssertionError("cache-hit auth must not touch the DB"))
 
     proxy_logging_obj = MagicMock()
     proxy_logging_obj.internal_usage_cache = MagicMock()
@@ -6239,9 +6177,7 @@ async def test_auth_does_not_rewrite_cached_key_object_back_into_cache():
         assert result.token == hashed_key
         fetch_from_db.assert_not_called()
 
-        cached_after = await key_cache.async_get_cache(
-            key=hashed_key, model_type=UserAPIKeyAuth
-        )
+        cached_after = await key_cache.async_get_cache(key=hashed_key, model_type=UserAPIKeyAuth)
         assert cached_after is not None
         assert cached_after.last_refreshed_at == 1000.0
         assert cached_after.metadata == {"model_rpm_limit": {"gpt-5.4-mini": 3}}
@@ -6354,9 +6290,7 @@ class TestCheckKeyModelBudgetWithFallback:
 
     @pytest.mark.asyncio
     async def test_within_budget_does_not_reroute(self):
-        valid_token = UserAPIKeyAuth(
-            token="test-key", budget_fallbacks={"gpt-4o": ["gpt-4o-mini"]}
-        )
+        valid_token = UserAPIKeyAuth(token="test-key", budget_fallbacks={"gpt-4o": ["gpt-4o-mini"]})
         limiter = AsyncMock()
         limiter.is_key_within_model_budget.return_value = True
         request_data = {"model": "gpt-4o"}
@@ -6381,9 +6315,7 @@ class TestCheckKeyModelBudgetWithFallback:
             budget_fallbacks={"gpt-4o": ["gpt-4o-mini", "claude-haiku"]},
         )
         limiter = AsyncMock()
-        limiter.is_key_within_model_budget.side_effect = gateway.BudgetExceededError(
-            current_cost=10, max_budget=5
-        )
+        limiter.is_key_within_model_budget.side_effect = gateway.BudgetExceededError(current_cost=10, max_budget=5)
         limiter.get_fallback_model_within_budget.return_value = "gpt-4o-mini"
         request_data = {"model": "gpt-4o"}
         request = self._make_request()
@@ -6397,9 +6329,7 @@ class TestCheckKeyModelBudgetWithFallback:
         )
 
         assert request_data["model"] == "gpt-4o-mini"
-        limiter.get_fallback_model_within_budget.assert_awaited_once_with(
-            user_api_key_dict=valid_token, model="gpt-4o"
-        )
+        limiter.get_fallback_model_within_budget.assert_awaited_once_with(user_api_key_dict=valid_token, model="gpt-4o")
         # the rerouted model must be visible to a later, separate
         # `_read_request_body` call on the same `request` (route handlers
         # re-parse the body from this cache instead of reusing the dict).
@@ -6408,9 +6338,7 @@ class TestCheckKeyModelBudgetWithFallback:
 
     @pytest.mark.asyncio
     async def test_raises_when_every_fallback_also_exceeded(self):
-        valid_token = UserAPIKeyAuth(
-            token="test-key", budget_fallbacks={"gpt-4o": ["gpt-4o-mini"]}
-        )
+        valid_token = UserAPIKeyAuth(token="test-key", budget_fallbacks={"gpt-4o": ["gpt-4o-mini"]})
         limiter = AsyncMock()
         original_error = gateway.BudgetExceededError(current_cost=10, max_budget=5)
         limiter.is_key_within_model_budget.side_effect = original_error
@@ -6480,9 +6408,7 @@ class TestCheckKeyModelBudgetWithFallback:
             budget_fallbacks={"gpt-4o": ["gpt-4o-mini"]},
         )
         limiter = AsyncMock()
-        limiter.is_key_within_model_budget.side_effect = gateway.BudgetExceededError(
-            current_cost=10, max_budget=5
-        )
+        limiter.is_key_within_model_budget.side_effect = gateway.BudgetExceededError(current_cost=10, max_budget=5)
         limiter.get_fallback_model_within_budget.return_value = "gpt-4o-mini"
         request_data = {"model": "gpt-4o"}
         request = self._make_request()
@@ -6550,9 +6476,7 @@ class TestCheckKeyModelBudgetWithFallback:
             budget_fallbacks={"gpt-4o": ["gpt-4o-mini"]},
         )
         limiter = AsyncMock()
-        limiter.is_key_within_model_budget.side_effect = gateway.BudgetExceededError(
-            current_cost=10, max_budget=5
-        )
+        limiter.is_key_within_model_budget.side_effect = gateway.BudgetExceededError(current_cost=10, max_budget=5)
         limiter.get_fallback_model_within_budget.return_value = "gpt-4o-mini"
         request_data = {"model": "gpt-4o"}
         request = self._make_request()
@@ -6632,9 +6556,7 @@ async def test_global_proxy_spend_reads_resettable_proxy_budget_row():
     )
 
     assert result == 42.5
-    prisma_client.db.usertable.find_unique.assert_awaited_once_with(
-        where={"user_id": "litellm-proxy-budget"}
-    )
+    prisma_client.db.usertable.find_unique.assert_awaited_once_with(where={"user_id": "litellm-proxy-budget"})
 
 
 @pytest.mark.asyncio
@@ -6800,9 +6722,7 @@ async def test_jwt_shaped_key_error_names_enable_jwt_auth_when_disabled():
     Prometheus invalid-key filter and the admin UI both substring-match it.
     Keys that are not JWT-shaped must not pick up the hint.
     """
-    jwt_error = await _proxy_exception_for_key(
-        "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJzdmMtMSJ9.c2lnbmF0dXJl", {}, True
-    )
+    jwt_error = await _proxy_exception_for_key("eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJzdmMtMSJ9.c2lnbmF0dXJl", {}, True)
 
     assert jwt_error.code == "401"
     assert "enable_jwt_auth" in jwt_error.message
@@ -6812,9 +6732,7 @@ async def test_jwt_shaped_key_error_names_enable_jwt_auth_when_disabled():
     assert "is a JWT" not in jwt_error.message
 
     opaque_error = await _proxy_exception_for_key("not-a-jwt-at-all", {}, True)
-    two_segment_error = await _proxy_exception_for_key(
-        "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJzdmMtMSJ9", {}, True
-    )
+    two_segment_error = await _proxy_exception_for_key("eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJzdmMtMSJ9", {}, True)
 
     assert "enable_jwt_auth" not in opaque_error.message
     assert "enable_jwt_auth" not in two_segment_error.message
@@ -6843,9 +6761,7 @@ class TestGatewayReceivedAtStamping:
     on OTEL being configured to see a true request-arrival timestamp."""
 
     def test_stamped_even_when_otel_is_not_configured(self, monkeypatch):
-        monkeypatch.setattr(
-            "token_iq.gateway.proxy.proxy_server.open_telemetry_logger", None
-        )
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.open_telemetry_logger", None)
         request = MagicMock()
         request.state = SimpleNamespace()
 
@@ -6874,3 +6790,35 @@ class TestGatewayReceivedAtStamping:
 
         assert result == earlier
         assert request.state.litellm_received_at == earlier
+
+
+class TestKeyExpiryInUtc:
+    """The convention three expiry checks and the temp-budget window share: no zone means UTC.
+
+    Said against this function rather than through a request, because an expiry already in the past reads as
+    past under either interpretation, so a test that goes through the check cannot tell them apart. Only an
+    expiry in the near future can, and only on a host whose local time is not UTC.
+    """
+
+    def test_a_naive_value_is_read_as_utc(self):
+        assert key_expiry_in_utc(datetime(2026, 3, 1, 12, 30)) == datetime(2026, 3, 1, 12, 30, tzinfo=timezone.utc)
+
+    def test_a_naive_iso_string_is_read_as_utc(self):
+        assert key_expiry_in_utc("2026-03-01T12:30:00") == datetime(2026, 3, 1, 12, 30, tzinfo=timezone.utc)
+
+    def test_a_value_that_carries_a_zone_keeps_its_instant(self):
+        """Converted rather than relabelled. Relabelling an offset value would move it by that offset."""
+        tokyo = timezone(timedelta(hours=9))
+
+        assert key_expiry_in_utc(datetime(2026, 3, 1, 21, 30, tzinfo=tokyo)) == datetime(
+            2026, 3, 1, 12, 30, tzinfo=timezone.utc
+        )
+
+    def test_an_iso_string_that_carries_a_zone_keeps_its_instant(self):
+        assert key_expiry_in_utc("2026-03-01T21:30:00+09:00") == datetime(2026, 3, 1, 12, 30, tzinfo=timezone.utc)
+
+    def test_the_result_always_carries_a_zone(self):
+        """What the callers rely on: they compare against an aware `datetime.now(timezone.utc)`, and
+        comparing that with a naive value raises TypeError rather than letting a key through."""
+        for value in (datetime(2026, 3, 1, 12, 30), "2026-03-01T12:30:00", "2026-03-01T21:30:00+09:00"):
+            assert key_expiry_in_utc(value).tzinfo is not None

@@ -120,6 +120,20 @@ except ImportError as e:
 user_api_key_service_logger_obj: Final = ServiceLogging()  # used for tracking latency on OTEL
 
 
+def key_expiry_in_utc(expires: datetime | str) -> datetime:
+    """A key's expiry as an instant in UTC.
+
+    A value carrying no zone is UTC, because that is what the database stores. Reading it as local time
+    instead moves every expiry by the host's offset, which lets a key outlive its expiry by that much
+    wherever the host is ahead of UTC. Named rather than inline because the two callers below had the same
+    nine lines each and nothing could state the convention they share.
+    """
+    parsed: Final = expires if isinstance(expires, datetime) else datetime.fromisoformat(expires)
+    if parsed.tzinfo is None or parsed.tzinfo.utcoffset(parsed) is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
 def _normalize_public_auth_route(route: str) -> str:
     if route != "/" and route.endswith("/"):
         return route.rstrip("/")
@@ -1748,12 +1762,7 @@ async def _user_api_key_auth_builder(
         ):
             if valid_token.expires is not None:
                 current_time = datetime.now(timezone.utc)
-                if isinstance(valid_token.expires, datetime):
-                    expiry_time = valid_token.expires
-                else:
-                    expiry_time = datetime.fromisoformat(valid_token.expires)
-                if expiry_time.tzinfo is None or expiry_time.tzinfo.utcoffset(expiry_time) is None:
-                    expiry_time = expiry_time.replace(tzinfo=timezone.utc)
+                expiry_time = key_expiry_in_utc(valid_token.expires)
                 if expiry_time < current_time:
                     await _delete_cache_key_object(
                         hashed_token=hash_token(api_key),
@@ -2053,12 +2062,7 @@ async def _user_api_key_auth_builder(
             # Check 3. If token is expired
             if valid_token.expires is not None:
                 current_time = datetime.now(timezone.utc)
-                if isinstance(valid_token.expires, datetime):
-                    expiry_time = valid_token.expires
-                else:
-                    expiry_time = datetime.fromisoformat(valid_token.expires)
-                if expiry_time.tzinfo is None or expiry_time.tzinfo.utcoffset(expiry_time) is None:
-                    expiry_time = expiry_time.replace(tzinfo=timezone.utc)
+                expiry_time = key_expiry_in_utc(valid_token.expires)
                 verbose_proxy_logger.debug(
                     "Checking if token expired, expiry time %s and current time %s", expiry_time, current_time
                 )
@@ -3031,9 +3035,7 @@ def get_api_key_from_custom_header(request: Request, custom_gateway_key_header_n
 def _get_temp_budget_increase(valid_token: UserAPIKeyAuth):
     valid_token_metadata: Final = valid_token.metadata
     if "temp_budget_increase" in valid_token_metadata and "temp_budget_expiry" in valid_token_metadata:
-        expiry = datetime.fromisoformat(valid_token_metadata["temp_budget_expiry"])
-        if expiry.tzinfo is None:
-            expiry = expiry.replace(tzinfo=timezone.utc)
+        expiry: Final = key_expiry_in_utc(valid_token_metadata["temp_budget_expiry"])
         if expiry > datetime.now(timezone.utc):
             return valid_token_metadata["temp_budget_increase"]
     return None
@@ -3214,12 +3216,7 @@ async def _run_post_custom_auth_checks(
     # 2. Check token expiry
     if valid_token.expires is not None:
         current_time: Final = datetime.now(timezone.utc)
-        if isinstance(valid_token.expires, datetime):
-            expiry_time = valid_token.expires
-        else:
-            expiry_time = datetime.fromisoformat(valid_token.expires)
-        if expiry_time.tzinfo is None or expiry_time.tzinfo.utcoffset(expiry_time) is None:
-            expiry_time = expiry_time.replace(tzinfo=timezone.utc)
+        expiry_time: Final = key_expiry_in_utc(valid_token.expires)
         if expiry_time < current_time:
             raise ProxyException(
                 message=f"Authentication Error - Expired Key. Key Expiry time {expiry_time} and current time {current_time}",

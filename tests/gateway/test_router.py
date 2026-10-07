@@ -8642,7 +8642,7 @@ async def test_prompt_management_factory_marks_injection_for_every_deployment(mo
 def test_router_rejects_pre_routing_deployments(model: str, expected_label: str) -> None:
     """Every strategy router picks the model from the request, so the caller would be
     answered by a model it never asked for. All four must be refused at registration."""
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError, match="disabled in this build") as excinfo:
         Router(model_list=[{"model_name": "r", "litellm_params": {"model": model}}])
 
     message: Final = str(excinfo.value)

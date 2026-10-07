@@ -119,9 +119,13 @@ def isolate_host_proxy_base_url(monkeypatch):
 def isolate_host_os_keychain(monkeypatch):
     """Keep any code path that resolves a CLI credential out of the developer's real OS keychain.
 
-    Tests that exercise keychain behaviour inject their own vault instead.
+    Tests that exercise keychain behaviour inject their own vault instead, and clear this by the same
+    constant. Spelled out here it drifted: the rename moved the name they clear without moving the one this
+    sets, `compat.env` honoured the stale one, and every keyring test saw a disabled vault.
     """
-    monkeypatch.setenv("LITELLM_CLI_DISABLE_KEYRING", "1")
+    from token_iq.gateway.core_utils.cli_keyring import DISABLE_KEYRING_ENV_VAR
+
+    monkeypatch.setenv(DISABLE_KEYRING_ENV_VAR, "1")
 
 
 class FakeSecretVault:

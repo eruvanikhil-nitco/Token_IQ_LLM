@@ -9,7 +9,7 @@ import traceback
 from typing import Optional
 
 from token_iq import gateway
-from token_iq.gateway import verbose_logger
+from token_iq.gateway import compat, verbose_logger
 from token_iq.gateway._logging import session_id_var, trace_id_var
 from token_iq.gateway.core_utils.litellm_logging import Logging
 from token_iq.gateway.core_utils.streaming_handler import (
@@ -1755,9 +1755,7 @@ def test_openrouter_streaming_cost_propagates_to_hidden_params():
 
     assert "additional_headers" in complete_response._hidden_params
     assert (
-        complete_response._hidden_params["additional_headers"][
-            "llm_provider-x-litellm-response-cost"
-        ]
+        complete_response._hidden_params["additional_headers"][compat.PROVIDER_COST_KEY]
         == 0.00025
     )
 
@@ -1768,6 +1766,31 @@ def test_openrouter_streaming_cost_propagates_to_hidden_params():
         complete_response._hidden_params
     )
     assert provider_cost == 0.00025
+
+
+@pytest.mark.parametrize(
+    "key",
+    ["llm_provider-x-token-iq-response-cost", "llm_provider-x-litellm-response-cost"],
+)
+def test_provider_reported_cost_is_read_under_either_spelling(key: str):
+    """A response that has already passed through a gateway on the old release carries the old key, and
+    dropping it would bill that call at list price instead of what the provider reported.
+
+    Both spelled out rather than taken from `compat.PROVIDER_COST_KEYS`. Driving the cases off the seam
+    means dropping a key deletes its case instead of failing it, which is how this passed while the old
+    spelling was gone.
+    """
+    from token_iq.gateway.cost_calculator import get_response_cost_from_hidden_params
+
+    assert get_response_cost_from_hidden_params({"additional_headers": {key: 0.00025}}) == 0.00025
+
+
+def test_the_cost_keys_the_reader_accepts_are_the_two_above():
+    """Guards the pair above against a third spelling arriving with nothing reading it."""
+    assert set(compat.PROVIDER_COST_KEYS) == {
+        "llm_provider-x-token-iq-response-cost",
+        "llm_provider-x-litellm-response-cost",
+    }
 
 
 def test_perplexity_streaming_dict_cost_bills_through_its_own_calculator():

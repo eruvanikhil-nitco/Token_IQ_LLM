@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 import token_iq.gateway.proxy
 from token_iq import gateway
 import token_iq.gateway.proxy.proxy_server
-from token_iq import gateway
 
 load_dotenv()
 import io
@@ -20,7 +19,6 @@ import logging
 
 import pytest
 
-from token_iq import gateway
 from token_iq.gateway import RateLimitError, Timeout, completion, completion_cost, embedding
 
 # Configure logging

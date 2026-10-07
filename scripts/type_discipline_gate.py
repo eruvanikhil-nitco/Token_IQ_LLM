@@ -43,8 +43,8 @@ from typing import Final, NamedTuple
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CHECKER = REPO_ROOT / "scripts" / "check_type_discipline.py"
 BUDGET_PATH = REPO_ROOT / "type-discipline-budget.json"
-# Both paths. See the note in ruff_strict_gate.py.
-TARGETS = ("litellm", "token_iq")
+# One path. See the note in ruff_strict_gate.py.
+TARGETS = ("token_iq",)
 DEFAULT_BASE = "origin/main"
 
 _HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")

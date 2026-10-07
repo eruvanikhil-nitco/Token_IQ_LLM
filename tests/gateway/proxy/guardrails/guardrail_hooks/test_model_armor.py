@@ -12,7 +12,6 @@ from fastapi import HTTPException
 
 from token_iq import gateway
 import token_iq.gateway.types.utils
-from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching import DualCache
 from token_iq.gateway.llms.custom_httpx.http_handler import MaskedHTTPStatusError

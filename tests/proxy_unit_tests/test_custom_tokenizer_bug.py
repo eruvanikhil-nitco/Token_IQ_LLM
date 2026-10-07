@@ -15,9 +15,7 @@ import pytest
 
 from token_iq import gateway
 import token_iq.gateway.proxy.proxy_server
-from token_iq import gateway
 import token_iq.gateway.utils
-from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.proxy._types import TokenCountRequest
 from token_iq.gateway.proxy.proxy_server import token_counter

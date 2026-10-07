@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import token_iq.gateway.types
 from token_iq import gateway
 import token_iq.gateway.types.utils
-from token_iq import gateway
 from token_iq.gateway.llms.anthropic.chat import ModelResponseIterator
 
 load_dotenv()
@@ -17,7 +16,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway
 
 from token_iq.gateway.llms.anthropic.common_utils import process_anthropic_headers
 from httpx import Headers

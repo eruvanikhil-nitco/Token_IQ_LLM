@@ -1805,3 +1805,87 @@ typed facade for all of them, deliberately, rather than per file.
 
 `litellm_proxy_admin_name` keeps its name. Unlike the master key hash it is self-consistent, declared and
 defined under the same spelling, so it is a phase 10 rename and not a bug.
+
+## 2026-10-08, the failures the broken lint path had been hiding
+
+Five tests were failing at the previous commit, found while verifying the one before it. Chasing them turned
+up seven more and one bug in the gateway itself. Every one of them is a rename casualty of the same shape:
+the pass moved what the code writes and left what the test expects, or the other way round, and the
+assertion had been checking one spelling against the other ever since.
+
+The response-header tests sent `x-token-iq-attempted-fallbacks` and asserted
+`llm_provider-x-litellm-attempted-fallbacks`. The streaming test asserted the old response-cost key. Four
+assertions in the encrypted-content file expected `litellm_enc:` from a writer that emits `token_iq_enc:`.
+Each now covers both spellings, because `compat` accepts both for one more release and a test that names
+only the new one says nothing about the guarantee.
+
+One of those was worth more than its own fix. Driving the two cases off `compat.PROVIDER_COST_KEYS` meant
+dropping a key deleted its case rather than failing it, so the mutation that removes the old spelling passed.
+Both spellings are spelled out in the test now, with a separate assertion that the seam holds exactly those
+two. A parametrize list read from the thing under test cannot fail when that thing shrinks.
+
+### A keychain fixture that disabled nothing
+
+`tests/gateway/conftest.py` set `LITELLM_CLI_DISABLE_KEYRING` tree-wide so no test reaches the developer's
+real keychain. The fourteen tests that inject a fake vault clear `TOKEN_IQ_CLI_DISABLE_KEYRING`, the name the
+code's own constant carries. `compat.env` honoured the stale one, every injected vault reported itself
+disabled, and all fourteen failed. The fixture now sets the constant rather than a literal, so the two cannot
+drift again.
+
+### An expired key that was not expired
+
+`test_post_custom_auth_expired_key_returns_unauthorized` built its expiry from `datetime.now()`, which is
+naive local time. The check reads a naive expiry as UTC, which is what the database stores, so on a host
+ahead of UTC that "expired" key arrived five and a half hours in the future and nothing raised. It passes
+only where local time is UTC, which is every CI runner and no developer machine in this timezone.
+
+The convention it depends on was stated nowhere and hand-rolled four times in that one file, nine lines
+each. `key_expiry_in_utc` now holds it once, with tests that pin both halves: no zone means UTC, and a value
+that carries a zone is converted rather than relabelled. Those tests are said against the function because an
+expiry already in the past reads as past under either interpretation, so going through the check cannot tell
+the two apart.
+
+### The test tree had never been linted either
+
+The same `cd litellm` that stopped `ruff check token_iq` also sat in front of CI's test-tree lint step, so
+`ruff check --config ruff-tests.toml tests` had not run since phase 6 either. It found 52: 43 duplicate
+imports, 8 `pytest.raises` without a `match`, and one undefined name. The last was
+`tests/gateway/test_router_redis_init.py`, a file holding four imports, two comments and a `__main__` calling
+a function that does not exist. No test, nothing importing it, and it can only crash if run, so it is gone.
+
+The eight broad `pytest.raises` each already asserted the message on the line below, so the substring moved
+into `match=` and the behaviour is the same. Three needed a raw string, because an intentional `(?i)` is
+still a metacharacter to RUF043.
+
+### A dead path inside two gates
+
+`ruff_strict_gate.py` and `type_discipline_gate.py` both scanned `("litellm", "token_iq")`. The pair was
+right while phase 3 was moving code between them, and phase 6 left the first naming nothing. ruff accepts a
+path that is not there without a word, which is how it stayed for four phases. Both now scan `token_iq` only,
+and all three runnable gates report within ceiling against this commit's parent.
+
+### Verified
+
+- `ruff check token_iq` and `ruff check --config ruff-tests.toml tests` both clean, the first time either has
+  been true since phase 6
+- the 42 pass, plus 14 skips on this host: nine for root or no POSIX permissions, five for `chmod` mode bits
+  that Windows reports as 0o777 where the code set 0o700. All five still run on a POSIX runner
+- five mutations, each turning a test red: the old header prefix removed from the compat seam, the old cost
+  key removed, the old wrapped-content prefix removed, the basename split restored, and a stale ignore entry
+  put back
+- the two files that could not be collected here at all now collect, so this host runs 86 tests it never ran
+
+### Left where it was found
+
+`tests/` holds 764 inert `# type: ignore` comments. LIT009 bans them and its budget is zero, but the gate
+watches `token_iq` only, so the test tree never saw the rule. `token_iq` itself has none.
+
+25 test files the duplicate-import fix touched carry pre-existing format drift. Nothing checks formatting in
+the test tree, in CI or in `make format-check`, so they are left rather than reformatted for a one-line
+change.
+
+`tests/gateway/proxy/common_utils/test_user_api_key_cache.py:43` carries `# noqa:` followed by prose instead
+of rule codes, which ruff warns about on every test-tree run and which suppresses nothing.
+
+One timing-sensitive test, `test_token_counter_large_repeated_text_is_fast`, fails on a loaded box and
+passes on a quiet one.

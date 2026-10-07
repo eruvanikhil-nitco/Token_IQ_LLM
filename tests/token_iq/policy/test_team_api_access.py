@@ -24,7 +24,7 @@ class TestCourierClosesTheSharedAddress:
         """This is the promise a customer buys: in courier mode every request from the team
         is provably one this gateway never opened. Leaving the translating address open
         would make that a hope rather than a guarantee."""
-        with pytest.raises(Exception) as exc:
+        with pytest.raises(Exception, match=r"(?i)courier") as exc:
             assert_route_allowed(mode="courier", route=SHARED)
 
         message = str(exc.value).lower()
@@ -38,7 +38,7 @@ class TestCourierClosesTheSharedAddress:
 
 class TestTranslatorClosesTheProviderAddresses:
     def test_a_provider_address_is_refused(self):
-        with pytest.raises(Exception) as exc:
+        with pytest.raises(Exception, match=r"(?i)translating") as exc:
             assert_route_allowed(mode="translator", route=PROVIDER)
 
         message = str(exc.value).lower()
@@ -66,7 +66,7 @@ class TestOnlyModelRequestsAreGated:
 
 class TestTheRefusalNamesTheWayOut:
     def test_courier_refusal_names_the_route_that_was_refused(self):
-        with pytest.raises(Exception) as exc:
+        with pytest.raises(Exception, match="/v1/embeddings") as exc:
             assert_route_allowed(mode="courier", route="/v1/embeddings")
 
         assert "/v1/embeddings" in str(exc.value)

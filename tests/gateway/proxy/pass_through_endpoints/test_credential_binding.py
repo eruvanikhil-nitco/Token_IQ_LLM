@@ -83,7 +83,7 @@ class TestCourierResolvesFromTheBinding:
             staticmethod(lambda name: {}),
         )
 
-        with pytest.raises(Exception) as exc:
+        with pytest.raises(Exception, match="missing-cred") as exc:
             router.get_credentials(
                 custom_llm_provider="openai",
                 region_name=None,

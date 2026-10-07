@@ -14,7 +14,6 @@ from token_iq import gateway
 from token_iq.gateway import create_pretrained_tokenizer, decode, encode, get_modified_max_tokens
 from token_iq.gateway import token_counter as token_counter_old
 import token_iq.gateway.constants
-from token_iq import gateway
 from token_iq.gateway.core_utils.token_counter import _get_tiktoken_count_function
 from token_iq.gateway.core_utils.token_counter import token_counter as token_counter_new
 from tests.large_text import text

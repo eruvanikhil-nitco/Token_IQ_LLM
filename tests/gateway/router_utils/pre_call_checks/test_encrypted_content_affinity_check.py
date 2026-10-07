@@ -4,10 +4,10 @@ Tests for encrypted_content_affinity pre-call check.
 The mechanism works without any cache and supports two encoding strategies:
 
 1. **Items with IDs**: item IDs for output items with `encrypted_content` are rewritten to
-   `encitem_{base64("litellm:model_id:{model_id};item_id:{original_id}")}`.
+   `encitem_{base64("token_iq:model_id:{model_id};item_id:{original_id}")}`.
 
 2. **Items without IDs** (Codex): encrypted_content itself is wrapped with model_id metadata:
-   `litellm_enc:{base64("model_id:{model_id}")};{original_encrypted_content}`.
+   `token_iq_enc:{base64("model_id:{model_id}")};{original_encrypted_content}`.
 
 - On routing: `EncryptedContentAffinityCheck` decodes from either item IDs or wrapped
   encrypted_content to extract `model_id` and pins the request to that deployment.
@@ -23,6 +23,7 @@ import pytest
 
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
@@ -68,9 +69,7 @@ class TestEncryptedItemIdCodec:
     def test_roundtrip(self):
         model_id = "deployment-1"
         original_item_id = "rs_abc123def456"
-        encoded = ResponsesAPIRequestUtils._build_encrypted_item_id(
-            model_id, original_item_id
-        )
+        encoded = ResponsesAPIRequestUtils._build_encrypted_item_id(model_id, original_item_id)
         assert encoded.startswith("encitem_")
         decoded = ResponsesAPIRequestUtils._decode_encrypted_item_id(encoded)
         assert decoded is not None
@@ -81,9 +80,7 @@ class TestEncryptedItemIdCodec:
         """Decoding must succeed even if base64 padding (=) was stripped in transit."""
         model_id = "gpt-5.1-codex-openai-2"
         original_item_id = "rs_0efb96cb222403210069a01d5d52588196a9dc394ffdb89d00"
-        encoded = ResponsesAPIRequestUtils._build_encrypted_item_id(
-            model_id, original_item_id
-        )
+        encoded = ResponsesAPIRequestUtils._build_encrypted_item_id(model_id, original_item_id)
         # Strip any trailing '=' to simulate what happens in transit
         stripped = encoded.rstrip("=")
         decoded = ResponsesAPIRequestUtils._decode_encrypted_item_id(stripped)
@@ -100,9 +97,7 @@ class TestEncryptedItemIdCodec:
         """item_id values containing ';' must survive the roundtrip."""
         model_id = "deployment-1"
         original_item_id = "rs_part1;part2;part3"
-        encoded = ResponsesAPIRequestUtils._build_encrypted_item_id(
-            model_id, original_item_id
-        )
+        encoded = ResponsesAPIRequestUtils._build_encrypted_item_id(model_id, original_item_id)
         decoded = ResponsesAPIRequestUtils._decode_encrypted_item_id(encoded)
         assert decoded is not None
         assert decoded["item_id"] == original_item_id
@@ -118,11 +113,7 @@ class TestUpdateEncryptedContentItemIds:
                 {"id": "rs_xyz", "type": "reasoning", "encrypted_content": "secret"},
             ],
         }
-        result = (
-            ResponsesAPIRequestUtils._update_encrypted_content_item_ids_in_response(
-                response, model_id
-            )
-        )
+        result = ResponsesAPIRequestUtils._update_encrypted_content_item_ids_in_response(response, model_id)
         # Plain message item untouched
         assert result["output"][0]["id"] == "msg_abc"
         # Reasoning item with encrypted_content gets encoded
@@ -133,16 +124,8 @@ class TestUpdateEncryptedContentItemIds:
         assert decoded["item_id"] == "rs_xyz"
 
     def test_no_op_when_model_id_is_none(self):
-        response = {
-            "output": [
-                {"id": "rs_xyz", "type": "reasoning", "encrypted_content": "secret"}
-            ]
-        }
-        result = (
-            ResponsesAPIRequestUtils._update_encrypted_content_item_ids_in_response(
-                response, None
-            )
-        )
+        response = {"output": [{"id": "rs_xyz", "type": "reasoning", "encrypted_content": "secret"}]}
+        result = ResponsesAPIRequestUtils._update_encrypted_content_item_ids_in_response(response, None)
         assert result["output"][0]["id"] == "rs_xyz"
 
 
@@ -151,10 +134,8 @@ class TestEncryptedContentWrapping:
         """Test wrapping encrypted_content with model_id metadata."""
         model_id = "deployment-1"
         original_content = "gAAAAABpnW_yEYmSNEyOG_original_encrypted_data"
-        wrapped = ResponsesAPIRequestUtils._wrap_encrypted_content_with_model_id(
-            original_content, model_id
-        )
-        assert wrapped.startswith("litellm_enc:")
+        wrapped = ResponsesAPIRequestUtils._wrap_encrypted_content_with_model_id(original_content, model_id)
+        assert wrapped.startswith(compat.NEW_WRAPPED_CONTENT_PREFIX)
         assert wrapped != original_content
 
         (
@@ -170,9 +151,7 @@ class TestEncryptedContentWrapping:
         (
             model_id,
             content,
-        ) = ResponsesAPIRequestUtils._unwrap_encrypted_content_with_model_id(
-            plain_content
-        )
+        ) = ResponsesAPIRequestUtils._unwrap_encrypted_content_with_model_id(plain_content)
         assert model_id is None
         assert content == plain_content
 
@@ -189,14 +168,10 @@ class TestEncryptedContentWrapping:
                 },
             ],
         }
-        result = (
-            ResponsesAPIRequestUtils._update_encrypted_content_item_ids_in_response(
-                response, model_id
-            )
-        )
+        result = ResponsesAPIRequestUtils._update_encrypted_content_item_ids_in_response(response, model_id)
         assert result["output"][0].get("encrypted_content") is None
         wrapped = result["output"][1]["encrypted_content"]
-        assert wrapped.startswith("litellm_enc:")
+        assert wrapped.startswith(compat.NEW_WRAPPED_CONTENT_PREFIX)
 
         (
             model_id_extracted,
@@ -210,19 +185,13 @@ class TestRestoreEncryptedContentItemIds:
     def test_restores_encoded_ids(self):
         model_id = "deployment-1"
         original_id = "rs_encrypted_item_456"
-        encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id(
-            model_id, original_id
-        )
+        encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id(model_id, original_id)
 
         request_input = [
             {"type": "message", "id": "msg_abc123", "role": "assistant"},
             {"type": "reasoning", "id": encoded_id, "encrypted_content": "secret"},
         ]
-        restored = (
-            ResponsesAPIRequestUtils._restore_encrypted_content_item_ids_in_input(
-                request_input
-            )
-        )
+        restored = ResponsesAPIRequestUtils._restore_encrypted_content_item_ids_in_input(request_input)
         assert restored[0]["id"] == "msg_abc123"
         assert restored[1]["id"] == original_id
 
@@ -230,41 +199,27 @@ class TestRestoreEncryptedContentItemIds:
         """Test that wrapped encrypted_content is unwrapped before forwarding."""
         model_id = "deployment-1"
         original_content = "gAAAAABpnW_yEYmSNEyOG_original"
-        wrapped_content = (
-            ResponsesAPIRequestUtils._wrap_encrypted_content_with_model_id(
-                original_content, model_id
-            )
-        )
+        wrapped_content = ResponsesAPIRequestUtils._wrap_encrypted_content_with_model_id(original_content, model_id)
 
         request_input = [
             {"type": "reasoning", "encrypted_content": wrapped_content},
         ]
-        restored = (
-            ResponsesAPIRequestUtils._restore_encrypted_content_item_ids_in_input(
-                request_input
-            )
-        )
+        restored = ResponsesAPIRequestUtils._restore_encrypted_content_item_ids_in_input(request_input)
         assert restored[0]["encrypted_content"] == original_content
 
     def test_no_op_for_plain_string_input(self):
-        result = ResponsesAPIRequestUtils._restore_encrypted_content_item_ids_in_input(
-            "Hello world"
-        )
+        result = ResponsesAPIRequestUtils._restore_encrypted_content_item_ids_in_input("Hello world")
         assert result == "Hello world"
 
     def test_no_op_for_unencoded_ids(self):
         request_input = [{"type": "message", "id": "msg_plain"}]
-        result = ResponsesAPIRequestUtils._restore_encrypted_content_item_ids_in_input(
-            request_input
-        )
+        result = ResponsesAPIRequestUtils._restore_encrypted_content_item_ids_in_input(request_input)
         assert result[0]["id"] == "msg_plain"
 
 
 # ---------------------------------------------------------------------------
 # Integration tests (router-level)
 # ---------------------------------------------------------------------------
-
-
 
 
 @pytest.mark.asyncio
@@ -300,27 +255,17 @@ async def test_encrypted_content_affinity_no_effect_on_chat_completions():
     assert response2.id is not None
 
 
-
-
-
-
-
-
 def test_encrypted_content_wrapping_preserves_original_content():
     """
     Test that wrapping and unwrapping encrypted_content preserves the original content.
     This is critical for streaming responses where content must round-trip correctly.
     """
     model_id = "test-deployment-1"
-    original_encrypted_content = (
-        "gAAAAABpnW_yEYmSNEyOG_streaming_test_content_with_special_chars==+/"
-    )
+    original_encrypted_content = "gAAAAABpnW_yEYmSNEyOG_streaming_test_content_with_special_chars==+/"
 
-    wrapped = ResponsesAPIRequestUtils._wrap_encrypted_content_with_model_id(
-        original_encrypted_content, model_id
-    )
+    wrapped = ResponsesAPIRequestUtils._wrap_encrypted_content_with_model_id(original_encrypted_content, model_id)
 
-    assert wrapped.startswith("litellm_enc:")
+    assert wrapped.startswith(compat.NEW_WRAPPED_CONTENT_PREFIX)
     assert wrapped != original_encrypted_content
 
     (
@@ -339,9 +284,7 @@ def test_encrypted_content_wrapping_with_multiple_semicolons():
     model_id = "deployment-with-semicolons"
     original_content = "gAAAAAB;some;content;with;semicolons"
 
-    wrapped = ResponsesAPIRequestUtils._wrap_encrypted_content_with_model_id(
-        original_content, model_id
-    )
+    wrapped = ResponsesAPIRequestUtils._wrap_encrypted_content_with_model_id(original_content, model_id)
 
     (
         extracted_model_id,
@@ -412,9 +355,7 @@ async def test_encrypted_content_affinity_preserves_gateway_metadata_for_respons
         request_kwargs=request_kwargs,
     )
 
-    assert (
-        request_kwargs["litellm_metadata"]["encrypted_content_affinity_enabled"] is True
-    )
+    assert request_kwargs["litellm_metadata"]["encrypted_content_affinity_enabled"] is True
     assert request_kwargs["litellm_metadata"]["model_info"] == {"id": "dep-1"}
 
 
@@ -425,11 +366,9 @@ def test_encrypted_content_wrapping_empty_string():
     model_id = "test-deployment"
     original_content = ""
 
-    wrapped = ResponsesAPIRequestUtils._wrap_encrypted_content_with_model_id(
-        original_content, model_id
-    )
+    wrapped = ResponsesAPIRequestUtils._wrap_encrypted_content_with_model_id(original_content, model_id)
 
-    assert wrapped.startswith("litellm_enc:")
+    assert wrapped.startswith(compat.NEW_WRAPPED_CONTENT_PREFIX)
 
     (
         extracted_model_id,
@@ -443,10 +382,6 @@ def test_encrypted_content_wrapping_empty_string():
 # ---------------------------------------------------------------------------
 # LIT-2531: cross-model-group fallback via encryption boundary (api_base + api_key)
 # ---------------------------------------------------------------------------
-
-
-
-
 
 
 def test_boundary_fallback_no_router_ref_returns_empty():
@@ -531,9 +466,7 @@ def test_boundary_key_accepts_pydantic_gateway_params_instance():
         "api_key": "fake-azure-resource-key-a",
     }
 
-    pydantic_key = EncryptedContentAffinityCheck._encryption_boundary_key(
-        pydantic_params
-    )
+    pydantic_key = EncryptedContentAffinityCheck._encryption_boundary_key(pydantic_params)
     plain_key = EncryptedContentAffinityCheck._encryption_boundary_key(plain_params)
 
     assert pydantic_key is not None
@@ -560,18 +493,8 @@ def test_boundary_key_rejects_non_dict_like_inputs():
     for bad in (None, [], "not a dict", 42, object()):
         assert EncryptedContentAffinityCheck._encryption_boundary_key(bad) is None
 
-    assert (
-        EncryptedContentAffinityCheck._encryption_boundary_key(
-            {"api_base": "", "api_key": "k"}
-        )
-        is None
-    )
-    assert (
-        EncryptedContentAffinityCheck._encryption_boundary_key(
-            {"api_base": "https://x"}
-        )
-        is None
-    )
+    assert EncryptedContentAffinityCheck._encryption_boundary_key({"api_base": "", "api_key": "k"}) is None
+    assert EncryptedContentAffinityCheck._encryption_boundary_key({"api_base": "https://x"}) is None
 
 
 # ---------------------------------------------------------------------------
@@ -590,20 +513,16 @@ def _make_originating_mock(api_base: str, api_key: str):
     return originating
 
 
-def _make_router_mock_with_cooldown(
-    originating, cooldown_entries: Optional[List[tuple]] = None
-):
+def _make_router_mock_with_cooldown(originating, cooldown_entries: Optional[List[tuple]] = None):
     """
     Build a MagicMock router whose ``cooldown_cache.async_get_active_cooldowns``
     returns ``cooldown_entries`` (defaulting to ``[]`` — no active cooldown).
     """
-    from unittest.mock import AsyncMock, MagicMock
+    from unittest.mock import MagicMock
 
     mock_router = MagicMock()
     mock_router.get_deployment.return_value = originating
-    mock_router.cooldown_cache.async_get_active_cooldowns = AsyncMock(
-        return_value=list(cooldown_entries or [])
-    )
+    mock_router.cooldown_cache.async_get_active_cooldowns = AsyncMock(return_value=list(cooldown_entries or []))
     return mock_router
 
 
@@ -637,9 +556,7 @@ async def test_affinity_raises_service_unavailable_when_origin_cooled_for_non_42
     )
 
     check = EncryptedContentAffinityCheck(router=mock_router)
-    encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id(
-        "deployment-a-cooled", "rs_test"
-    )
+    encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id("deployment-a-cooled", "rs_test")
     healthy_only_b = [
         {
             "model_info": {"id": "deployment-b"},
@@ -699,9 +616,7 @@ async def test_affinity_raises_rate_limit_with_retry_after_when_origin_cooled_fo
     )
 
     check = EncryptedContentAffinityCheck(router=mock_router)
-    encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id(
-        "deployment-a-cooled-429", "rs_test"
-    )
+    encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id("deployment-a-cooled-429", "rs_test")
     healthy_only_b = [
         {
             "model_info": {"id": "deployment-b"},
@@ -747,9 +662,7 @@ async def test_affinity_raises_service_unavailable_when_origin_filtered_without_
     mock_router = _make_router_mock_with_cooldown(originating, cooldown_entries=[])
 
     check = EncryptedContentAffinityCheck(router=mock_router)
-    encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id(
-        "deployment-a-filtered", "rs_test"
-    )
+    encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id("deployment-a-filtered", "rs_test")
     healthy_only_b = [
         {
             "model_info": {"id": "deployment-b"},
@@ -793,9 +706,7 @@ async def test_affinity_raises_bad_request_when_origin_removed():
     mock_router.get_deployment.return_value = None
 
     check = EncryptedContentAffinityCheck(router=mock_router)
-    encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id(
-        "deployment-removed", "rs_test"
-    )
+    encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id("deployment-removed", "rs_test")
     healthy_only_b = [
         {
             "model_info": {"id": "deployment-b"},
@@ -843,9 +754,7 @@ async def test_affinity_does_not_raise_when_boundary_peer_available():
     mock_router.get_deployment.return_value = originating
 
     check = EncryptedContentAffinityCheck(router=mock_router)
-    encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id(
-        "deployment-a", "rs_test"
-    )
+    encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id("deployment-a", "rs_test")
     peer = {
         "model_info": {"id": "deployment-a-peer"},
         "litellm_params": {
@@ -889,9 +798,7 @@ async def test_model_group_affinity_config_enables_encrypted_content_affinity():
         },
         target_deployment,
     ]
-    encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id(
-        "deployment-b", "rs_test"
-    )
+    encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id("deployment-b", "rs_test")
     request_kwargs = {
         "input": [{"type": "reasoning", "id": encoded_id}],
         "litellm_metadata": {},
@@ -935,9 +842,7 @@ async def test_model_group_affinity_config_does_not_disable_global_encrypted_con
         },
         target_deployment,
     ]
-    encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id(
-        "deployment-b", "rs_test"
-    )
+    encoded_id = ResponsesAPIRequestUtils._build_encrypted_item_id("deployment-b", "rs_test")
     request_kwargs = {
         "input": [{"type": "reasoning", "id": encoded_id}],
         "litellm_metadata": {},
@@ -961,3 +866,40 @@ async def test_model_group_affinity_config_does_not_disable_global_encrypted_con
     assert request_kwargs.get("_encrypted_content_affinity_pinned") is True
 
 
+class TestWrappedContentFromBeforeTheRename:
+    """A Codex client holds wrapped encrypted_content and replays it on the next turn, so content wrapped by
+    the previous release arrives at an upgraded gateway. Nothing covered that, and the four assertions above
+    had been checking the old prefix against a writer that already emitted the new one.
+    """
+
+    @staticmethod
+    def _wrapped_under(prefix: str, model_id: str, content: str) -> str:
+        new = ResponsesAPIRequestUtils._wrap_encrypted_content_with_model_id(content, model_id)
+        return prefix + new.removeprefix(compat.NEW_WRAPPED_CONTENT_PREFIX)
+
+    @pytest.mark.parametrize("prefix", ["token_iq_enc:", "litellm_enc:"])
+    def test_either_prefix_unwraps_to_the_same_deployment(self, prefix: str):
+        """Both spelled out rather than read from `compat.WRAPPED_CONTENT_PREFIXES`: driving the cases off
+        the seam would delete a case when a prefix is dropped instead of failing it."""
+        wrapped = self._wrapped_under(prefix, "deployment-1", "gAAAAABpnW_yEYmSNEyOG_data")
+
+        model_id, content = ResponsesAPIRequestUtils._unwrap_encrypted_content_with_model_id(wrapped)
+
+        assert model_id == "deployment-1"
+        assert content == "gAAAAABpnW_yEYmSNEyOG_data"
+
+    def test_content_under_neither_prefix_is_left_alone(self):
+        """Guards the pair above, which pass just as well against an unwrap that strips any prefix at all."""
+        plain = "gAAAAABpnW_yEYmSNEyOG_data"
+
+        model_id, content = ResponsesAPIRequestUtils._unwrap_encrypted_content_with_model_id(plain)
+
+        assert model_id is None
+        assert content == plain
+
+    def test_the_writer_uses_the_new_prefix(self):
+        """The other half: both unwrap, but only one is written from now on."""
+        wrapped = ResponsesAPIRequestUtils._wrap_encrypted_content_with_model_id("data", "d1")
+
+        assert wrapped.startswith("token_iq_enc:")
+        assert not wrapped.startswith("litellm_enc:")

@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 import token_iq.gateway.types
 from token_iq import gateway
 import token_iq.gateway.types.utils
-from token_iq import gateway
 
 load_dotenv()
 import io
@@ -404,7 +403,6 @@ def test_load_aws_secret_manager_with_settings():
     """
     Test loading AWS Secret Manager with key_management_settings
     """
-    from token_iq import gateway
 
     settings = KeyManagementSettings(
         store_virtual_keys=True,

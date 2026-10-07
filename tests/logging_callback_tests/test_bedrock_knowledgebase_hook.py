@@ -6,7 +6,6 @@ import os
 import asyncio
 from token_iq import gateway
 import token_iq.gateway.vector_stores.main
-from token_iq import gateway
 import gzip
 import json
 import logging
@@ -16,7 +15,6 @@ from unittest.mock import AsyncMock, patch, Mock
 
 import pytest
 
-from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.vector_store_integrations.vector_store_pre_call_hook import (

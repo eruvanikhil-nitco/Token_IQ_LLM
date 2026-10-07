@@ -13,7 +13,6 @@ from unittest.mock import Mock, patch
 import importlib
 import token_iq.gateway.core_utils.get_model_cost_map
 from token_iq import gateway
-from token_iq import gateway
 
 # Reload modules to pick up environment variable
 importlib.reload(gateway.core_utils.get_model_cost_map)

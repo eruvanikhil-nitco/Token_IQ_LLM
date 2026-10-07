@@ -5,7 +5,6 @@
 import token_iq.gateway.proxy
 from token_iq import gateway
 import token_iq.gateway.proxy.proxy_server
-from token_iq import gateway
 
 from typing import Dict, List, Optional
 from unittest.mock import MagicMock, patch, AsyncMock
@@ -14,7 +13,6 @@ import pytest
 from starlette.datastructures import URL
 from token_iq.gateway._logging import verbose_proxy_logger
 import logging
-from token_iq import gateway
 from token_iq.gateway.proxy.auth.user_api_key_auth import (
     user_api_key_auth,
     UserAPIKeyAuth,

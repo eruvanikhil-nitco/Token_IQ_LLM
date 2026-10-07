@@ -23,9 +23,10 @@ from typing import Final, NamedTuple
 REPO_ROOT = Path(__file__).resolve().parent.parent
 STRICT_CONFIG = REPO_ROOT / "ruff-strict.toml"
 BUDGET_PATH = REPO_ROOT / "ruff-strict-budget.json"
-# Both paths, because Token IQ's code moved out of litellm/ in phase 3 and a gate
-# that scans one of them reports an improvement when violations move to the other.
-TARGETS = ("litellm", "token_iq")
+# One path since phase 6 put the engine under token_iq/gateway/. It was two while phase 3 was moving code
+# out of litellm/, so that violations crossing between them did not read as an improvement. ruff accepts a
+# path that is not there without a word, which is why the dead one sat here for four phases.
+TARGETS = ("token_iq",)
 DEFAULT_BASE = "origin/main"
 
 _HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")

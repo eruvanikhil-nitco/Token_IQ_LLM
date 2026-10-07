@@ -121,7 +121,7 @@ def test_assert_passthrough_body_fidelity_rejects_registered_managed_files_hook(
         assert_passthrough_body_fidelity,
     )
 
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError, match="managed_files") as excinfo:
         assert_passthrough_body_fidelity(CustomLogger())
 
     assert "managed_files" in str(excinfo.value)
@@ -141,7 +141,7 @@ def test_proxy_startup_refuses_a_registered_managed_files_hook() -> None:
         ProxyLogging, "_init_litellm_callbacks", lambda self, llm_router=None: None
     ):
         proxy_logging.proxy_hook_mapping["managed_files"] = CustomLogger()
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match="managed_files") as excinfo:
             proxy_logging.startup_event(llm_router=None, redis_usage_cache=None)
 
     assert "managed_files" in str(excinfo.value)
