@@ -1578,11 +1578,36 @@ database and a browser.
 So it is left for a release step, where the build happens in CI and a person can open the dashboard. Phase
 9 moves `ui/litellm-dashboard/` to `ui/dashboard/` and forces the rebuild anyway.
 
+### The API JSON names, measured, and why they are not phase 7's after all
+
+The plan lists this as one bullet beside the environment, the config and the headers: the dashboard and the
+API return the new key names, with the UI updated alongside. Measuring it says it does not sit where the
+other three do.
+
+23 distinct keys carrying the old name are read by the dashboard's own source. They are not one kind of
+thing:
+
+- `litellm_params`, `litellm_provider`, `litellm_credential_name`, `litellm_model_name` and
+  `litellm_model` are fields of engine Pydantic models, so the key is the attribute. `litellm_params` is
+  read as an attribute or a keyword argument in 1,647 places, which is why phase 7 normalises the *config*
+  key towards the old spelling rather than renaming those. Renaming the JSON key means either doing that
+  identifier work, which phase 6 deferred with evidence, or giving each model a serialisation alias
+- `litellm_budget_table` is a Prisma relation name, which is phase 8's `@@map` work
+- `get_ui_config__well_known_litellm_ui_config_get` and its neighbours are route operation ids, derived
+  from `/.well-known/litellm-ui-config` and `/.well-known/litellm-cli-auth`. Those are URLs. Phase 9 has
+  the URL sweep, and renaming one breaks an installed CLI and the served bundle unless both are served
+- the rest, about a dozen, are plain response keys with no other owner
+
+Every one of them, including that last dozen, needs the packaged dashboard rebuilt in the same change, or
+the served UI reads a key the API no longer returns. So the whole slice is behind that rebuild, and the
+parts with another owner are behind phases 6, 8 and 9 as well. Doing the dozen now would ship a broken
+dashboard to anyone on the wheel, which is the same reason the headers left the bundle alone.
+
 ### Still open
 
-- **The packaged dashboard bundle**, above
-- **The API JSON key names.** `LITELLM_UI_API_DOC_BASE_URL` is a key the dashboard reads out of
-  `/get/proxy_settings`. Renaming it means renaming it in the served bundle at the same time, so it waits
-  for that rebuild. The environment variable behind it already asks for the new name
-- **The provider name.** `litellm_proxy` is what a customer writes as `model: litellm_proxy/gpt-4o`, which
-  is a value rather than a setting, and the plan's phase 7 table does not list it
+- **The packaged dashboard bundle**, above. A release step: build in CI, open the dashboard, check the
+  cost and cache-key displays
+- **The API JSON key names**, above. Sequenced after the rebuild, and after phases 8 and 9 for the keys
+  those own
+- **The provider name.** `litellm_proxy` is what a customer writes as `model: litellm_proxy/gpt-4o`, a
+  value rather than a setting, and the plan's phase 7 table does not list it
