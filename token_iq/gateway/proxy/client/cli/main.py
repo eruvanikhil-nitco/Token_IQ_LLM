@@ -67,7 +67,7 @@ class HideConfiguredCommandsGroup(click.Group):
 )
 @click.option(
     "--base-url",
-    envvar="LITELLM_PROXY_URL",
+    envvar=["TOKEN_IQ_PROXY_URL", "LITELLM_PROXY_URL"],
     show_envvar=True,
     default=None,
     show_default="base_url from `lite config`, else http://localhost:4000",
@@ -75,7 +75,7 @@ class HideConfiguredCommandsGroup(click.Group):
 )
 @click.option(
     "--api-key",
-    envvar="LITELLM_PROXY_API_KEY",
+    envvar=["TOKEN_IQ_PROXY_API_KEY", "LITELLM_PROXY_API_KEY"],
     show_envvar=True,
     help="API key for authentication",
 )

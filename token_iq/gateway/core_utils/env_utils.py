@@ -3,8 +3,8 @@ Utility helpers for reading and parsing environment variables.
 """
 
 import logging
-import os
 from typing import Final
+from token_iq.gateway import compat
 
 
 def get_env_int(env_var: str, default: int) -> int:
@@ -13,7 +13,7 @@ def get_env_int(env_var: str, default: int) -> int:
     Handles empty strings, whitespace, and non-numeric values gracefully
     so that misconfiguration doesn't crash the process at import time.
     """
-    raw = os.getenv(env_var)
+    raw = compat.env(env_var)
     if raw is None:
         return default
     raw = raw.strip()
@@ -50,7 +50,7 @@ def get_env_int_or_none(env_var: str) -> int | None:
     from "left at the default", for example when an override should take precedence over a
     value resolved from somewhere else.
     """
-    raw: Final = os.getenv(env_var)
+    raw: Final = compat.env(env_var)
     if raw is None:
         return None
     try:

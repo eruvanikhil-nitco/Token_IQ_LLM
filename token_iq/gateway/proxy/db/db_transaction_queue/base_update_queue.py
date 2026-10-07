@@ -25,9 +25,9 @@ class BaseUpdateQueue:
         self.MAX_SIZE_IN_MEMORY_QUEUE = MAX_SIZE_IN_MEMORY_QUEUE
         if MAX_SIZE_IN_MEMORY_QUEUE >= LITELLM_ASYNCIO_QUEUE_MAXSIZE:
             verbose_proxy_logger.warning(
-                "Misconfigured queue thresholds: MAX_SIZE_IN_MEMORY_QUEUE (%d) >= LITELLM_ASYNCIO_QUEUE_MAXSIZE (%d). "
+                "Misconfigured queue thresholds: MAX_SIZE_IN_MEMORY_QUEUE (%d) >= TOKEN_IQ_ASYNCIO_QUEUE_MAXSIZE (%d). "
                 "The spend aggregation check will never trigger because the asyncio.Queue blocks at %d items. "
-                "Set MAX_SIZE_IN_MEMORY_QUEUE to a value less than LITELLM_ASYNCIO_QUEUE_MAXSIZE (recommended: 80%% of it).",
+                "Set MAX_SIZE_IN_MEMORY_QUEUE to a value less than TOKEN_IQ_ASYNCIO_QUEUE_MAXSIZE (recommended: 80%% of it).",
                 MAX_SIZE_IN_MEMORY_QUEUE,
                 LITELLM_ASYNCIO_QUEUE_MAXSIZE,
                 LITELLM_ASYNCIO_QUEUE_MAXSIZE,

@@ -1465,7 +1465,7 @@ def callback_name(callback):
             return str(callback)
 
 
-DISABLE_NO_REDIS_WARNING_ENV_VAR: Final = "LITELLM_DISABLE_NO_REDIS_WARNING"
+DISABLE_NO_REDIS_WARNING_ENV_VAR: Final = "TOKEN_IQ_DISABLE_NO_REDIS_WARNING"
 
 
 async def _show_no_redis_warning() -> bool:

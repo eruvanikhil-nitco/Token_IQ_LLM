@@ -576,7 +576,7 @@ async def _migrate_covered_tables(prisma_client: object, user_api_key_dict: obje
     current_key: Final = _get_salt_key()
     if current_key is None:
         raise RuntimeError(
-            "Cannot migrate covered tables: no salt key / master key is set. Set LITELLM_SALT_KEY before migrating."
+            "Cannot migrate covered tables: no salt key / master key is set. Set TOKEN_IQ_SALT_KEY before migrating."
         )
     await _rotate_master_key(
         prisma_client=cast("PrismaClient", prisma_client),

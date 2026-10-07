@@ -382,7 +382,7 @@ class ProxyInitializationHelpers:
         from token_iq.gateway._logging import verbose_proxy_logger
 
         uvicorn_args.update(ProxyInitializationHelpers._get_reload_options(config_path))
-        os.environ["LITELLM_DEV_ENV_HOT_RELOAD"] = "True"
+        os.environ["TOKEN_IQ_DEV_ENV_HOT_RELOAD"] = "True"
         env_path: Final = os.path.join(os.getcwd(), ".env")
         ProxyInitializationHelpers._patch_statreload_extra_paths([config_path, env_path])
         verbose_proxy_logger.warning(

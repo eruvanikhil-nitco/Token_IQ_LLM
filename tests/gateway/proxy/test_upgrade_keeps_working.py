@@ -9,8 +9,10 @@ These go through `ProxyConfig.get_config`, which is where every source of config
 than starting a server. Starting one needs a database, and what is under test is the reading.
 """
 
+import os
 import pathlib
 import textwrap
+from collections.abc import Callable
 from types import SimpleNamespace
 
 import fastapi
@@ -271,3 +273,153 @@ def test_polling_without_the_secret_is_refused_either_way(monkeypatch: pytest.Mo
     polled = TestClient(app, raise_server_exceptions=False).get("/sso/cli/poll/cli-session-789123")
 
     assert polled.status_code == 403
+
+
+# --- Knobs whose name is bound to something ------------------------------------------------------
+#
+# The phase 7 pass over the engine's environment reads could only repoint a read whose name is written
+# out at the call. These are the ones where it is not: a module constant read elsewhere, a Pydantic
+# settings alias, a Click option, a dict of field to variable. Each one was still asking only for the
+# old name, so an operator who read the changelog and set the new one would have found the knob dead.
+#
+# Each case drives the engine's own reader rather than the helper, because the helper was already right.
+
+
+def no_new_names(monkeypatch: pytest.MonkeyPatch) -> None:
+    """So a variable this machine happens to have set cannot answer for the one under test."""
+    for name in tuple(os.environ):
+        if name.startswith("TOKEN_IQ_"):
+            monkeypatch.delenv(name, raising=False)
+
+
+def max_callbacks() -> object:
+    from token_iq.gateway.core_utils.env_utils import get_env_int
+
+    return get_env_int("TOKEN_IQ_MAX_CALLBACKS", 100)
+
+
+def keyring_is_off() -> object:
+    from token_iq.gateway.core_utils.cli_keyring import _keyring_disabled
+
+    return _keyring_disabled()
+
+
+def ptu_attribution_is_on() -> object:
+    from token_iq.gateway.core_utils.ptu_pricing import is_ptu_cost_attribution_enabled
+
+    return is_ptu_cost_attribution_enabled()
+
+
+def tracebacks_are_suppressed() -> object:
+    from token_iq.gateway.proxy.spend_tracking.spend_log_error_logger import _is_suppression_env_enabled
+
+    return _is_suppression_env_enabled()
+
+
+def rust_is_on() -> object:
+    from token_iq.gateway.rust_bridge.configuration import rust_enabled
+
+    return rust_enabled()
+
+
+def otel_v2_is_on() -> object:
+    from token_iq.gateway.integrations.otel.model.config import _OTelV2Flag
+
+    return _OTelV2Flag().enabled
+
+
+def otel_keeps_legacy_names() -> object:
+    from token_iq.gateway.integrations.otel.model.config import OpenTelemetryV2Config
+
+    return OpenTelemetryV2Config().legacy_compat
+
+
+def the_favicon() -> object:
+    from token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints import _resolve_ui_theme_field
+
+    return _resolve_ui_theme_field({}, "favicon_url")
+
+
+def mcp_discovers_on_startup() -> object:
+    from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
+        _mcp_oauth_discovery_on_startup_enabled,
+    )
+
+    return _mcp_oauth_discovery_on_startup_enabled()
+
+
+def a_production_only_model_loads() -> object:
+    """Through the router's own gate, so what is under test is the name the engine asks for."""
+    from token_iq.gateway.router import model_info_is_active_for_environment
+
+    return model_info_is_active_for_environment({"supported_environments": ["production"]})
+
+
+def hot_reload_is_on() -> object:
+    from token_iq import gateway
+
+    return gateway._dev_env_hot_reload_enabled()
+
+
+def rust_ocr_is_on() -> object:
+    """A second reader of the same variable, in its own function."""
+    from token_iq.gateway.rust_bridge.configuration import rust_ocr_enabled
+
+    return rust_ocr_enabled()
+
+
+KNOBS: tuple[tuple[str, str, Callable[[], object], object], ...] = (
+    ("LITELLM_MAX_CALLBACKS", "7", max_callbacks, 7),
+    ("LITELLM_CLI_DISABLE_KEYRING", "true", keyring_is_off, True),
+    ("LITELLM_ENABLE_PTU_COST_ATTRIBUTION", "true", ptu_attribution_is_on, True),
+    ("LITELLM_SUPPRESS_SPEND_LOG_TRACEBACKS", "true", tracebacks_are_suppressed, True),
+    ("LITELLM_RUST", "true", rust_is_on, True),
+    ("LITELLM_RUST", "true", rust_ocr_is_on, True),
+    ("LITELLM_OTEL_V2", "true", otel_v2_is_on, True),
+    ("LITELLM_OTEL_LEGACY_COMPAT", "false", otel_keeps_legacy_names, False),
+    ("LITELLM_FAVICON_URL", "https://example.test/f.ico", the_favicon, "https://example.test/f.ico"),
+    ("LITELLM_MCP_OAUTH_DISCOVERY_ON_STARTUP", "true", mcp_discovers_on_startup, True),
+    ("LITELLM_ENVIRONMENT", "production", a_production_only_model_loads, True),
+    ("LITELLM_DEV_ENV_HOT_RELOAD", "True", hot_reload_is_on, True),
+)
+
+
+@pytest.mark.parametrize(
+    ("old_name", "set_to", "read", "expected"), KNOBS, ids=[f"{knob[0]}-{knob[2].__name__}" for knob in KNOBS]
+)
+def test_a_knob_set_under_its_old_name_still_works(
+    old_name: str, set_to: str, read: Callable[[], object], expected: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    no_new_names(monkeypatch)
+    monkeypatch.setenv(old_name, set_to)
+    _clear_caches()
+
+    assert read() == expected
+
+
+@pytest.mark.parametrize(
+    ("old_name", "set_to", "read", "expected"), KNOBS, ids=[f"{knob[0]}-{knob[2].__name__}" for knob in KNOBS]
+)
+def test_the_same_knob_works_under_its_new_name(
+    old_name: str, set_to: str, read: Callable[[], object], expected: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Where the first test alone would pass if nothing had been renamed at all."""
+    no_new_names(monkeypatch)
+    monkeypatch.delenv(old_name, raising=False)
+    monkeypatch.setenv(old_name.replace("LITELLM_", "TOKEN_IQ_", 1), set_to)
+    _clear_caches()
+
+    assert read() == expected
+
+
+def _clear_caches() -> None:
+    """These readers memoise, and the suite has already called several of them."""
+    from token_iq.gateway.integrations.otel.model import config as otel_config
+    from token_iq.gateway.rust_bridge import configuration as rust_config
+
+    compat.forget_warnings()
+    for module in (otel_config, rust_config):
+        for name in dir(module):
+            clear = getattr(getattr(module, name), "cache_clear", None)
+            if clear is not None:
+                clear()

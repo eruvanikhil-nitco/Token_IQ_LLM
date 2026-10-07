@@ -2754,7 +2754,7 @@ def _complete_anthropic_text(
     if api_base is not None and not disable_url_suffix and not api_base.endswith("/v1/complete"):
         api_base += "/v1/complete"
     elif disable_url_suffix:
-        verbose_logger.debug("LITELLM_ANTHROPIC_DISABLE_URL_SUFFIX is set, skipping /v1/complete suffix")
+        verbose_logger.debug("TOKEN_IQ_ANTHROPIC_DISABLE_URL_SUFFIX is set, skipping /v1/complete suffix")
 
     return base_llm_http_handler.completion(
         model=model,
@@ -2810,7 +2810,7 @@ def _complete_anthropic(ctx: _CompletionDispatchContext) -> _CompletionDispatchR
     if api_base is not None and not disable_url_suffix and not api_base.endswith("/v1/messages"):
         api_base += "/v1/messages"
     elif disable_url_suffix:
-        verbose_logger.debug("LITELLM_ANTHROPIC_DISABLE_URL_SUFFIX is set, skipping /v1/messages suffix")
+        verbose_logger.debug("TOKEN_IQ_ANTHROPIC_DISABLE_URL_SUFFIX is set, skipping /v1/messages suffix")
 
     response: Final = anthropic_chat_completions.completion(
         model=model,

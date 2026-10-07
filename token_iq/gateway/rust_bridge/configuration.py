@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import warnings
 from typing import TYPE_CHECKING, Final
+from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from token_iq.gateway.rust_bridge.messages import RustAmessages, RustMessages
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
 
 DEFAULT_RUST_ENABLED: Final = False
 _TRUE_ENV_VALUES: Final = frozenset({"1", "true", "yes", "on"})
-_GLOBAL_ENV_NAME: Final = "LITELLM_RUST"
+_GLOBAL_ENV_NAME: Final = "TOKEN_IQ_RUST"
 _LEGACY_OCR_ENV_NAME: Final = "LITELLM_USE_RUST_OCR"
 
 
@@ -65,7 +66,7 @@ def rust_enabled(*, request_override: bool | None = None) -> bool:
     return resolve_rust_enabled(
         request_override=None,
         process_override=None,
-        environment_override=_parse_env_bool(os.getenv(_GLOBAL_ENV_NAME)),
+        environment_override=_parse_env_bool(compat.env(_GLOBAL_ENV_NAME)),
     )
 
 
@@ -75,7 +76,7 @@ def rust_ocr_enabled(*, request_override: bool | None = None) -> bool:
     process_override: Final = _CONFIGURATION.override
     if process_override is not None:
         return process_override
-    global_override: Final = _parse_env_bool(os.getenv(_GLOBAL_ENV_NAME))
+    global_override: Final = _parse_env_bool(compat.env(_GLOBAL_ENV_NAME))
     legacy_override: Final = None if global_override is not None else _parse_env_bool(os.getenv(_LEGACY_OCR_ENV_NAME))
     if legacy_override is not None:
         warnings.warn(

@@ -229,7 +229,7 @@ _UPSTREAM_OAUTH_DISCOVERY_AUTH_TYPES: Final[tuple[MCPAuth, ...]] = (
 )
 
 
-_MCP_OAUTH_DISCOVERY_ON_STARTUP_ENV: Final = "LITELLM_MCP_OAUTH_DISCOVERY_ON_STARTUP"
+_MCP_OAUTH_DISCOVERY_ON_STARTUP_ENV: Final = "TOKEN_IQ_MCP_OAUTH_DISCOVERY_ON_STARTUP"
 _TRUE_ENV_VALUES: Final = frozenset(("1", "true", "yes", "on"))
 _OAUTH_DISCOVERY_RETRY_DELAYS_SECONDS: Final = (0.05, 0.15)
 _OAUTH_DISCOVERY_RETRY_BASE_SECONDS: Final = 30.0
@@ -254,7 +254,7 @@ def _mcp_oauth_discovery_on_startup_enabled() -> bool:
     Discovery is deferred until the first admitted request unless explicitly
     enabled with ``1``, ``true``, ``yes``, or ``on``.
     """
-    value: Final = os.getenv(_MCP_OAUTH_DISCOVERY_ON_STARTUP_ENV)
+    value: Final = compat.env(_MCP_OAUTH_DISCOVERY_ON_STARTUP_ENV)
     return value is not None and value.strip().lower() in _TRUE_ENV_VALUES
 
 
@@ -3742,7 +3742,7 @@ class MCPServerManager:
                     raise HTTPException(
                         status_code=403,
                         detail=f"MCP stdio command '{resolved_server.command}' is not in the allowlist ({sorted(MCP_STDIO_ALLOWED_COMMANDS)}). "
-                        f"Add it to LITELLM_MCP_STDIO_EXTRA_COMMANDS to allow this command.",
+                        f"Add it to TOKEN_IQ_MCP_STDIO_EXTRA_COMMANDS to allow this command.",
                     )
 
             stdio_config: MCPStdioConfig | None = None

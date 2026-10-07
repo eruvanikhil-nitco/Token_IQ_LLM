@@ -832,7 +832,7 @@ def function_setup(
     ### NOTICES ###
     if gateway.set_verbose is True:
         verbose_logger.warning(
-            "`litellm.set_verbose` is deprecated. Please set `os.environ['LITELLM_LOG'] = 'DEBUG'` for debug logs."
+            "`litellm.set_verbose` is deprecated. Please set `os.environ['TOKEN_IQ_LOG'] = 'DEBUG'` for debug logs."
         )
     logging_obj: GatewayLoggingObject | None = None  # rebind-ok: set to the real object further down on success
     try:

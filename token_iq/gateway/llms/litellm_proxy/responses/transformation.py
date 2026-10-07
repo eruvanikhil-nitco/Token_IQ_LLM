@@ -37,7 +37,7 @@ class GatewayProxyResponsesAPIConfig(OpenAIResponsesAPIConfig):
         if api_base is None:
             raise ValueError(
                 "api_base not set for LiteLLM Proxy responses API. "
-                "Set via api_base parameter or LITELLM_PROXY_API_BASE environment variable"
+                "Set via api_base parameter or TOKEN_IQ_PROXY_API_BASE environment variable"
             )
 
         # Remove trailing slashes

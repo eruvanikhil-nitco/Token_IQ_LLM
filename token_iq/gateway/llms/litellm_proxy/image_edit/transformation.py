@@ -20,6 +20,6 @@ class GatewayProxyImageEditConfig(OpenAIImageEditConfig):
     def get_complete_url(self, model: str, api_base: str | None, litellm_params: dict) -> str:
         api_base = api_base or get_secret_str("TOKEN_IQ_PROXY_API_BASE")
         if api_base is None:
-            raise ValueError("api_base not set for LiteLLM Proxy route. Set in env via `LITELLM_PROXY_API_BASE`")
+            raise ValueError("api_base not set for LiteLLM Proxy route. Set in env via `TOKEN_IQ_PROXY_API_BASE`")
         api_base = api_base.rstrip("/")
         return f"{api_base}/images/edits"

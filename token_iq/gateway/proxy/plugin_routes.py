@@ -233,7 +233,7 @@ async def plugin_auth_token(
     if not compat.env("TOKEN_IQ_SALT_KEY"):
         raise HTTPException(
             status_code=503,
-            detail="LITELLM_SALT_KEY is not configured; plugin iframe auth unavailable.",
+            detail="TOKEN_IQ_SALT_KEY is not configured; plugin iframe auth unavailable.",
         )
     if plugin_name not in _plugin_registry:
         raise HTTPException(status_code=404, detail=f"Plugin '{plugin_name}' is not registered.")

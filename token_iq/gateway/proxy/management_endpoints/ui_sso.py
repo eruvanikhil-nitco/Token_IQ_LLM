@@ -2014,7 +2014,7 @@ async def auth_callback(request: Request, state: str | None = None):
     # get url from request
     if master_key is None:
         raise ProxyException(
-            message="Master Key not set for Proxy. Please set Master Key to use Admin UI. Set `LITELLM_MASTER_KEY` in.env or set general_settings:master_key in config.yaml. If set, use `--detailed_debug` to debug issue.",
+            message="Master Key not set for Proxy. Please set Master Key to use Admin UI. Set `TOKEN_IQ_MASTER_KEY` in.env or set general_settings:master_key in config.yaml. If set, use `--detailed_debug` to debug issue.",
             type=ProxyErrorTypes.auth_error,
             param="master_key",
             code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -2130,7 +2130,7 @@ async def saml_callback(request: Request):
         raise HTTPException(status_code=500, detail=CommonProxyErrors.db_not_connected_error.value)
     if master_key is None:
         raise ProxyException(
-            message="Master Key not set for Proxy. Set `LITELLM_MASTER_KEY` in .env or general_settings:master_key in config.yaml.",
+            message="Master Key not set for Proxy. Set `TOKEN_IQ_MASTER_KEY` in .env or general_settings:master_key in config.yaml.",
             type=ProxyErrorTypes.auth_error,
             param="master_key",
             code=status.HTTP_500_INTERNAL_SERVER_ERROR,

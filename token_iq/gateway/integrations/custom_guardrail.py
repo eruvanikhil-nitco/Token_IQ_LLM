@@ -223,7 +223,7 @@ class CustomGuardrail(CustomLogger):
                 if _strict_guardrail_modes_enabled():
                     raise
                 verbose_logger.warning(
-                    "%s. LITELLM_STRICT_GUARDRAIL_MODES=false; continuing "
+                    "%s. TOKEN_IQ_STRICT_GUARDRAIL_MODES=false; continuing "
                     "with unsupported event_hook. Set the env var to true "
                     "(default) to enforce validation and fail at startup.",
                     validation_error,

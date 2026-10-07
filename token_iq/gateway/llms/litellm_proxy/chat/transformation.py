@@ -45,7 +45,7 @@ class GatewayProxyChatConfig(OpenAIGPTConfig):
     def get_models(self, api_key: str | None = None, api_base: str | None = None) -> list[str]:
         api_base, api_key = self._get_openai_compatible_provider_info(api_base, api_key)
         if api_base is None:
-            raise ValueError("api_base not set for LiteLLM Proxy route. Set in env via `LITELLM_PROXY_API_BASE`")
+            raise ValueError("api_base not set for LiteLLM Proxy route. Set in env via `TOKEN_IQ_PROXY_API_BASE`")
         models: Final = super().get_models(api_key=api_key, api_base=api_base)
         return [f"litellm_proxy/{model}" for model in models]
 

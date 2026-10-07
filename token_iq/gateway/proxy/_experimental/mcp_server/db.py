@@ -198,7 +198,7 @@ def decrypt_global_env_var_values(env_vars: Iterable[MCPEnvVar | dict[str, str]]
         if decrypted is None:
             name = entry.get("name") if is_dict else getattr(entry, "name", None)
             verbose_proxy_logger.warning(
-                "MCP global env var %s failed to decrypt (LITELLM_SALT_KEY "
+                "MCP global env var %s failed to decrypt (TOKEN_IQ_SALT_KEY "
                 "changed?); dropping it so ciphertext is not sent upstream",
                 name,
             )
@@ -1201,7 +1201,7 @@ def _warn_undecryptable_credential(user_id: str, server_id: str) -> None:
     """Log the one credential state that otherwise reads as "user never authorized"."""
     verbose_proxy_logger.warning(
         "MCP user credential for user=%s server=%s could not be decrypted (likely written under a "
-        "previous LITELLM_SALT_KEY); the user is treated as not connected and must re-authorize.",
+        "previous TOKEN_IQ_SALT_KEY); the user is treated as not connected and must re-authorize.",
         user_id,
         server_id,
     )
@@ -1422,7 +1422,7 @@ async def store_user_oauth_credential(
                 )
             verbose_proxy_logger.warning(
                 "store_user_oauth_credential: existing credential for user=%s server=%s could not be "
-                "decrypted (likely written under a previous LITELLM_SALT_KEY); replacing it with the "
+                "decrypted (likely written under a previous TOKEN_IQ_SALT_KEY); replacing it with the "
                 "newly authorized OAuth2 token.",
                 user_id,
                 server_id,
@@ -1925,7 +1925,7 @@ def _decode_user_env_vars(stored: str) -> dict[str, str]:
     if decrypted is None:
         if stored:
             verbose_proxy_logger.warning(
-                "MCP per-user env vars failed to decrypt (LITELLM_SALT_KEY "
+                "MCP per-user env vars failed to decrypt (TOKEN_IQ_SALT_KEY "
                 "changed?); treating as unset so the user is prompted to "
                 "re-enter them rather than silently forwarding ciphertext"
             )

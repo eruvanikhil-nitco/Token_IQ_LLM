@@ -204,7 +204,7 @@ class ResponsesIDSecurity(CustomLogger):
         if signing_key is None:
             verbose_proxy_logger.debug(
                 "Response ID encryption is enabled but no signing key is configured. "
-                "Please set LITELLM_SALT_KEY environment variable or configure a master_key. "
+                "Please set TOKEN_IQ_SALT_KEY environment variable or configure a master_key. "
                 "Skipping response ID encryption. "
                 ""
             )

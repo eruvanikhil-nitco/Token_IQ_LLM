@@ -59,7 +59,7 @@ def set_trace_id(trace_id: str) -> "contextvars.Token[str]":
 
 if set_verbose is True:
     logging.warning(
-        "`litellm.set_verbose` is deprecated. Please set `os.environ['LITELLM_LOG'] = 'DEBUG'` for debug logs."
+        "`litellm.set_verbose` is deprecated. Please set `os.environ['TOKEN_IQ_LOG'] = 'DEBUG'` for debug logs."
     )
 
 _ENABLE_SECRET_REDACTION: Final = compat.env("TOKEN_IQ_DISABLE_REDACT_SECRETS", "").lower() != "true"

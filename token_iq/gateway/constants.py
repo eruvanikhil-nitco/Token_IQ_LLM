@@ -209,7 +209,7 @@ DEFAULT_REASONING_EFFORT_MINIMAL_THINKING_BUDGET_GEMINI_2_5_FLASH_LITE: Final = 
 # Maximum number of callbacks that can be registered
 # This prevents callbacks from exponentially growing and consuming CPU resources
 # Override with LITELLM_MAX_CALLBACKS env var for large deployments (e.g., many teams with guardrails)
-MAX_CALLBACKS: Final = get_env_int("LITELLM_MAX_CALLBACKS", 100)
+MAX_CALLBACKS: Final = get_env_int("TOKEN_IQ_MAX_CALLBACKS", 100)
 
 # Metadata key recording which pre_call guardrails the proxy loop already ran,
 # so the deployment-level hook does not re-run them for the same request
@@ -1801,6 +1801,7 @@ SENTRY_DENYLIST: Final = [
     "connection_string",
     # Authentication and Security
     "master_key",
+    "TOKEN_IQ_MASTER_KEY",
     "LITELLM_MASTER_KEY",
     "auth_token",
     "jwt_token",

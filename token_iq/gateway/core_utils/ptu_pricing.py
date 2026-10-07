@@ -16,7 +16,7 @@ from token_iq.gateway.secret_managers.main import get_secret_bool
 from token_iq.gateway.types.router import ModelInfo
 from token_iq.gateway.types.utils import CustomPricingGatewayParams, MirroredPricingParams
 
-PTU_COST_ATTRIBUTION_ENV_VAR: Final = "LITELLM_ENABLE_PTU_COST_ATTRIBUTION"
+PTU_COST_ATTRIBUTION_ENV_VAR: Final = "TOKEN_IQ_ENABLE_PTU_COST_ATTRIBUTION"
 
 
 def is_ptu_cost_attribution_enabled() -> bool:

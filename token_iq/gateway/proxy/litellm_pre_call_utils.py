@@ -2382,7 +2382,7 @@ def _update_model_if_team_alias_exists(
                 f"{user_api_key_dict.team_id}:{_model}:{aliased_target}",
                 "Stale team model alias detected for model='%s', team_id='%s'. "
                 "New sibling deployments may be unreachable. "
-                "Set LITELLM_ENABLE_TEAM_STALE_ALIAS_BYPASS=true to enable "
+                "Set TOKEN_IQ_ENABLE_TEAM_STALE_ALIAS_BYPASS=true to enable "
                 "team-scoped sibling routing.",
                 _sanitize_for_log(_model),
                 _sanitize_for_log(user_api_key_dict.team_id),

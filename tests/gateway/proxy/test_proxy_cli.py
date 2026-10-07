@@ -274,7 +274,7 @@ class TestProxyInitializationHelpers:
 
         if hasattr(StatReload, "_litellm_patched_config_paths"):
             StatReload._litellm_patched_config_paths.clear()
-        monkeypatch.delenv("LITELLM_DEV_ENV_HOT_RELOAD", raising=False)
+        monkeypatch.delenv("TOKEN_IQ_DEV_ENV_HOT_RELOAD", raising=False)
 
         config_file = tmp_path / "config.yaml"
         config_file.write_text("model_list: []\n")
@@ -288,7 +288,7 @@ class TestProxyInitializationHelpers:
                 uvicorn_args, str(config_file)
             )
 
-        assert os.environ["LITELLM_DEV_ENV_HOT_RELOAD"] == "True"
+        assert os.environ["TOKEN_IQ_DEV_ENV_HOT_RELOAD"] == "True"
         assert uvicorn_args["reload"] is True
         assert ".env" in uvicorn_args["reload_includes"]
 
@@ -307,13 +307,14 @@ class TestProxyInitializationHelpers:
     def test_dev_env_hot_reload_enabled_reads_flag(self, monkeypatch):
         from token_iq import gateway
 
-        monkeypatch.setenv("LITELLM_DEV_ENV_HOT_RELOAD", "True")
+        monkeypatch.delenv("LITELLM_DEV_ENV_HOT_RELOAD", raising=False)
+        monkeypatch.setenv("TOKEN_IQ_DEV_ENV_HOT_RELOAD", "True")
         assert gateway._dev_env_hot_reload_enabled() is True
 
-        monkeypatch.setenv("LITELLM_DEV_ENV_HOT_RELOAD", "false")
+        monkeypatch.setenv("TOKEN_IQ_DEV_ENV_HOT_RELOAD", "false")
         assert gateway._dev_env_hot_reload_enabled() is False
 
-        monkeypatch.delenv("LITELLM_DEV_ENV_HOT_RELOAD", raising=False)
+        monkeypatch.delenv("TOKEN_IQ_DEV_ENV_HOT_RELOAD", raising=False)
         assert gateway._dev_env_hot_reload_enabled() is False
 
     @patch("asyncio.run")

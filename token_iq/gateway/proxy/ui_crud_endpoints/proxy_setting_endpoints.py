@@ -44,6 +44,7 @@ from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
     DefaultTeamSSOParams,
     SSOConfig,
 )
+from token_iq.gateway import compat
 
 router: Final = APIRouter()
 
@@ -122,7 +123,7 @@ def _config_param_db(repo: ConfigRepository) -> TableActions[_ConfigParamRow]:
 _UI_THEME_FIELD_ENV_VARS: Final[dict[str, str]] = {
     "logo_url": "UI_LOGO_PATH",
     "logo_url_dark": "UI_LOGO_PATH_DARK",
-    "favicon_url": "LITELLM_FAVICON_URL",
+    "favicon_url": "TOKEN_IQ_FAVICON_URL",
 }
 
 
@@ -151,7 +152,7 @@ def _resolve_ui_theme_field(stored_values: Mapping[str, object], field_name: str
     stored: Final = stored_values.get(field_name)
     if isinstance(stored, str) and stored.strip():
         return stored
-    env_value: Final = os.environ.get(_UI_THEME_FIELD_ENV_VARS[field_name])
+    env_value: Final = compat.env(_UI_THEME_FIELD_ENV_VARS[field_name])
     return env_value if _is_public_http_url(env_value) else None
 
 
@@ -1268,7 +1269,7 @@ async def update_ui_theme_settings(
     env_updates: Final[dict[str, str | None]] = {
         "UI_LOGO_PATH": _clean(theme_config.logo_url),
         "UI_LOGO_PATH_DARK": _clean(theme_config.logo_url_dark),
-        "LITELLM_FAVICON_URL": _clean(theme_config.favicon_url),
+        "TOKEN_IQ_FAVICON_URL": _clean(theme_config.favicon_url),
     }
     for env_key, env_value in env_updates.items():
         if env_value is not None:

@@ -24,13 +24,13 @@ troubleshoot. The UI suppression follows the same gate.
 """
 
 import logging
-import os
 from typing import Any, Final
 
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.secret_managers.main import str_to_bool
+from token_iq.gateway import compat
 
-SUPPRESS_SPEND_LOG_TRACEBACKS_ENV: Final = "LITELLM_SUPPRESS_SPEND_LOG_TRACEBACKS"
+SUPPRESS_SPEND_LOG_TRACEBACKS_ENV: Final = "TOKEN_IQ_SUPPRESS_SPEND_LOG_TRACEBACKS"
 
 
 def _is_suppression_env_enabled() -> bool:
@@ -40,7 +40,7 @@ def _is_suppression_env_enabled() -> bool:
     other call sites can introspect just the env-var state without also
     consulting the live logger level.
     """
-    return str_to_bool(os.getenv(SUPPRESS_SPEND_LOG_TRACEBACKS_ENV)) is True
+    return str_to_bool(compat.env(SUPPRESS_SPEND_LOG_TRACEBACKS_ENV)) is True
 
 
 def should_suppress_spend_log_tracebacks() -> bool:

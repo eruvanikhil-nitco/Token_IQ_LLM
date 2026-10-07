@@ -90,7 +90,7 @@ def _resolve_oidc_file_path(requested_path: str) -> str:
             continue
     raise ValueError(
         "oidc/file path is outside the allowed credential directories. "
-        "Set LITELLM_OIDC_ALLOWED_CREDENTIAL_DIRS to extend the allowlist."
+        "Set TOKEN_IQ_OIDC_ALLOWED_CREDENTIAL_DIRS to extend the allowlist."
     )
 
 

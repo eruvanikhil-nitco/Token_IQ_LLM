@@ -1414,16 +1414,114 @@ distribution, so importing the engine from it is a dependency that does not hold
 renames that package and its variables together. Reverting it is also why this does not reformat 156
 lines of a file it had no business touching.
 
+## Phase 7 continues: config keys, request headers, and the knobs the pass could not see
+
+### Config keys
+
+`gateway_settings` and `model_params` are both accepted, normalised at `ProxyConfig.get_config`, which is
+the one place every source of configuration arrives: a file, the database, GCS and S3 all end up on that
+line. Doing it per reader instead would mean finding all of them, and the ones under `model_list` sit
+inside a customer's own data, a hundred entries deep in a large installation.
+
+Normalising towards the old spelling rather than the new one is deliberate. 1,647 places in the engine
+read `litellm_params` as a keyword argument or an attribute, and renaming those is a separate piece of
+work from accepting both spellings in a customer's file. A reader of this release sees the new names in
+their config and the old ones in the code, which is what a transition looks like.
+
+### Request headers
+
+765 names move and 44 reads go through `compat.header`, which asks for the new name and falls back to the
+old one. A response carries only the new spelling, which is what makes the old one droppable later.
+
+Every read goes through the helper, including reads of a dict the engine filled in itself. Sorting them
+into "could be a caller's" and "could only be ours" is a judgement at 44 call sites, and getting it wrong
+in the first direction rejects a request from a client nobody has updated.
+
+Four shapes the codemod could not see, because the name is not a string literal at the read:
+
+- **The virtual key header.** FastAPI's security dependency resolves one header name, so the other
+  spelling is read beside it and coalesced before the layers below see it. Proved over HTTP: both
+  spellings authenticate against a master key and return the same identity.
+- **The CLI poll secret.** FastAPI maps a header onto a parameter name by swapping hyphens for
+  underscores, so that one needs a parameter of its own. Without it the CLI was sending a header the
+  proxy no longer read, and an installed CLI could not log in. Called directly, an unpassed
+  `Header(default=None)` is the `Header` object itself, so every coalesce looks like it works; the test
+  goes over HTTP for that reason.
+- **Six collections of names.** The ones a request is matched against take both spellings; the one the
+  dashboard is allowed to read takes the new names only, because a response carries one.
+- **The prefixed cost key.** A cost an upstream reported arrives as `llm_provider-…-response-cost` once
+  `process_response_headers` has prefixed it, and which spelling depends on the release that upstream is
+  running. The engine writes the new one and reads both, so a fleet part-way through an upgrade still
+  counts what its upstream reported instead of falling back to its own estimate.
+
+### The master key read that was described but never landed
+
+The section above this one records finding that `get_secret_str("TOKEN_IQ_MASTER_KEY")` returned `None`
+with `LITELLM_MASTER_KEY` set. The finding was right and the fix was not in the tree: `get_secret` still
+read `os.environ.get(secret_name)` on the path taken when no secret manager is configured, which is most
+installations and the one the master key is read on. An operator upgrading would have had a proxy with no
+master key: no admin UI login, and every management route refused.
+
+Both places that end in the process environment go through `compat.env` now, and four mutations of those
+two lines each turn a test red. Writing down a find is not the same as fixing it, and the thing that
+would have caught the gap is the test, which also did not exist.
+
+### Knobs whose name is bound to something
+
+The environment pass could only repoint a read whose name is written out at the call. 27 were not: a
+module constant read elsewhere, a Pydantic settings alias, a Click option, a dict of field to variable
+name, an integer helper shared by many callers. Each was still asking only for the old name, so an
+operator who read the changelog and set the new one would have found the knob dead.
+
+The two helpers in `env_utils` cover every caller that goes through them. Pydantic and Click read the
+environment themselves, so both names are listed per field and per option, new one first. Thirteen
+mutations across the ten knobs each turn a test red, and each test drives the engine's own reader rather
+than the helper, because the helper was already right.
+
+61 lines of log and error text that name a variable now name the one the engine reads. A name is only
+rewritten where the engine asks for its new spelling somewhere, so a variable that was never renamed
+keeps the name it has.
+
+### Two passes that quietly undid their own point
+
+Both were caught by reading a diff, not by running anything.
+
+The header codemod rewrote `tests/gateway/test_compat.py` and the phase 7 upgrade tests, moving both
+sides of every assertion together. All 55 cases stayed green while proving nothing: the test that a
+caller sending `x-litellm-tags` is understood was sending `x-token-iq-tags`. It also renamed the pattern
+in `scripts/inventory/census.py`, the tool that counts how much of the old name is left, which would have
+had it reporting zero. Both are excluded now, with a test saying so.
+
+The message pass rewrote the deliberate both-spelling lists as well, because a bare `"LITELLM_PROXY_URL"`
+literal reads exactly like a message that mentions one. Every OTel alias, both Click `envvar` lists and
+the redaction list ended up naming the new spelling twice. The signature to look for is a repeated name
+on one line.
+
+### Verified
+
+- 589 routes and the dynamic-discovery dump are byte-identical either side of the header rename
+- 9,059 patch targets still resolve
+- Every one of the ten knobs reads from an environment that only has the old name, and the new name wins
+  when both are set
+- The dashboard compiles and type-checks with the renamed header names, build exit 0
+
 ### What is left in phase 7
 
-- **Config keys**: `litellm_settings` becomes `gateway_settings` and `litellm_params` becomes
-  `model_params`, with the old names still read and written back as new on the next save. 4,716 uses of
-  `litellm_params` alone, and it is a key in the price file as well as in `config.yaml`
-- **Request headers**: `x-litellm-*` becomes `x-token-iq-*`, old names still accepted, only the new ones
-  sent in responses
-- **The provider name**: `litellm_proxy` is what a customer writes as `model: litellm_proxy/gpt-4o`,
+- **The packaged dashboard bundle.** `token_iq/gateway/proxy/_experimental/out` is a committed build
+  artifact that still reads `x-litellm-*` response headers, so the cost, cache-key and trace-id displays
+  are stale until it is rebuilt from `ui/litellm-dashboard`. The Docker image builds the UI from source
+  and is unaffected; this matters to anyone installing the wheel. The repo does not keep that bundle in
+  step per commit, 693 commits against 4,612 touching the source, so refreshing it is a release step
+- **The API JSON key names.** `LITELLM_UI_API_DOC_BASE_URL` is a key the dashboard reads out of
+  `/get/proxy_settings`, and renaming it means renaming it in the served bundle at the same time. Left
+  alone on purpose until the bundle is refreshed
+- **The provider name.** `litellm_proxy` is what a customer writes as `model: litellm_proxy/gpt-4o`,
   which is why phase 6 left that directory alone
-- **Deployment files and a CHANGELOG** with an Upgrading section listing every renamed variable, key and
-  header, generated from the rename map
-- **The two checks the plan names**: a proxy started with an old-style `.env` and `config.yaml` that
-  works and warns, and the same with the new names
+- **Deployment files.** `.env.example`, `docker-compose.hardened.yml` and the Terraform variables. Only
+  three of the Terraform names, `MASTER_KEY`, `SALT_KEY` and `OTEL_V2`, are ones the engine asks for
+  under the new prefix; `LICENSE`, `INSECURE_SKIP_VERIFY`, the S3 config and the billing-metrics set are
+  not read by name anywhere in this repo, so renaming them would be guessing. `LITELLM_NON_ROOT` and
+  `LITELLM_MIGRATION_DIR` are read by `litellm-proxy-extras` and by shell, neither of which goes through
+  the compatibility seam, so they belong to phase 8
+- **A CHANGELOG** with an Upgrading section listing every renamed variable, key and header, generated
+  from the rename map

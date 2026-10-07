@@ -1939,7 +1939,7 @@ try:
             else:
                 # Case 4b: Population failed - fall back to packaged UI
                 verbose_proxy_logger.warning(
-                    "Failed to populate UI at %s: %s. Falling back to packaged UI at %s. For read-only deployments, pre-build UI in Dockerfile or set LITELLM_UI_PATH to a writable emptyDir volume.",
+                    "Failed to populate UI at %s: %s. Falling back to packaged UI at %s. For read-only deployments, pre-build UI in Dockerfile or set TOKEN_IQ_UI_PATH to a writable emptyDir volume.",
                     runtime_ui_path,
                     error,
                     packaged_ui_path,
@@ -5494,7 +5494,7 @@ class ProxyConfig:
                 gateway_master_key_hash = hash_token(master_key)
             else:
                 verbose_proxy_logger.critical(
-                    "LITELLM_MASTER_KEY is not set! All requests will be treated as INTERNAL_USER with no admin access. Set LITELLM_MASTER_KEY for production use."
+                    "TOKEN_IQ_MASTER_KEY is not set! All requests will be treated as INTERNAL_USER with no admin access. Set TOKEN_IQ_MASTER_KEY for production use."
                 )
             ### USER API KEY CACHE TTL (in-memory + Redis when Redis auth sharing is enabled) ###
             user_api_key_cache_ttl: Final = general_settings.get("user_api_key_cache_ttl", None)
@@ -9801,7 +9801,7 @@ class ProxyStartupEvent:
                         pod_lock_manager=pod_lock_manager,
                     )
                     verbose_proxy_logger.debug(
-                        "Key rotation background job scheduled every %s seconds (LITELLM_KEY_ROTATION_ENABLED=true)",
+                        "Key rotation background job scheduled every %s seconds (TOKEN_IQ_KEY_ROTATION_ENABLED=true)",
                         LITELLM_KEY_ROTATION_CHECK_INTERVAL_SECONDS,
                     )
                     scheduler.add_job(
@@ -9815,7 +9815,7 @@ class ProxyStartupEvent:
             except Exception as e:
                 verbose_proxy_logger.warning("Failed to setup key rotation job: %s", e)
         else:
-            verbose_proxy_logger.debug("Key rotation disabled (set LITELLM_KEY_ROTATION_ENABLED=true to enable)")
+            verbose_proxy_logger.debug("Key rotation disabled (set TOKEN_IQ_KEY_ROTATION_ENABLED=true to enable)")
 
         await cls._initialize_expired_ui_session_key_cleanup_background_job(scheduler=scheduler)
 
@@ -9856,7 +9856,7 @@ class ProxyStartupEvent:
                         pod_lock_manager=pod_lock_manager,
                     )
                     verbose_proxy_logger.debug(
-                        "Expired UI session key cleanup background job scheduled every %s seconds (LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_ENABLED=true)",
+                        "Expired UI session key cleanup background job scheduled every %s seconds (TOKEN_IQ_EXPIRED_UI_SESSION_KEY_CLEANUP_ENABLED=true)",
                         LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_INTERVAL_SECONDS,
                     )
                     scheduler.add_job(
@@ -9874,7 +9874,7 @@ class ProxyStartupEvent:
         else:
             verbose_proxy_logger.debug(
                 "Expired UI session key cleanup disabled (set "
-                "LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_ENABLED=true to enable)"
+                "TOKEN_IQ_EXPIRED_UI_SESSION_KEY_CLEANUP_ENABLED=true to enable)"
             )
 
     @classmethod
@@ -10095,7 +10095,7 @@ class ProxyStartupEvent:
         """
         if not get_secret_bool("TOKEN_IQ_ENABLE_PYROSCOPE", False):
             verbose_proxy_logger.debug(
-                "LiteLLM: Pyroscope profiling is disabled (set LITELLM_ENABLE_PYROSCOPE=true to enable)."
+                "LiteLLM: Pyroscope profiling is disabled (set TOKEN_IQ_ENABLE_PYROSCOPE=true to enable)."
             )
             return
         try:
@@ -10104,13 +10104,13 @@ class ProxyStartupEvent:
             app_name: Final = os.getenv("PYROSCOPE_APP_NAME")
             if not app_name:
                 raise ValueError(
-                    "LITELLM_ENABLE_PYROSCOPE is true but PYROSCOPE_APP_NAME is not set. "
+                    "TOKEN_IQ_ENABLE_PYROSCOPE is true but PYROSCOPE_APP_NAME is not set. "
                     "Set PYROSCOPE_APP_NAME when enabling Pyroscope."
                 )
             server_address: Final = os.getenv("PYROSCOPE_SERVER_ADDRESS")
             if not server_address:
                 raise ValueError(
-                    "LITELLM_ENABLE_PYROSCOPE is true but PYROSCOPE_SERVER_ADDRESS is not set. "
+                    "TOKEN_IQ_ENABLE_PYROSCOPE is true but PYROSCOPE_SERVER_ADDRESS is not set. "
                     "Set PYROSCOPE_SERVER_ADDRESS when enabling Pyroscope."
                 )
             tags: Final = {}
@@ -10161,7 +10161,7 @@ class ProxyStartupEvent:
             verbose_proxy_logger.info(msg)
         except ImportError:
             verbose_proxy_logger.warning(
-                "LiteLLM: LITELLM_ENABLE_PYROSCOPE is set but the 'pyroscope-io' package is not installed. "
+                "LiteLLM: TOKEN_IQ_ENABLE_PYROSCOPE is set but the 'pyroscope-io' package is not installed. "
                 "Pyroscope profiling will not run. Install with: pip install pyroscope-io"
             )
 
@@ -15602,7 +15602,7 @@ async def onboarding(invite_link: str, request: Request):
 
     if master_key is None:
         raise ProxyException(
-            message="Master Key not set for Proxy. Please set Master Key to use Admin UI. Set `LITELLM_MASTER_KEY` in.env or set general_settings:master_key in config.yaml. If set, use `--detailed_debug` to debug issue.",
+            message="Master Key not set for Proxy. Please set Master Key to use Admin UI. Set `TOKEN_IQ_MASTER_KEY` in.env or set general_settings:master_key in config.yaml. If set, use `--detailed_debug` to debug issue.",
             type=ProxyErrorTypes.auth_error,
             param="master_key",
             code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -15689,7 +15689,7 @@ def _get_onboarding_claims_from_request(request: Request) -> dict:
 
     if master_key is None:
         raise ProxyException(
-            message="Master Key not set for Proxy. Please set Master Key to use Admin UI. Set `LITELLM_MASTER_KEY` in.env or set general_settings:master_key in config.yaml. If set, use `--detailed_debug` to debug issue.",
+            message="Master Key not set for Proxy. Please set Master Key to use Admin UI. Set `TOKEN_IQ_MASTER_KEY` in.env or set general_settings:master_key in config.yaml. If set, use `--detailed_debug` to debug issue.",
             type=ProxyErrorTypes.auth_error,
             param="master_key",
             code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -16049,7 +16049,7 @@ async def get_favicon():
             safe_favicon_path, media_type = safe_favicon
             return FileResponse(safe_favicon_path, media_type=media_type)
         verbose_proxy_logger.warning(
-            "LITELLM_FAVICON_URL %r is not a supported image file or does not exist, falling back to default favicon",
+            "TOKEN_IQ_FAVICON_URL %r is not a supported image file or does not exist, falling back to default favicon",
             favicon_url,
         )
         if os.path.exists(default_favicon):

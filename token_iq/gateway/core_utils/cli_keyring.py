@@ -15,16 +15,16 @@ accepts every write and keeps nothing. Writes are also pre-flighted with a
 throwaway value, because a keychain can answer neither way and block forever.
 """
 
-import os
 import threading
 from contextlib import suppress
 from dataclasses import dataclass, field
 from typing import Final, Protocol, TypeAlias
+from token_iq.gateway import compat
 
 KEYRING_SERVICE: Final = "litellm-cli"
 KEYRING_ACCOUNT: Final = "credential"
 KEYRING_PREFLIGHT_ACCOUNT: Final = "credential-preflight"
-DISABLE_KEYRING_ENV_VAR: Final = "LITELLM_CLI_DISABLE_KEYRING"
+DISABLE_KEYRING_ENV_VAR: Final = "TOKEN_IQ_CLI_DISABLE_KEYRING"
 
 _DISABLED_VALUES: Final = frozenset(("1", "true", "yes", "on"))
 _PREFLIGHT_VALUE: Final = "preflight"
@@ -101,7 +101,7 @@ class KeyringApi(Protocol):
 
 
 def _keyring_disabled() -> bool:
-    return os.getenv(DISABLE_KEYRING_ENV_VAR, "").strip().lower() in _DISABLED_VALUES
+    return (compat.env(DISABLE_KEYRING_ENV_VAR, "") or "").strip().lower() in _DISABLED_VALUES
 
 
 def _import_keyring() -> KeyringApi | None:

@@ -14,7 +14,8 @@ from token_iq.gateway.integrations.otel.model.baggage import (
 )
 
 #: Master feature-flag env var. The logger is inert until this is truthy.
-OTEL_V2_ENV: Final = "LITELLM_OTEL_V2"
+OTEL_V2_ENV: Final = "TOKEN_IQ_OTEL_V2"
+OTEL_V2_ENV_BEFORE_RENAME: Final = "LITELLM_OTEL_V2"
 
 
 class CaptureMessageContent(str):
@@ -45,7 +46,7 @@ class ExporterOwner(str, Enum):
 class _OTelV2Flag(BaseSettings):
     model_config = SettingsConfigDict(extra="ignore")
 
-    enabled: bool = Field(default=False, validation_alias=AliasChoices(OTEL_V2_ENV))
+    enabled: bool = Field(default=False, validation_alias=AliasChoices(OTEL_V2_ENV, OTEL_V2_ENV_BEFORE_RENAME))
 
 
 @lru_cache(maxsize=1)
@@ -136,17 +137,24 @@ class OpenTelemetryV2Config(BaseSettings):
 
     enable_metrics: bool = Field(
         default=False,
-        validation_alias=AliasChoices("LITELLM_OTEL_INTEGRATION_ENABLE_METRICS"),
+        validation_alias=AliasChoices(
+            "TOKEN_IQ_OTEL_INTEGRATION_ENABLE_METRICS", "LITELLM_OTEL_INTEGRATION_ENABLE_METRICS"
+        ),
     )
     enable_events: bool = Field(
         default=False,
-        validation_alias=AliasChoices("LITELLM_OTEL_INTEGRATION_ENABLE_EVENTS"),
+        validation_alias=AliasChoices(
+            "TOKEN_IQ_OTEL_INTEGRATION_ENABLE_EVENTS", "LITELLM_OTEL_INTEGRATION_ENABLE_EVENTS"
+        ),
     )
     capture_message_content: str = Field(
         default=CaptureMessageContent.NO_CONTENT,
         validation_alias=AliasChoices("OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"),
     )
-    legacy_compat: bool = Field(default=True, validation_alias=AliasChoices("LITELLM_OTEL_LEGACY_COMPAT"))
+    legacy_compat: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("TOKEN_IQ_OTEL_LEGACY_COMPAT", "LITELLM_OTEL_LEGACY_COMPAT"),
+    )
 
     # ----- explicit multi-destination / vocabulary configuration ------------ #
 
@@ -180,33 +188,41 @@ class OpenTelemetryV2Config(BaseSettings):
 
     baggage_promoted_keys: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: list(BAGGAGE_PROMOTED_KEYS),
-        validation_alias=AliasChoices("baggage_promoted_keys", "LITELLM_OTEL_BAGGAGE_PROMOTED_KEYS"),
+        validation_alias=AliasChoices(
+            "baggage_promoted_keys", "TOKEN_IQ_OTEL_BAGGAGE_PROMOTED_KEYS", "LITELLM_OTEL_BAGGAGE_PROMOTED_KEYS"
+        ),
         description=(
             "Identity attribute keys written into Baggage and stamped on every "
             "child span (e.g. ``litellm.team.id``). Configure via the "
-            "``LITELLM_OTEL_BAGGAGE_PROMOTED_KEYS`` env var (comma-separated) or "
+            "``TOKEN_IQ_OTEL_BAGGAGE_PROMOTED_KEYS`` env var (comma-separated) or "
             "``callback_settings.otel.baggage_promoted_keys`` in config.yaml (a "
             "YAML list)."
         ),
     )
     baggage_metadata_keys: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: list(DEFAULT_BAGGAGE_METADATA_KEYS),
-        validation_alias=AliasChoices("baggage_metadata_keys", "LITELLM_OTEL_BAGGAGE_METADATA_KEYS"),
+        validation_alias=AliasChoices(
+            "baggage_metadata_keys", "TOKEN_IQ_OTEL_BAGGAGE_METADATA_KEYS", "LITELLM_OTEL_BAGGAGE_METADATA_KEYS"
+        ),
         description=(
             "Metadata sub-keys promoted under the ``litellm.metadata.*`` "
-            "namespace. Configure via the ``LITELLM_OTEL_BAGGAGE_METADATA_KEYS`` "
+            "namespace. Configure via the ``TOKEN_IQ_OTEL_BAGGAGE_METADATA_KEYS`` "
             "env var (comma-separated) or "
             "``callback_settings.otel.baggage_metadata_keys`` in config.yaml."
         ),
     )
     baggage_team_metadata_keys: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: list(DEFAULT_BAGGAGE_TEAM_METADATA_KEYS),
-        validation_alias=AliasChoices("baggage_team_metadata_keys", "LITELLM_OTEL_BAGGAGE_TEAM_METADATA_KEYS"),
+        validation_alias=AliasChoices(
+            "baggage_team_metadata_keys",
+            "TOKEN_IQ_OTEL_BAGGAGE_TEAM_METADATA_KEYS",
+            "LITELLM_OTEL_BAGGAGE_TEAM_METADATA_KEYS",
+        ),
         description=(
             "Sub-keys of the team's free-form metadata promoted under "
             "``litellm.team.metadata``. Empty by default so none of a team's "
             "metadata leaves the process until explicitly allowlisted. Configure "
-            "via the ``LITELLM_OTEL_BAGGAGE_TEAM_METADATA_KEYS`` env var "
+            "via the ``TOKEN_IQ_OTEL_BAGGAGE_TEAM_METADATA_KEYS`` env var "
             "(comma-separated) or "
             "``callback_settings.otel.baggage_team_metadata_keys`` in config.yaml."
         ),

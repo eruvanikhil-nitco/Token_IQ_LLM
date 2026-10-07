@@ -398,7 +398,7 @@ class ContentFilterGuardrail(CustomGuardrail):
                 self._assert_within_categories_dir(file_path, module_dir)
             else:
                 verbose_proxy_logger.warning(
-                    "LITELLM_CONTENT_FILTER_ALLOW_EXTERNAL_PATHS is set — "
+                    "TOKEN_IQ_CONTENT_FILTER_ALLOW_EXTERNAL_PATHS is set — "
                     "skipping directory jail for category_file '%s'",
                     file_path,
                 )

@@ -142,7 +142,7 @@ def verify_proxy_key(
     except requests.RequestException as e:
         raise AgentRunError(
             f"Could not reach the LiteLLM proxy at {base_url.rstrip('/')}: {e}. "
-            "Is it running, and is --base-url (or LITELLM_PROXY_URL) correct?"
+            "Is it running, and is --base-url (or TOKEN_IQ_PROXY_URL) correct?"
         )
     if resp.status_code in (401, 403):
         raise AgentRunError(
@@ -296,7 +296,7 @@ def resolve_api_key(ctx: click.Context) -> str:
 
     if not _is_interactive():
         raise click.ClickException(
-            "No LiteLLM key found. Set LITELLM_PROXY_API_KEY (or pass --api-key) for "
+            "No LiteLLM key found. Set TOKEN_IQ_PROXY_API_KEY (or pass --api-key) for "
             "non-interactive use, or run `lite login` from a terminal."
         )
 

@@ -85,7 +85,7 @@ def _newrelic_config_error(callback_vars: Mapping[str, str]) -> str | None:
     from token_iq.gateway.integrations.otel.presets.newrelic import NEWRELIC_OTLP_ENDPOINT_BY_REGION
 
     if not is_otel_v2_enabled():
-        return "Per-team New Relic routing requires the proxy to run with LITELLM_OTEL_V2=true."
+        return "Per-team New Relic routing requires the proxy to run with TOKEN_IQ_OTEL_V2=true."
 
     region: Final = callback_vars.get("newrelic_region")
     if region is not None and region.lower() not in NEWRELIC_OTLP_ENDPOINT_BY_REGION:

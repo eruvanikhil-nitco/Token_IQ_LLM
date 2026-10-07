@@ -320,13 +320,13 @@ def model_info_is_active_for_environment(model_info: Mapping[str, object] | None
             f"supported_environments must be a list of {VALID_GATEWAY_ENVIRONMENTS}. "
             f"but set as: {supported_environments} for model_info: {model_info}"
         )
-    gateway_environment: Final = get_secret_str(secret_name="LITELLM_ENVIRONMENT")
+    gateway_environment: Final = get_secret_str(secret_name="TOKEN_IQ_ENVIRONMENT")
     if gateway_environment is None:
-        raise ValueError("Set 'supported_environments' for model but not 'LITELLM_ENVIRONMENT' set in .env")
+        raise ValueError("Set 'supported_environments' for model but not 'TOKEN_IQ_ENVIRONMENT' set in .env")
 
     if gateway_environment not in VALID_GATEWAY_ENVIRONMENTS:
         raise ValueError(
-            f"LITELLM_ENVIRONMENT must be one of {VALID_GATEWAY_ENVIRONMENTS}. but set as: {gateway_environment}"
+            f"TOKEN_IQ_ENVIRONMENT must be one of {VALID_GATEWAY_ENVIRONMENTS}. but set as: {gateway_environment}"
         )
 
     for _env in supported_environments:
