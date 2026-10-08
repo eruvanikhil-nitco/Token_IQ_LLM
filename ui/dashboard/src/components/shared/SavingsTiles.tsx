@@ -12,7 +12,7 @@ import {
   savedTokensOf,
   sumOverDays,
   usd,
-} from "@/app/(dashboard)/cost-optimization/_components/costOptimizationUtils";
+} from "@/app/(dashboard)/(token-iq)/cost-optimization/_components/costOptimizationUtils";
 import { DailyData } from "@/components/UsagePage/types";
 import { formatNumberWithCommas } from "@/utils/dataUtils";
 

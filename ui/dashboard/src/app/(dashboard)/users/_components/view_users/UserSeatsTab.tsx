@@ -2,8 +2,8 @@
 
 import { Card } from "@/components/ui/card";
 import { useUserCost } from "@/app/(dashboard)/hooks/seats/useUserCosts";
-import { formatAmount } from "@/app/(dashboard)/ledger/_components/ledgerDisplay";
-import { hasNoSeats, isIncomplete } from "@/app/(dashboard)/ledger/_components/seatsDisplay";
+import { formatAmount } from "@/app/(dashboard)/(token-iq)/ledger/_components/ledgerDisplay";
+import { hasNoSeats, isIncomplete } from "@/app/(dashboard)/(token-iq)/ledger/_components/seatsDisplay";
 
 /** The calendar month, which is the period a subscription is usually billed for. */
 const thisMonth = (): { start: string; end: string } => {

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import KeySavingsTab from "./KeySavingsTab";
 import { DailyData, SpendMetrics } from "@/components/UsagePage/types";
-import * as useScopedDailyActivityRangeModule from "@/app/(dashboard)/cost-optimization/_components/useDailyActivityRange";
+import * as useScopedDailyActivityRangeModule from "@/app/(dashboard)/(token-iq)/cost-optimization/_components/useDailyActivityRange";
 
 const metrics = (overrides: Partial<SpendMetrics>): SpendMetrics => ({
   spend: 0,

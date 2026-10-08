@@ -2019,3 +2019,42 @@ already records that the Data Sources rebuild is phase 5A's work rather than a r
   proxy, with Virtual Keys loading its rows underneath
 - 37 sidebar unit tests, and the type checker and linter clean on the three changed files
 - one navbar test about the version badge fails here and fails identically at the previous commit
+
+## 2026-10-08, the Token IQ route group
+
+Phase 9 asks for Token IQ's pages in an `app/(dashboard)/(token-iq)/` route group, moving a folder whole
+only when all its files are Token IQ's, and gives one number to check any method against: `projects/` has
+4 of 28.
+
+What separates them is who added the file. Token IQ's commits are conventional, upstream's read
+`[Feature] UI - ...`, and tracing each file to its first commit with `git log --follow --diff-filter=A`
+gives `projects/` exactly 4: `projectBudget.ts`, `spendByModel.ts` and their tests. Comparing paths against
+an upstream commit does not work, because the June migration to path routes moved every page, so a file
+added in February is absent from its current path at any earlier commit.
+
+Two things the rule does not say on its own. A folder can be all Token IQ's and still not be a Token IQ
+page: `memory/` is 11 of 11 by authorship and is on the inventory's delete list, named by no blueprint page.
+And a one-file folder is usually a route wrapper the June migration created, with the page itself living in
+`src/components/`, which is why `logs/`, `teams/` and `llm-provider-credentials/` read as all Token IQ's at
+one file each. So a folder moved only when all its files are Token IQ's, it holds real content rather than a
+wrapper, and the blueprint names it.
+
+Seven qualify: overview, ledger, recommendations, attribution, provider-apis, user-tools and
+cost-optimization, 82 files. Five do not and stay: cost-tracking (24/36), policies (24/36), budgets (9/13),
+access-groups (15/16) and projects (4/28).
+
+### Verified
+
+- all 55 exported routes identical before and after, byte for byte, and no `(token-iq)` segment anywhere in
+  a URL, which is the whole point of a parenthesised group
+- 329 tests in the moved tree pass, and the type checker reports 1705 errors against 1705 at the previous
+  commit, so the move added none
+- nine import paths in six files followed the move. One was a relative import climbing out of its folder,
+  `../../../../../tests/test-utils`, which the extra level left one short; the other eight were absolute
+- the seven pages load against the live proxy at the addresses they had, with three unmoved pages as
+  controls
+
+### Left
+
+`src/token-iq/` for Token IQ's hooks, components and lib. The same ownership question applies and the
+shared folders are large: `components/` holds 906 files and `(dashboard)/hooks/` is imported 545 times.

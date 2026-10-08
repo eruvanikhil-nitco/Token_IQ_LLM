@@ -21,8 +21,8 @@ import {
   toCumulative,
   usd,
   withStartAnchor,
-} from "@/app/(dashboard)/cost-optimization/_components/costOptimizationUtils";
-import { useScopedDailyActivityRange } from "@/app/(dashboard)/cost-optimization/_components/useDailyActivityRange";
+} from "@/app/(dashboard)/(token-iq)/cost-optimization/_components/costOptimizationUtils";
+import { useScopedDailyActivityRange } from "@/app/(dashboard)/(token-iq)/cost-optimization/_components/useDailyActivityRange";
 
 interface KeySavingsTabProps {
   accessToken: string | null;
