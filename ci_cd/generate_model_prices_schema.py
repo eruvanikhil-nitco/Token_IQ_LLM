@@ -8,7 +8,7 @@ from typing import Optional
 import jsonschema
 
 REPO_ROOT = Path(__file__).parent.parent
-PRICES_PATH = REPO_ROOT / "data" / "pricing" / "model_prices.json"
+PRICES_PATH = REPO_ROOT / "token_iq" / "pricing" / "data" / "model_prices.json"
 SCHEMA_PATH = REPO_ROOT / "model_prices_and_context_window.schema.json"
 
 SPECIAL_ROOT_KEYS = frozenset({"sample_spec", "fallback_generalizations"})
@@ -261,7 +261,7 @@ def build_schema(prices: dict) -> JsonSchema:
         "title": "Token IQ model prices",
         "description": (
             "Schema for LiteLLM's model price and context window registry "
-            "(data/pricing/model_prices.json). "
+            "(token_iq/pricing/data/model_prices.json). "
             "Every top-level key except 'sample_spec' and 'fallback_generalizations' is a model id, "
             "optionally prefixed with its provider (e.g. 'azure/gpt-5.4'), mapping to a model entry. "
             "All costs are USD per unit. New optional fields are added regularly, so consumers should "

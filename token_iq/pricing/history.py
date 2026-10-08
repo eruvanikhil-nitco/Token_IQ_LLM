@@ -4,8 +4,8 @@ The bundled price list says what a model costs now. Re-pricing a closed month at
 prices produces a figure that still looks like a figure, so the error is invisible: the
 ledger reconciles, the Savings Simulator answers, and the number is wrong.
 
-The history is an append-only record of accepted changes, shipped with the code beside the
-prices it describes. It is reference data, not an installation's own data, so it is read into
+The history is an append-only record of accepted changes, shipped inside this package beside
+the prices it describes. It is reference data, not an installation's own data, so it is read into
 memory at import rather than into a table: a migration would add a schema to maintain, a
 backfill to get right and a divergence between installations, and buy nothing, because every
 installation of a given release has exactly the same history.
@@ -24,7 +24,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Final
 
-HISTORY_PATH: Final = pathlib.Path(__file__).resolve().parents[2] / "data" / "pricing" / "price_history.jsonl"
+HISTORY_PATH: Final = pathlib.Path(__file__).resolve().parent / "data" / "price_history.jsonl"
 
 REQUIRED: Final[tuple[str, ...]] = (
     "model",

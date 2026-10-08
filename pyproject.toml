@@ -274,10 +274,11 @@ editable-profile = "dev"
 include = [
     "token_iq/gateway/proxy/_experimental/out/**",
     "token_iq/gateway/router_strategy/complexity_router/artifacts/*.json",
-    # Prices and their history live outside the Python package, so they ship only because
-    # they are named here. Without this the wheel installs with no price list and every
-    # cost the product reports is missing.
-    "data/pricing/**",
+    # Prices and their history used to live at the repository root, outside the Python package,
+    # and naming them here was not enough: the published wheel shipped without them and the proxy
+    # could not import its own engine. They are package data now, under `token_iq/pricing/data/`,
+    # so they ship wherever the package does.
+    "token_iq/pricing/data/**",
     # Token IQ's own package. maturin builds the one package `module-name` points at, which
     # is `litellm`, so a second top-level package ships only because it is named here. Every
     # test passes from a checkout either way, because the directory is right there.

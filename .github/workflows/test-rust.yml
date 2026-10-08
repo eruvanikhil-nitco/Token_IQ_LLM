@@ -9,6 +9,8 @@ on:
       - "rust-toolchain.toml"
       - ".github/scripts/smoke_test_native_wheel.py"
       - ".github/scripts/verify_linux_native_wheel.py"
+      - ".github/scripts/verify_wheel_contents.py"
+      - "token_iq/pricing/data/**"
       - "tests/gateway/rust_bridge/native_route_wheel_test.py"
       - ".github/workflows/test-rust.yml"
   pull_request:
@@ -24,6 +26,8 @@ on:
       - "rust-toolchain.toml"
       - ".github/scripts/smoke_test_native_wheel.py"
       - ".github/scripts/verify_linux_native_wheel.py"
+      - ".github/scripts/verify_wheel_contents.py"
+      - "token_iq/pricing/data/**"
       - "tests/gateway/rust_bridge/native_route_wheel_test.py"
       - ".github/workflows/test-rust.yml"
 

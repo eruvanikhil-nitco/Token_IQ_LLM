@@ -1,7 +1,7 @@
 """Propose upstream's price changes as a reviewed pull request.
 
 This is the only thing in the repository that fetches from upstream, and it runs in CI, not
-in an installation. A running proxy reads `data/pricing/model_prices.json` and nothing else.
+in an installation. A running proxy reads `token_iq/pricing/data/model_prices.json` and nothing else.
 
 The split exists because the two kinds of change carry different risk. A model that did not
 exist yesterday cannot make an existing bill wrong, so an addition merges itself once the
@@ -24,8 +24,8 @@ from decimal import Decimal
 from typing import Final
 
 REPO: Final = pathlib.Path(__file__).resolve().parents[1]
-PRICES: Final = REPO / "data" / "pricing" / "model_prices.json"
-IN_USE: Final = REPO / "data" / "pricing" / "models_in_use.txt"
+PRICES: Final = REPO / "token_iq" / "pricing" / "data" / "model_prices.json"
+IN_USE: Final = REPO / "token_iq" / "pricing" / "data" / "models_in_use.txt"
 
 UPSTREAM_URL: Final = (
     "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json"

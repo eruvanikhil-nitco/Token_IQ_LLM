@@ -221,7 +221,7 @@ def get_supports_system_message(
             supports_system_message = True
     except Exception as e:
         verbose_logger.warning(
-            "Unable to identify if system message supported. Defaulting to'False'. Received error message - %s\nAdd it in data/pricing/model_prices.json, or ask your administrator",
+            "Unable to identify if system message supported. Defaulting to'False'. Received error message - %s\nAdd it in token_iq/pricing/data/model_prices.json, or ask your administrator",
             e,
         )
         supports_system_message = False

@@ -24,6 +24,7 @@ It replaces `check_customer_messages_do_not_name_litellm.py` and
 
 from __future__ import annotations
 
+import ast
 import json
 import pathlib
 import re
@@ -51,8 +52,10 @@ ALLOWED: Final[Mapping[str, str]] = {
     "docs/product/": "the blueprint describes removing the name, so it has to say it",
     "token_iq/gateway/compat.py": "the one module allowed to name old names, until the compat release ends",
     "tests/gateway/test_compat.py": "its test, for the same reason",
+    "tests/repo/test_no_litellm_name.py": "this gate itself, for the same reason as the budget file above: every pattern and every canary string here has to spell the name out, so counting them counts the bookkeeping",
     "token_iq/gateway/proxy/_experimental/out/": "the built dashboard bundle, generated from ui/dashboard",
     "scripts/update_model_prices.py": "the upstream price source names itself",
+    "token_iq/pricing/data/": "the mirrored price map, whose own field names are `litellm_provider` and the like; renaming a key in it is a data contract change the plan defers, and it is the same source the script above fetches from",
     "scripts/rename/write_upgrading_notes.py": "it writes the upgrade notes, which name what each setting used to be called, the same reason CHANGELOG.md is here",
     ".github/workflows/update-model-prices.yml": "the same, in CI",
 }
@@ -182,6 +185,57 @@ def test_the_error_prefix_check_can_tell() -> None:
     assert ERROR_PREFIX.search('self.message = f"litellm.Timeout: {message}"')
     assert not ERROR_PREFIX.search('self.message = f"token_iq.RateLimitError: {message}"')
     assert not ERROR_PREFIX.search('"set `litellm.drop_params` to ignore it"'), "advice text is not this check's job"
+
+
+def _imported_roots(source: str) -> frozenset[str]:
+    """The top-level module of every import in a file, wherever in the file it sits."""
+    try:
+        tree: Final = ast.parse(source)
+    except SyntaxError:
+        return frozenset()
+    return frozenset(
+        root
+        for node in ast.walk(tree)
+        for root in (
+            [alias.name.split(".", 1)[0] for alias in node.names]
+            if isinstance(node, ast.Import)
+            else [node.module.split(".", 1)[0]]
+            if isinstance(node, ast.ImportFrom) and node.module and not node.level
+            else []
+        )
+    )
+
+
+def test_nothing_imports_the_library_this_was_forked_from() -> None:
+    """Zero, and asserted at zero. This one would not fail loudly if it were wrong.
+
+    `semantic-router` depends on the published `litellm` package, so an installed Token IQ has
+    upstream 1.101.0 sitting in site-packages beside it. An `import litellm` the rename missed
+    therefore resolves, to a different library of the same shape, and runs. Nothing raises and
+    no figure looks obviously wrong.
+
+    AST rather than a text search: `import litellm as x` and `from litellm.utils import y` are
+    the same mistake, and both can sit inside a function body.
+    """
+    offenders: Final = tuple(
+        name
+        for name in _tracked()
+        if name.startswith("token_iq/") and name.endswith(".py") and not _exempt(name)
+        for text in (_read(name),)
+        if text is not None and "litellm" in _imported_roots(text)
+    )
+
+    assert not offenders, f"these import the forked-from library rather than the engine: {offenders}"
+
+
+def test_the_import_check_can_tell() -> None:
+    """Said against each form it has to catch, because the assertion above is an absence."""
+    assert "litellm" in _imported_roots("import litellm, asyncio")
+    assert "litellm" in _imported_roots("import litellm.utils as u")
+    assert "litellm" in _imported_roots("from litellm.utils import token_counter")
+    assert "litellm" in _imported_roots("def f():\n    import litellm\n")
+    assert "litellm" not in _imported_roots("from token_iq.gateway.utils import token_counter")
+    assert "litellm" not in _imported_roots('x = "import litellm"')
 
 
 def test_the_message_check_can_still_tell() -> None:

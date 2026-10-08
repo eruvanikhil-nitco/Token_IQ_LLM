@@ -363,7 +363,12 @@ class TestPricesAreLocalOnly:
         ]
         present = [p for p in duplicates if p.exists()]
         assert not present, f"superseded price copies still on disk: {[p.name for p in present]}"
-        assert (repo / "data" / "pricing" / "model_prices.json").is_file()
+        from token_iq.gateway.core_utils.get_model_cost_map import PRICES_PATH
+
+        assert PRICES_PATH.is_file()
+        assert PRICES_PATH.relative_to(repo) == pathlib.Path(
+            "token_iq/pricing/data/model_prices.json"
+        ), "the prices must stay inside the package, or a wheel ships without them"
 
     def test_a_model_with_no_price_is_absent_rather_than_free(self):
         """A missing model must not read as zero. Zero turns real spend into free usage and

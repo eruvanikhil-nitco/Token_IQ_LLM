@@ -978,7 +978,7 @@ async def test_bedrock_validation_error_raises_directly(logging_obj: Logging):
         make_call=_raise_400,
     )
 
-    with pytest.raises(Exception, match='litellm\\.BadRequestError: BedrockException') as excinfo:
+    with pytest.raises(Exception, match='token_iq\\.BadRequestError: BedrockException') as excinfo:
         await response.__anext__()
     assert not isinstance(excinfo.value, MidStreamFallbackError)
     assert getattr(excinfo.value, "status_code", None) == 400

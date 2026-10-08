@@ -2,8 +2,10 @@
 
 Everything passes from a source checkout, because the files sit right there next to the code.
 A wheel contains only what the build backend was told to include, and maturin builds the one
-Python package `module-name` points at. Phase 2 shipped a wheel with no price list for exactly
-this reason: the file had moved outside the package and nothing added it back.
+Python package `module-name` points at. The price list has gone missing from a wheel twice: once
+when it moved out of the package with nothing adding it back, and once when `tool.maturin.include`
+named it at the repository root and the wheel shipped without it anyway, so the published image
+could not import its own engine.
 
 Run against the real wheel, in the job that already builds one:
 
@@ -22,10 +24,10 @@ from typing import Final
 
 # Every top-level path a wheel must carry something under. Checked separately from the files
 # below so that a package missing altogether reads differently from one that arrived empty.
-TREES: Final[tuple[str, ...]] = ("litellm/", "token_iq/", "data/pricing/")
+TREES: Final[tuple[str, ...]] = ("token_iq/", "token_iq/pricing/data/")
 
 # One file from each subpackage, because an include glob can match a directory and still bring
-# none of its contents, and because `token_iq/**` says nothing about `data/`.
+# none of its contents.
 FILES: Final[tuple[str, ...]] = (
     "token_iq/gateway/__init__.py",
     "token_iq/__init__.py",
@@ -42,8 +44,8 @@ FILES: Final[tuple[str, ...]] = (
     "token_iq/repositories/ledger_repository.py",
     "token_iq/seats/user_cost.py",
     "token_iq/types/provider_billing.py",
-    "data/pricing/model_prices.json",
-    "data/pricing/price_history.jsonl",
+    "token_iq/pricing/data/model_prices.json",
+    "token_iq/pricing/data/price_history.jsonl",
 )
 
 # Imported from a directory that is not the checkout, so a module that only resolves because the
@@ -67,13 +69,13 @@ IMPORTS: Final[tuple[str, ...]] = (
     "token_iq.types.provider_billing",
 )
 
-# `data/pricing/` is found by walking up from a module's own `__file__`, which lands in the right
-# place only if the install laid the trees out as the checkout has them. Being inside the zip is
-# not the same as being reachable, so this reads the path the code will really use.
+# The price data is found relative to a module's own `__file__`, so being inside the zip is not
+# the same as being reachable: a wheel that puts it somewhere else still installs. This reads the
+# path the code will really use.
 #
 # The probe goes through `token_iq.pricing.history` rather than the engine's own price loader,
-# which resolves `parents[2]` the same way but cannot be imported at all under `--no-deps`:
-# reaching it means importing `token_iq/gateway/__init__.py`, and that wants the whole dependency tree.
+# which resolves the same directory but cannot be imported at all under `--no-deps`: reaching it
+# means importing `token_iq/gateway/__init__.py`, and that wants the whole dependency tree.
 # Both files are checked from the one path the probe does resolve.
 PRICE_DATA: Final[tuple[str, str, tuple[str, ...]]] = (
     "token_iq.pricing.history",

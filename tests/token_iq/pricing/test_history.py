@@ -59,9 +59,9 @@ class TestLookup:
             '"old":"0.0000020","new":"0.0000015","effective_from":"2026-08-01",'
             '"source":"x","approved_by":"ne"}'
         )
-        assert _history(second, CHANGE).price_on(
-            "gpt-4o", "input_cost_per_token", date(2026, 7, 1)
-        ) == Decimal("0.0000020")
+        assert _history(second, CHANGE).price_on("gpt-4o", "input_cost_per_token", date(2026, 7, 1)) == Decimal(
+            "0.0000020"
+        )
 
     def test_a_model_with_no_history_returns_nothing_rather_than_guessing(self) -> None:
         """The caller falls back to the current price. This must not invent one."""
@@ -131,16 +131,15 @@ class TestTheShippedFile:
         load_history()
 
     def test_it_lives_beside_the_prices_it_describes(self) -> None:
+        """One directory, so a release cannot ship a history that describes a different list."""
+        from token_iq.gateway.core_utils.get_model_cost_map import PRICES_PATH
         from token_iq.pricing.history import HISTORY_PATH
 
-        assert HISTORY_PATH.parent == pathlib.Path(
-            "data/pricing"
-        ).resolve() or HISTORY_PATH.parent.name == "pricing"
+        assert HISTORY_PATH.parent == PRICES_PATH.parent
 
 
 class TestPriceAsOf:
     """The caller-facing lookup: history when it knows, the current list otherwise."""
-
 
     def test_history_wins_for_a_date_it_covers(self) -> None:
         """The recorded value is deliberately one the current list cannot also produce.
@@ -183,39 +182,35 @@ class TestPriceAsOf:
 
 
 class TestTheBundledFilesAreActuallyPackaged:
-    """A data file outside the Python package does not ship unless packaging says so.
+    """A data file the wheel does not carry is a proxy that cannot start.
 
-    The price file moved to data/pricing/ and nothing added it to the wheel's include list,
-    so an installed package would have had no prices at all. Everything passes from a source
-    checkout, because the file is right there.
+    This happened twice. First the price file moved out of the package and nothing added it to
+    the wheel's include list. Then it was added, as `data/pricing/**` at the repository root, and
+    the published wheel still shipped without it: importing the engine died on a missing file
+    before the proxy served anything. Both times every test passed, because a checkout has the
+    file right there.
+
+    So the property is not that packaging mentions the data. It is that the data sits inside the
+    package directory, which is the only place a wheel carries without being asked twice.
     """
 
-    def test_the_pricing_directory_is_in_the_wheel(self) -> None:
-        import tomllib
-        import pathlib as _pathlib
-
-        repo = _pathlib.Path(__file__).resolve().parents[3]
-        config = tomllib.loads((repo / "pyproject.toml").read_text(encoding="utf-8"))
-        include = config.get("tool", {}).get("maturin", {}).get("include", [])
-        assert any(
-            entry.startswith("data/") for entry in include
-        ), f"data/ is not packaged; the wheel would ship without prices. include = {include}"
-
-    def test_the_price_path_resolves_relative_to_the_installation_root(self) -> None:
-        """It must land beside the installed top-level package, not at a path only a checkout has.
-
-        Found by name rather than by counting parents. This test used to walk two directories up from
-        the engine's `__init__`, which was the installation root while the engine was the top-level
-        package. Moving it into `token_iq/gateway/` made that `token_iq/` instead, and the test failed
-        while the loader it checks was correct.
-        """
-        from token_iq.gateway.core_utils.get_model_cost_map import PRICES_PATH
+    def _package_and_data(self) -> tuple[pathlib.Path, tuple[pathlib.Path, ...]]:
         import token_iq
-        import pathlib as _pathlib
+        from token_iq.gateway.core_utils.get_model_cost_map import PRICES_PATH
+        from token_iq.pricing.history import HISTORY_PATH
 
-        package = _pathlib.Path(token_iq.__file__).resolve().parent
-        installation_root = package.parent
-        assert PRICES_PATH.is_relative_to(installation_root), f"{PRICES_PATH} is outside {installation_root}"
-        assert not PRICES_PATH.is_relative_to(package), (
-            f"{PRICES_PATH} is inside the package, so tool.maturin.include would not need to ship data/"
-        )
+        package = pathlib.Path(token_iq.__file__).resolve().parent
+        return package, (PRICES_PATH, HISTORY_PATH)
+
+    def test_both_data_files_live_inside_the_package(self) -> None:
+        package, data = self._package_and_data()
+        outside = tuple(one for one in data if not one.is_relative_to(package))
+
+        assert not outside, f"these ship only if packaging names them, and once it did not: {outside}"
+
+    def test_both_data_files_are_really_there(self) -> None:
+        """Inside the package directory and absent are the same failure to a running proxy."""
+        _, data = self._package_and_data()
+        missing = tuple(one for one in data if not one.is_file())
+
+        assert not missing, f"missing: {missing}"

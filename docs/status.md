@@ -2352,3 +2352,97 @@ The regex for the new check was written through a heredoc, and bash turned its `
 backspace byte, so the pattern demanded a control character and matched nothing while reading as correct.
 `cat -A` showed it as `^H`. That is the third heredoc escaping failure today after `\n` and `\.`; anything
 carrying a backslash goes through the editing tool or `chr(92)`, not a heredoc.
+
+## 8 Oct 2026, the image could not start
+
+The last line of the definition of done was "the Docker image builds and starts". It built, and it
+did not start. Importing `token_iq.gateway` raised `FileNotFoundError` on
+`site-packages/data/pricing/model_prices.json` before the proxy served anything, so every published
+image was dead on arrival.
+
+The price list sat at `data/pricing/`, at the repository root, outside the Python package. A checkout
+has that directory. An installed wheel does not. `tool.maturin.include` named `data/pricing/**` and
+carried a comment saying the files ship only because they are named there, but they did not ship: in
+the wheel the dependency sync built, the only top-level tree was `token_iq/`. Every include entry
+that points inside the package works, which is why the dashboard bundle and the router artifacts are
+both there.
+
+So the prices are package data now, under `token_iq/pricing/data/`, and both readers resolve them
+from the package directory rather than from an installation root that only a checkout has. Nothing
+has to be named twice and nothing can go stale the next time something moves.
+
+### Three gates, none of which could have caught it
+
+`test_the_pricing_directory_is_in_the_wheel` read `pyproject.toml` and asserted the include list
+mentioned `data/`. It did mention it. The wheel shipped without it. A test that reads the
+configuration instead of the artefact passes for as long as the configuration is well intentioned.
+
+`.github/scripts/verify_wheel_contents.py` does open the real wheel, and it is the right gate, but it
+still required a `litellm/` tree that phase 6 deleted, so the first thing it would have said is
+wrong. Its triggers also did not include the price data or the script itself, so moving either one
+would not have run it.
+
+And the price file has now gone missing from a wheel twice, once in phase 2 and once here.
+
+The packaging test is functional now: the data has to live inside the package directory, and the
+files have to be there. The wheel gate expects the trees that exist and runs when the data moves.
+
+### An error told people to call something that does not exist
+
+Beside every failed provider call the proxy printed `LiteLLM.Info: If you need to debug this error,
+use `litellm._turn_on_debug()'` to the caller's console, under a "Give Feedback / Get Help" heading
+with nothing under it since the upstream link was removed. The module is `token_iq.gateway`, so the
+call it named was not one any installation has. It says
+`Token IQ: to debug this error, call `token_iq.gateway._turn_on_debug()`` now.
+
+The gate on customer-visible text reads `detail=` and `message=` keywords, and this was a bare
+`print`, so it was never counted. It has its own test now.
+
+### Nothing imports the library this was forked from
+
+`semantic-router` depends on the published `litellm` package, so an installed Token IQ has upstream
+1.101.0 sitting in site-packages beside it, 82MB of it, and four features need semantic-router. That
+means a stray `import litellm` the rename missed resolves, to a different library of the same shape,
+and runs: nothing raises and no figure looks obviously wrong.
+
+There is one such import today, in a docstring, and it is gone. A zero-tolerance gate reads the AST
+of every engine module, so `import litellm as x` and a `from litellm.utils import ...` inside a
+function body both fail too.
+
+### Verified against the image, not a test run
+
+- `docker build` exits 0, and `token_iq/pricing/data/` is in the installed package inside it
+- a container from that image reaches `/health/liveliness` 200 and stays up
+- the dashboard at `/ui/` returns 200 and all 65 assets it asks for return 200
+- the engine inside the container prices 3,560 models, read from inside the package
+- a chat completion through it was recorded: one spend row, `openai/gpt-4o-mini`, 30 tokens
+- five tests still asserting `litellm.XxxError` from yesterday's prefix change now pass
+- the name budget ratchets down 3,595, to 61,988
+
+### Three tests that could only ever fail
+
+`tests/token_iq/api/test_project_org_authz.py` held seven tests. Four check `/key/update`. The other
+three imported `litellm_enterprise...project_endpoints`, and commit `728daee2d8` removed the
+enterprise-licensed code, so they have failed on every run since by importing a module this
+repository does not contain. They are gone rather than skipped, because nothing is left for them to
+guard, and a test that can only fail teaches people to ignore a red run.
+
+### The budget gates cannot run on Windows
+
+`make check` and each standalone budget gate die at import: `scripts/gate_slot_lock.py` imports
+`fcntl` unconditionally, so the module never loads and its own fail-open path never gets a chance.
+CI is Linux and unaffected. Two smaller things behind it, both local-only: `make lint-gate` passes
+`--base origin/main`, and that commit predates the rename, so the base worktree has no `token_iq/`
+and the comparison is meaningless, while CI passes the pull request's real merge-base; and `_run`
+in the gate scripts calls `subprocess.run(text=True)` with no encoding, so on a cp1252 locale the
+now 2.1MB price diff kills the reader thread and the helper returns `None` as a confusing
+`AttributeError`.
+
+The budgets were therefore measured directly, head against a detached worktree at HEAD, with each
+reader asserting it found something before comparing: no movement on the strict ruff rules or
+basedpyright, one LIT003 fewer, no breaches.
+
+### Left
+
+The workflow that builds the wheel is still called "LiteLLM Rust". Renaming it changes the check name
+GitHub reports, which branch protection may require, so it waits with the other repository settings.

@@ -71,7 +71,7 @@ class TestTheMappedMessages:
         )
         got: Final = rewrite_text(source)
         assert "BerriAI" not in got
-        assert "data/pricing/model_prices.json" in got
+        assert "token_iq/pricing/data/model_prices.json" in got
 
     def test_the_virtual_keys_link_points_at_our_own_documentation(self) -> None:
         source: Final = '"Set a virtual key. See https://docs.litellm.ai/docs/proxy/virtual_keys"'

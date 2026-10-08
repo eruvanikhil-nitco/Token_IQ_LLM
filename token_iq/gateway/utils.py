@@ -5167,7 +5167,7 @@ def get_max_tokens(model: str) -> int | None:
         return None
     except Exception:
         raise Exception(
-            f"Model {model} isn't mapped yet. Add it in data/pricing/model_prices.json, or ask your administrator"
+            f"Model {model} isn't mapped yet. Add it in token_iq/pricing/data/model_prices.json, or ask your administrator"
         )
 
 
@@ -5728,7 +5728,7 @@ def _get_model_info_helper(
 
             if _model_info is None or key is None:
                 raise ValueError(
-                    "This model isn't mapped yet. Add it in data/pricing/model_prices.json, or ask your administrator"
+                    "This model isn't mapped yet. Add it in token_iq/pricing/data/model_prices.json, or ask your administrator"
                 )
             _input_cost_per_token: float | None = _model_info.get("input_cost_per_token")
             if _input_cost_per_token is None:
@@ -5938,7 +5938,7 @@ def _get_model_info_helper(
     except Exception as e:
         verbose_logger.debug("Error getting model info: %s", e)
         raise Exception(
-            f"This model isn't mapped yet. model={model}, custom_llm_provider={custom_llm_provider}. Add it in data/pricing/model_prices.json, or ask your administrator"
+            f"This model isn't mapped yet. model={model}, custom_llm_provider={custom_llm_provider}. Add it in token_iq/pricing/data/model_prices.json, or ask your administrator"
         )
 
 

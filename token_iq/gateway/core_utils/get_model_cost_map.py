@@ -27,8 +27,9 @@ from token_iq.gateway.core_utils.fallback_generalizations import (
 
 FALLBACK_GENERALIZATIONS_KEY: Final = "fallback_generalizations"
 
-def _repo_root() -> pathlib.Path:
-    """The directory holding the `token_iq` package, found by name rather than by counting parents.
+
+def _package_root() -> pathlib.Path:
+    """The `token_iq` package directory, found by name rather than by counting parents.
 
     This used to count: `parents[2]` was the repository root while this module lived two directories
     down. Moving the engine into `token_iq/gateway/` made it three, and the only sign was the proxy
@@ -37,17 +38,23 @@ def _repo_root() -> pathlib.Path:
     """
     here: Final = pathlib.Path(__file__).resolve()
     package: Final = next((parent for parent in here.parents if parent.name == "token_iq"), None)
-    return package.parent if package is not None else here.parents[2]
+    return package if package is not None else here.parents[3] / "token_iq"
 
 
 # The single source of prices. One copy on purpose: there were two byte-identical 2.1MB
 # files kept in step by convention, and two copies of anything eventually disagree.
-PRICES_PATH: Final = _repo_root() / "data" / "pricing" / "model_prices.json"
+#
+# Inside the package, not beside it. It sat at the repository root, which a checkout has and an
+# installed wheel does not, so the published image could not import this module at all: the only
+# symptom was the proxy exiting on a missing file before it served anything. Package data ships
+# wherever the package does.
+PRICES_PATH: Final = _package_root() / "pricing" / "data" / "model_prices.json"
 
 
 def load_bundled_prices() -> dict:
     """The bundled price list, as written. No network, no fallback, no second copy."""
     return json.loads(PRICES_PATH.read_text(encoding="utf-8"))
+
 
 # Reserved top-level keys that are not model entries. They must be excluded
 # from the model-count integrity check so a real upstream shrink can't be masked.
@@ -73,9 +80,7 @@ class GetModelCostMap:
     @staticmethod
     def load_local_model_cost_map() -> dict:
         """Kept as the name the rest of the codebase already calls. Reads the bundled file."""
-        content: Final = json.loads(
-            PRICES_PATH.read_text(encoding="utf-8")
-        )
+        content: Final = json.loads(PRICES_PATH.read_text(encoding="utf-8"))
         return content
 
     @classmethod
@@ -199,6 +204,7 @@ async def refetch_model_cost_map() -> ModelCostMapReloadResult:
     except (OSError, json.JSONDecodeError) as error:
         return ModelCostMapReloadUnavailable(reason=f"bundled price file could not be read: {error}")
 
+
 class ModelCostMapSourceInfo:
     """Where the price list in this process came from."""
 
@@ -313,4 +319,3 @@ def get_model_cost_map() -> dict:
     _cost_map_source_info.is_env_forced = False
     _cost_map_source_info.fallback_reason = None
     return _finalize_model_cost_map(load_bundled_prices())
-

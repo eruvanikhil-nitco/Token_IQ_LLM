@@ -1677,14 +1677,15 @@ class CustomStreamWrapper:
             )
 
     def set_logging_event_loop(self, loop):
-        """
-        import litellm, asyncio
+        """Attach the event loop that sync streaming uses to run async success callbacks.
 
-        loop = asyncio.get_event_loop() # 👈 gets the current event loop
+        import asyncio
 
-        response = token_iq.completion(.., stream=True)
+        loop = asyncio.get_event_loop()
 
-        response.set_logging_event_loop(loop=loop) # 👈 enables async_success callbacks for sync logging
+        response = gateway.completion(.., stream=True)
+
+        response.set_logging_event_loop(loop=loop)
 
         for chunk in response:
             ...

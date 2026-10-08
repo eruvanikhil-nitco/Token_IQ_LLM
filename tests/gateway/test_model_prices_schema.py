@@ -10,7 +10,7 @@ import pytest
 
 REPO_ROOT = Path(__file__).parents[2]
 GENERATOR_PATH = REPO_ROOT / "ci_cd" / "generate_model_prices_schema.py"
-PRICES_PATH = REPO_ROOT / "data" / "pricing" / "model_prices.json"
+PRICES_PATH = REPO_ROOT / "token_iq" / "pricing" / "data" / "model_prices.json"
 SCHEMA_PATH = REPO_ROOT / "model_prices_and_context_window.schema.json"
 
 

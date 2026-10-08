@@ -1254,3 +1254,43 @@ def test_handle_error_marks_only_a_status_code_it_never_received():
         raise handler._handle_error(e=upstream, provider_config=None)
     assert received.value.status_code == 500
     assert received.value.status_code_is_synthesized is False
+
+
+class TestTheBannerPrintedBesideAnError:
+    """The first thing a caller sees on their console when a provider call fails.
+
+    It named the company this was forked from and told the reader to call
+    `litellm._turn_on_debug()`, which is not a thing any installation has: the module is
+    `token_iq.gateway`. Nothing was watching, because the gate on customer-visible text reads
+    `detail=` and `message=` keywords and this is a bare `print`.
+    """
+
+    @pytest.fixture
+    def loud(self, monkeypatch):
+        monkeypatch.setattr(gateway, "suppress_debug_info", False)
+
+    def _banner(self, capsys) -> str:
+        with pytest.raises(openai.APIError):
+            exception_type(
+                model="test-model",
+                original_exception=_UpstreamHTTPError(status_code=429),
+                custom_llm_provider="openai",
+            )
+        return capsys.readouterr().out
+
+    def test_it_names_this_product_and_not_the_one_it_was_forked_from(self, loud, capsys) -> None:
+        banner = self._banner(capsys)
+
+        assert "Token IQ" in banner
+        assert "litellm" not in banner.lower()
+
+    def test_it_names_a_call_that_exists(self, loud, capsys) -> None:
+        """`litellm._turn_on_debug()` sent people to a module no installation has."""
+        banner = self._banner(capsys)
+
+        assert "token_iq.gateway._turn_on_debug()" in banner
+        assert gateway._turn_on_debug is not None
+
+    def test_it_stays_quiet_when_debug_info_is_suppressed(self, quiet_exception_mapping, capsys) -> None:
+        """Guards the two above, which pass just as well against a banner nobody prints."""
+        assert self._banner(capsys).strip() == ""

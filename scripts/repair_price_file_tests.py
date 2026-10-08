@@ -65,7 +65,7 @@ from typing import Final
 
 REPO: Final = pathlib.Path(__file__).resolve().parents[1]
 
-CANONICAL: Final = "data/pricing/model_prices.json"
+CANONICAL: Final = "token_iq/pricing/data/model_prices.json"
 
 # Both old spellings, longest first so the backup is matched before the root file's name, which is
 # a prefix of it.

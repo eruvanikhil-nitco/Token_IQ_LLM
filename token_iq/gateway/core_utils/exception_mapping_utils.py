@@ -2332,10 +2332,7 @@ def exception_type(
     if gateway.suppress_debug_info is False:
         print()  # noqa: T201
         print(  # noqa: T201
-            "\033[1;31mGive Feedback / Get Help"
-        )
-        print(  # noqa: T201
-            "LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'."
+            "\033[1;31mToken IQ: to debug this error, call `token_iq.gateway._turn_on_debug()`."
         )
         print()  # noqa: T201
 

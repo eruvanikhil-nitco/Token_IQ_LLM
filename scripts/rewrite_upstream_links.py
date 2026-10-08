@@ -32,7 +32,7 @@ URL: Final = rf"https?://{UPSTREAM_HOST}[^\s\"'`)\],]*"
 MAPPED: Final[tuple[tuple[str, str], ...]] = (
     (
         rf"Add it here -[ \t]*{URL}",
-        "Add it in data/pricing/model_prices.json, or ask your administrator",
+        "Add it in token_iq/pricing/data/model_prices.json, or ask your administrator",
     ),
     (rf"Register model, via custom pricing[ \t]*-?[ \t]*{URL}", "Register the model with custom pricing"),
     (rf"See modes here:[ \t]*{URL}", ""),
