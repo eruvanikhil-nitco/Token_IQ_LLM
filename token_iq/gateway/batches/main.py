@@ -322,7 +322,7 @@ def create_batch(
             )
         else:
             raise gateway.exceptions.BadRequestError(
-                message=f"LiteLLM doesn't support custom_llm_provider={custom_llm_provider} for 'create_batch'",
+                message=f"Token IQ doesn't support custom_llm_provider={custom_llm_provider} for 'create_batch'",
                 model="n/a",
                 llm_provider=custom_llm_provider,
                 response=httpx.Response(
@@ -494,7 +494,7 @@ def _handle_retrieve_batch_providers_without_provider_config(
     else:
         raise gateway.exceptions.BadRequestError(
             message=(
-                f"LiteLLM doesn't support custom_llm_provider={custom_llm_provider} for 'retrieve_batch' without a `model` kwarg. "
+                f"Token IQ doesn't support custom_llm_provider={custom_llm_provider} for 'retrieve_batch' without a `model` kwarg. "
                 "Supported via this path: 'openai', 'azure', 'vertex_ai', 'anthropic'. "
                 "'bedrock' is supported but requires `model` to be passed so the provider config can be loaded."
             ),
@@ -812,7 +812,7 @@ def list_batches(
             )
         else:
             raise gateway.exceptions.BadRequestError(
-                message="LiteLLM doesn't support {} for 'list_batch'. Supported providers: {}.".format(
+                message="Token IQ doesn't support {} for 'list_batch'. Supported providers: {}.".format(
                     custom_llm_provider,
                     ", ".join(sorted(LIST_BATCHES_SUPPORTED_PROVIDERS)),
                 ),
@@ -1006,7 +1006,7 @@ def cancel_batch(
             )
         else:
             raise gateway.exceptions.BadRequestError(
-                message=f"LiteLLM doesn't support {custom_llm_provider} for 'cancel_batch'. Only 'openai', 'azure', 'vertex_ai', and 'bedrock' are supported.",
+                message=f"Token IQ doesn't support {custom_llm_provider} for 'cancel_batch'. Only 'openai', 'azure', 'vertex_ai', and 'bedrock' are supported.",
                 model="n/a",
                 llm_provider=custom_llm_provider,
                 response=httpx.Response(

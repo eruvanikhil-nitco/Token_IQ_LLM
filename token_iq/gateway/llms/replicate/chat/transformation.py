@@ -201,7 +201,7 @@ class ReplicateConfig(BaseConfig):
         if prompt is None or not isinstance(prompt, str):
             raise ReplicateError(
                 status_code=400,
-                message=f"LiteLLM Error - prompt is not a string - {prompt}",
+                message=f"Token IQ error: prompt is not a string - {prompt}",
                 headers={},
             )
 
@@ -251,7 +251,7 @@ class ReplicateConfig(BaseConfig):
         if raw_response_json.get("status") != "succeeded":
             raise ReplicateError(
                 status_code=422,
-                message=f"LiteLLM Error - prediction not succeeded - {raw_response_json}",
+                message=f"Token IQ error: prediction not succeeded - {raw_response_json}",
                 headers=raw_response.headers,
             )
         outputs: Final = raw_response_json.get("output", [])
@@ -292,7 +292,7 @@ class ReplicateConfig(BaseConfig):
         if prediction_url is None:
             raise ReplicateError(
                 status_code=400,
-                message=f"LiteLLM Error - prediction url is None - {response_json}",
+                message=f"Token IQ error: prediction url is None - {response_json}",
                 headers=response.headers,
             )
         return prediction_url

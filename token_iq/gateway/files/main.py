@@ -241,7 +241,7 @@ def create_file(
             )
         else:
             raise gateway.exceptions.BadRequestError(
-                message=f"LiteLLM doesn't support {custom_llm_provider} for 'create_file'. Only ['openai', 'azure', 'vertex_ai', 'manus', 'anthropic'] are supported.",
+                message=f"Token IQ doesn't support {custom_llm_provider} for 'create_file'. Only ['openai', 'azure', 'vertex_ai', 'manus', 'anthropic'] are supported.",
                 model="n/a",
                 llm_provider=custom_llm_provider,
                 response=httpx.Response(
@@ -405,7 +405,7 @@ def file_retrieve(
                 )
             else:
                 raise gateway.exceptions.BadRequestError(
-                    message=f"LiteLLM doesn't support {custom_llm_provider} for 'file_retrieve'. Only 'openai', 'azure', 'manus', and 'anthropic' are supported.",
+                    message=f"Token IQ doesn't support {custom_llm_provider} for 'file_retrieve'. Only 'openai', 'azure', 'manus', and 'anthropic' are supported.",
                     model="n/a",
                     llm_provider=custom_llm_provider,
                     response=httpx.Response(
@@ -582,7 +582,7 @@ def file_delete(
                 )
             else:
                 raise gateway.exceptions.BadRequestError(
-                    message=f"LiteLLM doesn't support {custom_llm_provider} for 'file_delete'. Only 'openai', 'azure', 'gemini', 'manus', and 'anthropic' are supported.",
+                    message=f"Token IQ doesn't support {custom_llm_provider} for 'file_delete'. Only 'openai', 'azure', 'gemini', 'manus', and 'anthropic' are supported.",
                     model="n/a",
                     llm_provider=custom_llm_provider,
                     response=httpx.Response(
@@ -744,7 +744,7 @@ def file_list(
             )
         else:
             raise gateway.exceptions.BadRequestError(
-                message=f"LiteLLM doesn't support {custom_llm_provider} for 'file_list'. Only 'openai', 'azure', 'manus', and 'anthropic' are supported.",
+                message=f"Token IQ doesn't support {custom_llm_provider} for 'file_list'. Only 'openai', 'azure', 'manus', and 'anthropic' are supported.",
                 model="n/a",
                 llm_provider=custom_llm_provider,
                 response=httpx.Response(
@@ -976,7 +976,7 @@ def file_content(
             )
         else:
             raise gateway.exceptions.BadRequestError(
-                message=f"LiteLLM doesn't support {custom_llm_provider} for 'file_content'. Supported providers are 'openai', 'azure', 'vertex_ai', 'bedrock', 'manus', 'anthropic'.",
+                message=f"Token IQ doesn't support {custom_llm_provider} for 'file_content'. Supported providers are 'openai', 'azure', 'vertex_ai', 'bedrock', 'manus', 'anthropic'.",
                 model="n/a",
                 llm_provider=custom_llm_provider,
                 response=httpx.Response(
@@ -1054,7 +1054,7 @@ def file_content_streaming(
         )
     else:
         raise gateway.exceptions.BadRequestError(
-            message=f"LiteLLM doesn't support {custom_llm_provider} for streaming 'file_content'. Supported providers are {sorted(OPENAI_COMPATIBLE_BATCH_AND_FILES_PROVIDERS)}.",
+            message=f"Token IQ doesn't support {custom_llm_provider} for streaming 'file_content'. Supported providers are {sorted(OPENAI_COMPATIBLE_BATCH_AND_FILES_PROVIDERS)}.",
             model="n/a",
             llm_provider=custom_llm_provider,
             response=httpx.Response(

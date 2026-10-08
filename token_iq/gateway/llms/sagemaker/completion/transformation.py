@@ -232,7 +232,7 @@ class SagemakerConfig(BaseConfig):
             model_response.choices[0].message.content = completion_output
         except Exception:
             raise SagemakerError(
-                message=f"LiteLLM Error: Unable to parse sagemaker RAW RESPONSE {json.dumps(completion_response)}",
+                message=f"Token IQ error: Unable to parse sagemaker RAW RESPONSE {json.dumps(completion_response)}",
                 status_code=500,
             )
 

@@ -165,7 +165,7 @@ def get_assistants(
         )
     else:
         raise gateway.exceptions.BadRequestError(
-            message=f"LiteLLM doesn't support {custom_llm_provider} for 'get_assistants'. Only 'openai' is supported.",
+            message=f"Token IQ doesn't support {custom_llm_provider} for 'get_assistants'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
             response=httpx.Response(
@@ -177,7 +177,7 @@ def get_assistants(
 
     if response is None:
         raise gateway.exceptions.BadRequestError(
-            message=f"LiteLLM doesn't support {custom_llm_provider} for 'get_assistants'. Only 'openai' is supported.",
+            message=f"Token IQ doesn't support {custom_llm_provider} for 'get_assistants'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
             response=httpx.Response(
@@ -353,7 +353,7 @@ def create_assistants(
         )
     else:
         raise gateway.exceptions.BadRequestError(
-            message=f"LiteLLM doesn't support {custom_llm_provider} for 'create_assistants'. Only 'openai' is supported.",
+            message=f"Token IQ doesn't support {custom_llm_provider} for 'create_assistants'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
             response=httpx.Response(
@@ -502,7 +502,7 @@ def delete_assistant(
         )
     else:
         raise gateway.exceptions.BadRequestError(
-            message=f"LiteLLM doesn't support {custom_llm_provider} for 'delete_assistant'. Only 'openai' is supported.",
+            message=f"Token IQ doesn't support {custom_llm_provider} for 'delete_assistant'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
             response=httpx.Response(
@@ -678,7 +678,7 @@ def create_thread(
         )
     else:
         raise gateway.exceptions.BadRequestError(
-            message=f"LiteLLM doesn't support {custom_llm_provider} for 'create_thread'. Only 'openai' is supported.",
+            message=f"Token IQ doesn't support {custom_llm_provider} for 'create_thread'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
             response=httpx.Response(
@@ -823,7 +823,7 @@ def get_thread(
         )
     else:
         raise gateway.exceptions.BadRequestError(
-            message=f"LiteLLM doesn't support {custom_llm_provider} for 'get_thread'. Only 'openai' is supported.",
+            message=f"Token IQ doesn't support {custom_llm_provider} for 'get_thread'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
             response=httpx.Response(
@@ -998,7 +998,7 @@ def add_message(
         )
     else:
         raise gateway.exceptions.BadRequestError(
-            message=f"LiteLLM doesn't support {custom_llm_provider} for 'create_thread'. Only 'openai' is supported.",
+            message=f"Token IQ doesn't support {custom_llm_provider} for 'create_thread'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
             response=httpx.Response(
@@ -1148,7 +1148,7 @@ def get_messages(
         )
     else:
         raise gateway.exceptions.BadRequestError(
-            message=f"LiteLLM doesn't support {custom_llm_provider} for 'get_messages'. Only 'openai' is supported.",
+            message=f"Token IQ doesn't support {custom_llm_provider} for 'get_messages'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
             response=httpx.Response(
@@ -1353,7 +1353,7 @@ def run_thread(
         )
     else:
         raise gateway.exceptions.BadRequestError(
-            message=f"LiteLLM doesn't support {custom_llm_provider} for 'run_thread'. Only 'openai' is supported.",
+            message=f"Token IQ doesn't support {custom_llm_provider} for 'run_thread'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
             response=httpx.Response(

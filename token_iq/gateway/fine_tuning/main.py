@@ -315,7 +315,7 @@ def create_fine_tuning_job(
             )
         else:
             raise gateway.exceptions.BadRequestError(
-                message=f"LiteLLM doesn't support {custom_llm_provider} for 'create_batch'. Only 'openai' is supported.",
+                message=f"Token IQ doesn't support {custom_llm_provider} for 'create_batch'. Only 'openai' is supported.",
                 model="n/a",
                 llm_provider=custom_llm_provider,
                 response=httpx.Response(
@@ -467,7 +467,7 @@ def cancel_fine_tuning_job(
             )
         else:
             raise gateway.exceptions.BadRequestError(
-                message=f"LiteLLM doesn't support {custom_llm_provider} for 'create_batch'. Only 'openai' is supported.",
+                message=f"Token IQ doesn't support {custom_llm_provider} for 'create_batch'. Only 'openai' is supported.",
                 model="n/a",
                 llm_provider=custom_llm_provider,
                 response=httpx.Response(
@@ -623,7 +623,7 @@ def list_fine_tuning_jobs(
             )
         else:
             raise gateway.exceptions.BadRequestError(
-                message=f"LiteLLM doesn't support {custom_llm_provider} for 'create_batch'. Only 'openai' is supported.",
+                message=f"Token IQ doesn't support {custom_llm_provider} for 'create_batch'. Only 'openai' is supported.",
                 model="n/a",
                 llm_provider=custom_llm_provider,
                 response=httpx.Response(
@@ -761,7 +761,7 @@ def retrieve_fine_tuning_job(
             )
         else:
             raise gateway.exceptions.BadRequestError(
-                message=f"LiteLLM doesn't support {custom_llm_provider} for 'retrieve_fine_tuning_job'. Only 'openai' and 'azure' are supported.",
+                message=f"Token IQ doesn't support {custom_llm_provider} for 'retrieve_fine_tuning_job'. Only 'openai' and 'azure' are supported.",
                 model="n/a",
                 llm_provider=custom_llm_provider,
                 response=httpx.Response(

@@ -2134,3 +2134,52 @@ What remains in those two test files is Windows-only: they execute `.sh` scripts
 
 Two key-management tests, one needing `litellm_enterprise` which is not installed here and one where an
 `AsyncMock` reaches a response model. Three UI-theme tests and one symlink test, all static-asset handling.
+
+## 2026-10-08, phase 10's gate, and why it ratchets
+
+The four consolidation rows of the label table are not phase 9's and not phase 5A's. Phase 5A's own plan
+says "UI only, plus one new read endpoint for names. No change to how any figure is computed", and its
+goal is sentences that explain a screen. Building a Data Sources page with four tabs out of seven existing
+entries is new page construction, which is a product decision with its own place in the blueprint's build
+order. Phase 9's label bullet is done to the extent its table permits.
+
+So phase 10. Its first bullet asks for a test that fails if `litellm` appears outside a short allowlist.
+Measured, 65,743 mentions remain across 4,782 files, and they are not untidy prose. `litellm_params` alone
+is 15,038 and is a config key, a column on `LiteLLM_ProxyModelTable`, a field in request and response
+bodies and a word in the UI. `litellm_provider` is 4,414 and keys the bundled price map.
+`litellm_teamtable` and its siblings are table names that step 2 of phase 8 renames behind a runbook.
+`litellm_call_id`, `litellm_logging_obj` and `litellm_metadata` are threaded through every call path.
+
+The plan already schedules those: "in the release after the transition release, delete `compat.py` and its
+test, remove those allowlist entries, and ship step 2 of phase 8". Zero is the end state, not today's, and
+a gate asserting zero today is a gate nobody can run. `tests/repo/test_no_litellm_name.py` does what the
+three budget gates beside it do: two properties hold at zero and are asserted at zero, and the rest is
+counted per area against `no-litellm-name-budget.json`, a ceiling that only comes down.
+
+### The gate it replaces was reading nothing
+
+`check_customer_messages_do_not_name_litellm.py` scanned `litellm/proxy`, which phase 6 deleted. Zero
+files, so it passed. Neither branding gate was wired into any workflow either, which is why nobody noticed.
+
+Pointed at the real tree, it finds 28 messages a caller reads in an error: "LiteLLM doesn't support
+{provider} for 'create_batch'", "LiteLLM Error - prompt is not a string", and the vertex import hint. All
+28 now say Token IQ. Both gates are deleted, their checks absorbed, and the new one is wired into the
+quality guard step along with the two gates written earlier today, which `assert_ci_coverage.py` confirms:
+2,624 test files each invoked by a job.
+
+### Verified
+
+- 9 tests in the new gate, and two mutations each turning one red: a message renamed back to the old
+  product, and three new mentions appended to a file
+- a test that the message pattern still matches a line it must catch, because the gate it replaces shows
+  what a check that reads nothing looks like
+- a test that every exemption carries a reason and names a path that exists, and one that the two largest
+  areas are actually counted
+- `ruff` clean on both trees, basedpyright clean on the new file, and the budget validated through a
+  Pydantic model rather than read off an `Any`
+
+### What phase 10 still needs
+
+The 65,739 remaining, in the order the plan sets: the config keys and engine kwargs once the transition
+release ends, the table names with step 2 of phase 8 and its runbook, and the price map's `litellm_provider`
+key, which is a data schema a customer's own tooling may read.

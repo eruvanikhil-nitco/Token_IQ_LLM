@@ -1,0 +1,28 @@
+{
+  "areas": {
+    "(root)": 327,
+    ".cargo": 1,
+    ".circleci": 187,
+    ".devcontainer": 3,
+    ".githooks": 3,
+    ".github": 195,
+    ".semgrep": 1,
+    "backend": 6,
+    "ci_cd": 9,
+    "cookbook": 1743,
+    "data": 3563,
+    "db_scripts": 93,
+    "docker": 51,
+    "examples": 5,
+    "gateway": 6,
+    "litellm-rust": 562,
+    "migrations": 8,
+    "packaging": 19,
+    "scripts": 569,
+    "terraform": 2271,
+    "tests": 28469,
+    "token-iq-migrations": 1110,
+    "token_iq": 23503,
+    "ui": 3007
+  }
+}

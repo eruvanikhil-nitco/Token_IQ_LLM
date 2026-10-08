@@ -100,7 +100,7 @@ def completion(
     except Exception:
         raise VertexAIError(
             status_code=400,
-            message="vertexai import failed please run `pip install google-cloud-aiplatform`. This is required for the 'vertex_ai/' route on LiteLLM",
+            message="vertexai import failed please run `pip install google-cloud-aiplatform`. This is required for the 'vertex_ai/' route on Token IQ",
         )
 
     if not (hasattr(vertexai, "preview") or hasattr(vertexai.preview, "language_models")):
