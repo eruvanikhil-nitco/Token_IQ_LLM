@@ -6,12 +6,11 @@ import os
 from typing import Final
 
 from token_iq.gateway._logging import verbose_logger, verbose_proxy_logger
+from token_iq.gateway.integrations.email_templates.email_footer import email_support_line, email_tag
 from token_iq.gateway.proxy._types import WebhookEvent
 from token_iq.gateway.repositories.team_repository import TeamRepository
 
 # we use this for the email header, please send a test email if you change this. verify it looks good on email
-LITELLM_LOGO_URL: Final = "https://litellm-listing.s3.amazonaws.com/litellm_logo.png"
-LITELLM_SUPPORT_CONTACT: Final = "support@berri.ai"
 
 
 async def get_all_team_member_emails(team_id: str | None = None) -> list:
@@ -83,17 +82,19 @@ async def send_team_budget_alert(webhook_event: WebhookEvent) -> bool:
     #     premium_user, email_logo_url, email_support_contact
     # )
 
-    if email_logo_url is None:
-        email_logo_url = LITELLM_LOGO_URL
-    if email_support_contact is None:
-        email_support_contact = LITELLM_SUPPORT_CONTACT
+    # No default for either. They used to fall back to another company's logo, served from that
+    # company's S3 bucket, and to its support address, so an installation that configured neither sent
+    # its team a mail fetching an image from a third party and telling them to write to a company they
+    # have no relationship with. Unset now means the line is left out.
+    logo_tag: Final = email_tag(email_logo_url)
+    support_line: Final = email_support_line(email_support_contact)
     recipient_emails: Final = await get_all_team_member_emails(_team_id)
     recipient_emails_str: Final[str] = ",".join(recipient_emails)
     verbose_logger.debug("Email Alerting: Sending team budget alert to %s", recipient_emails_str)
 
     event_name: Final = webhook_event.event_message
     max_budget: Final = webhook_event.max_budget
-    email_html_content = "Alert from LiteLLM Server"
+    email_html_content = "Alert from Token IQ"
 
     if recipient_emails_str is None:
         verbose_proxy_logger.warning(
@@ -102,18 +103,16 @@ async def send_team_budget_alert(webhook_event: WebhookEvent) -> bool:
         )
 
     email_html_content = f"""
-    <img src="{email_logo_url}" alt="LiteLLM Logo" width="150" height="50" /> <br/><br/><br/>
-
+    {logo_tag}
     Budget Crossed for Team <b> {team_alias} </b> <br/> <br/>
 
-    Your Teams LLM API usage has crossed it's <b> budget of ${max_budget} </b>, current spend is <b>${webhook_event.spend}</b><br /> <br />
+    Your team's LLM API usage has crossed its <b> budget of ${max_budget} </b>, current spend is <b>${webhook_event.spend}</b><br /> <br />
 
     API requests will be rejected until either (a) you increase your budget or (b) your budget gets reset <br /> <br />
 
-    If you have any questions, please send an email to {email_support_contact} <br /> <br />
-
+    {support_line}
     Best, <br />
-    The LiteLLM team <br />
+    The Token IQ team <br />
     """
 
     email_event: Final = {

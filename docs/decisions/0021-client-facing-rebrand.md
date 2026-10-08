@@ -68,6 +68,22 @@ a logo URL is not a decision to make on someone's behalf. Both are overridable w
 set `EMAIL_LOGO_URL` (or `SMTP_SENDER_LOGO`) and `EMAIL_SUPPORT_CONTACT`. Do it before
 inviting anyone.
 
+## Update, 8 Oct 2026: omitted rather than invented
+
+The reasoning above weighed two options, keep the upstream defaults or invent Token IQ ones, and chose to
+keep them because inventing is not a decision to make on someone's behalf. There is a third: render
+neither.
+
+An unset logo now produces no `<img>` and an unset support address no "any questions" line, through
+`email_tag` and `email_support_line` beside the footer. Nothing is invented and nothing leaves for a third
+party, which also closes the definition-of-done line "no runtime call leaves for upstream": every opened
+alert email used to fetch an image from another company's S3 bucket. The override advice stands unchanged,
+and setting `EMAIL_LOGO_URL` or `SMTP_SENDER_LOGO` and `EMAIL_SUPPORT_CONTACT` is still the way to put a
+logo and an address in.
+
+The email footer went the same way. It carried a Token IQ copyright line above links to another company's
+Twitter and website, and a GitHub link with an empty href.
+
 ## Pass two: the admin dashboard
 
 86 replacements across 24 files, all of them copy where LiteLLM meant *this gateway*: the

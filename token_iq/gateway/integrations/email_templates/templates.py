@@ -5,7 +5,7 @@ Email Templates used by the LiteLLM Email Service in slack_alerting.py
 from typing import Final
 
 KEY_CREATED_EMAIL_TEMPLATE: Final = """
-                    <img src="{email_logo_url}" alt="Token IQ Logo" width="150" height="50" />
+{logo_tag}
 
                     <p> Hi {recipient_email}, <br/>
         
@@ -40,7 +40,7 @@ KEY_CREATED_EMAIL_TEMPLATE: Final = """
                     </pre>
 
 
-                    If you have any questions, please send an email to {email_support_contact} <br /> <br />
+{support_line}
 
                     Best, <br />
                     The Token IQ team <br />
@@ -48,7 +48,7 @@ KEY_CREATED_EMAIL_TEMPLATE: Final = """
 
 
 USER_INVITED_EMAIL_TEMPLATE: Final = """
-                    <img src="{email_logo_url}" alt="Token IQ Logo" width="150" height="50" />
+{logo_tag}
 
                     <p> Hi {recipient_email}, <br/>
 
@@ -57,14 +57,14 @@ USER_INVITED_EMAIL_TEMPLATE: Final = """
                     <a href="{base_url}" style="display: inline-block; padding: 10px 20px; background-color: #87ceeb; color: #fff; text-decoration: none; border-radius: 20px;">Accept Invitation</a> <br /> <br />
 
                     
-                    If you have any questions, please send an email to {email_support_contact} <br /> <br />
+{support_line}
 
                     Best, <br />
                     The Token IQ team <br />
 """
 
 SOFT_BUDGET_ALERT_EMAIL_TEMPLATE: Final = """
-                    <img src="{email_logo_url}" alt="Token IQ Logo" width="150" height="50" />
+{logo_tag}
 
                     <p> Hi {recipient_email}, <br/>
 
@@ -81,13 +81,13 @@ SOFT_BUDGET_ALERT_EMAIL_TEMPLATE: Final = """
 
                     You can view your usage and manage your budget in the <a href="{base_url}">Token IQ Dashboard</a>. <br /> <br />
 
-                    If you have any questions, please send an email to {email_support_contact} <br /> <br />
+{support_line}
 
                     {email_footer}
 """
 
 TEAM_SOFT_BUDGET_ALERT_EMAIL_TEMPLATE: Final = """
-                    <img src="{email_logo_url}" alt="Token IQ Logo" width="150" height="50" />
+{logo_tag}
 
                     <p> Hi {team_alias} team member, <br/>
 
@@ -104,13 +104,13 @@ TEAM_SOFT_BUDGET_ALERT_EMAIL_TEMPLATE: Final = """
 
                     You can view your usage and manage your budget in the <a href="{base_url}">Token IQ Dashboard</a>. <br /> <br />
 
-                    If you have any questions, please send an email to {email_support_contact} <br /> <br />
+{support_line}
 
                     {email_footer}
 """
 
 MAX_BUDGET_ALERT_EMAIL_TEMPLATE: Final = """
-                    <img src="{email_logo_url}" alt="Token IQ Logo" width="150" height="50" />
+{logo_tag}
 
                     <p> Hi {recipient_email}, <br/>
 
@@ -127,7 +127,7 @@ MAX_BUDGET_ALERT_EMAIL_TEMPLATE: Final = """
 
                     You can view your usage and manage your budget in the <a href="{base_url}">Token IQ Dashboard</a>. <br /> <br />
 
-                    If you have any questions, please send an email to {email_support_contact} <br /> <br />
+{support_line}
 
                     {email_footer}
 """

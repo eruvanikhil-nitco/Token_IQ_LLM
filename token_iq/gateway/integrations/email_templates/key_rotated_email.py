@@ -158,7 +158,7 @@ KEY_ROTATED_EMAIL_TEMPLATE: Final = """
 <body>
     <div class="container">
         <div class="header">
-            <img src="{email_logo_url}" alt="Token IQ Logo" style="height: 32px; width: auto;">
+{logo_tag}
         </div>
         <div class="content">
             <div class="greeting">
@@ -217,7 +217,7 @@ response = client.chat.completions.create(<br>
             <div class="separator"></div>
             
             <h2>Need Help?</h2>
-            <p>If you have any questions or need assistance updating your systems, please contact us at {email_support_contact}.</p>
+{support_line}
         </div>
         {email_footer}
     </div>

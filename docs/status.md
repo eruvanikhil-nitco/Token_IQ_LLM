@@ -2217,3 +2217,52 @@ rather than by raising a ceiling.
 The second was subtler. `(root)` rose by one each time the budget was recorded, because one of the areas
 the budget names is `litellm-rust`, so the file counted itself. Exempt now, and the count is stable at
 65,700 across two consecutive recordings, which is the property that makes a ratchet trustworthy.
+
+## 2026-10-08, the emails stopped fetching from, and pointing at, another company
+
+Checking the definition-of-done line "no runtime call leaves for upstream" found one that did, on a path a
+customer's own team sees. Every alert email the gateway sends carried three things belonging to the company
+this was forked from:
+
+- a logo at `https://litellm-listing.s3.amazonaws.com/litellm_logo.png`, fetched from that company's S3
+  bucket each time a recipient opened the mail, which is both a runtime call leaving and that company's
+  brand in front of a Token IQ customer's staff
+- `support@berri.ai` under a sentence inviting the reader to write there, so a question about a budget
+  alert went to people who have never heard of them
+- footer links to that company's Twitter and website, beneath a Token IQ copyright line, with a third
+  GitHub link whose href was empty
+
+The budget alert email was additionally headed "Alert from LiteLLM Server" and signed "The LiteLLM team".
+
+### Why it was still there, and what changed
+
+Decision 0021 found the first two and left them deliberately, weighing "keep theirs" against "invent ours"
+and refusing to invent a support address on an operator's behalf. That reasoning holds; it just missed a
+third option. Rendering neither invents nothing and leaks nothing.
+
+`email_tag` and `email_support_line` sit beside the footer and return an empty string when unset, so no
+`<img>` is emitted rather than one with an empty `src`, and no dangling "please contact us at ." is left
+behind. The five shared templates and the two modern ones take `{logo_tag}` and `{support_line}` instead of
+the raw values, so every path agrees. Setting `EMAIL_LOGO_URL` (or `SMTP_SENDER_LOGO`) and
+`EMAIL_SUPPORT_CONTACT` still puts a logo and an address in, exactly as 0021 advises. The decision record
+carries a dated update saying so rather than being rewritten.
+
+Also gone: an API field description a customer reads on the API Reference screen gave `ishaan@berri.ai` as
+its example metadata. No engine Python file now names `berri.ai`, `litellm-listing`, `docs.litellm.ai` or
+`ghcr.io/berriai`.
+
+### Verified
+
+- 38 tests over all seven templates: with nothing configured a rendered mail reaches no host at all and
+  names nobody; with both set the logo and address appear; the footer links nowhere; and a planted foreign
+  URL trips the leak check, because every other assertion is an absence
+- 12 of them fail when the upstream logo default is put back
+- 124 tests across the Slack alerting and invite-email suites
+- the name gate ratchets down 20 in `token_iq`, and both budget gates stay within ceiling
+
+### Both of the plan's "fixes along the way" were already shipped
+
+`split_line_item` splits "gpt-4.1, input" into model and meter, gives a no-model item a `None` model and
+keeps `fact_key` built from the raw item. The Bedrock connector documents role-plus-external-ID as
+recommended and static keys as not, and refuses a role ARN with no external ID rather than trying it,
+because without one anyone who learns the ARN can assume it from their own account.

@@ -52,6 +52,7 @@ from token_iq.gateway.types.proxy.model_deprecation import (
     DEPRECATION_IDLE_POLL_SECONDS,
 )
 
+from ..email_templates.email_footer import email_support_line, email_tag
 from ..email_templates.templates import *
 from .batching_handler import send_to_webhook, squash_payloads
 from .ms_teams import (
@@ -1268,10 +1269,11 @@ Model Info:
             email_logo_url = os.getenv("SMTP_SENDER_LOGO", os.getenv("EMAIL_LOGO_URL", None))
             email_support_contact = os.getenv("EMAIL_SUPPORT_CONTACT", None)
             await self._check_if_using_premium_email_feature(premium_user, email_logo_url, email_support_contact)
-            if email_logo_url is None:
-                email_logo_url = LITELLM_LOGO_URL
-            if email_support_contact is None:
-                email_support_contact = LITELLM_SUPPORT_CONTACT
+            # Neither falls back any more. They used to default to another company's logo, fetched
+            # from that company's S3 bucket every time a recipient opened the mail, and to its support
+            # address. Unset now renders nothing rather than someone else's brand.
+            logo_tag = email_tag(email_logo_url)
+            support_line = email_support_line(email_support_contact)
 
             event_name: Final = webhook_event.event_message
             recipient_email = webhook_event.user_email
@@ -1295,12 +1297,12 @@ Model Info:
 
             if webhook_event.event == "key_created":
                 email_html_content = KEY_CREATED_EMAIL_TEMPLATE.format(
-                    email_logo_url=email_logo_url,
+                    logo_tag=logo_tag,
                     recipient_email=recipient_email,
                     key_budget=key_budget,
                     key_token=key_token,
                     base_url=base_url,
-                    email_support_contact=email_support_contact,
+                    support_line=support_line,
                 )
             elif webhook_event.event == "internal_user_created":
                 # GET TEAM NAME
@@ -1314,11 +1316,11 @@ Model Info:
                     recipient_user_id=recipient_user_id, base_url=base_url
                 )
                 email_html_content = USER_INVITED_EMAIL_TEMPLATE.format(
-                    email_logo_url=email_logo_url,
+                    logo_tag=logo_tag,
                     recipient_email=recipient_email,
                     team_name=team_name,
                     base_url=invitation_link,
-                    email_support_contact=email_support_contact,
+                    support_line=support_line,
                 )
             else:
                 verbose_proxy_logger.error(
@@ -1360,10 +1362,8 @@ Model Info:
         email_support_contact = os.getenv("EMAIL_SUPPORT_CONTACT", None)
         await self._check_if_using_premium_email_feature(premium_user, email_logo_url, email_support_contact)
 
-        if email_logo_url is None:
-            email_logo_url = LITELLM_LOGO_URL
-        if email_support_contact is None:
-            email_support_contact = LITELLM_SUPPORT_CONTACT
+        logo_tag = email_tag(email_logo_url)
+        support_line = email_support_line(email_support_contact)
 
         event_name: Final = webhook_event.event_message
         recipient_email: Final = webhook_event.user_email
@@ -1375,7 +1375,7 @@ Model Info:
 
         if webhook_event.event == "budget_crossed":
             email_html_content = f"""
-            <img src="{email_logo_url}" alt="Token IQ Logo" width="150" height="50" />
+            {logo_tag}
 
             <p> Hi {user_name}, <br/>
 
@@ -1383,10 +1383,10 @@ Model Info:
 
             API requests will be rejected until either (a) you increase your monthly budget or (b) your monthly usage resets at the beginning of the next calendar month. <br /> <br />
 
-            If you have any questions, please send an email to {email_support_contact} <br /> <br />
+            {support_line}
 
             Best, <br />
-            The LiteLLM team <br />
+            The Token IQ team <br />
             """
 
         webhook_event.model_dump_json()
