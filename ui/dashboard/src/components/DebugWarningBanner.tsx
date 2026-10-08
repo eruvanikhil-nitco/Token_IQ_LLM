@@ -22,7 +22,7 @@ export const DebugWarningBanner: React.FC<DebugWarningBannerProps> = ({ accessTo
       <TriangleAlert className="size-4" aria-hidden />
       <AlertTitle>Performance Warning: Detailed Debug Mode Active</AlertTitle>
       <AlertDescription>
-        Detailed debug logging (<code>LITELLM_LOG=DEBUG</code>) is currently enabled. This mode logs extensive
+        Detailed debug logging (<code>TOKEN_IQ_LOG=DEBUG</code>) is currently enabled. This mode logs extensive
         diagnostic information and will significantly degrade performance. It should only be used for troubleshooting
         and disabled in production environments.
       </AlertDescription>

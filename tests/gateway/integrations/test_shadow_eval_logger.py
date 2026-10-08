@@ -43,8 +43,8 @@ def _job(**overrides) -> ActiveShadowEvalJob:
 def _prisma(jobs=(), attempt_counts=(), attempt_costs=()) -> MagicMock:
     costs = {job_id: {"judge_cost": judge, "shadow_cost": shadow} for job_id, judge, shadow in attempt_costs}
     prisma = MagicMock()
-    prisma.db.gateway_shadowevaljob.find_many = AsyncMock(return_value=list(jobs))
-    prisma.db.gateway_shadowevalattempt.group_by = AsyncMock(
+    prisma.db.shadowevaljob.find_many = AsyncMock(return_value=list(jobs))
+    prisma.db.shadowevalattempt.group_by = AsyncMock(
         return_value=[
             {
                 "job_id": job_id,
@@ -54,7 +54,7 @@ def _prisma(jobs=(), attempt_counts=(), attempt_costs=()) -> MagicMock:
             for job_id, count in attempt_counts
         ]
     )
-    prisma.db.gateway_shadowevalattempt.create = AsyncMock()
+    prisma.db.shadowevalattempt.create = AsyncMock()
     return prisma
 
 
@@ -245,7 +245,7 @@ class TestSurfaceNormalization:
         assert shadow_messages[0]["role"] == "system"
         assert shadow_messages[0]["content"] == "you are terse"
         assert shadow_messages[1]["role"] == "user"
-        prisma.db.gateway_shadowevalattempt.create.assert_called_once()
+        prisma.db.shadowevalattempt.create.assert_called_once()
 
     async def test_anthropic_bridge_path_recovers_system_from_proxy_wire_body(self):
         """On the openai-compatible bridge path kwargs carry no system (live-probed:
@@ -358,7 +358,7 @@ class TestSurfaceNormalization:
         assert shadow_messages[1]["role"] == "user"
         assert shadow_messages[1]["content"] == "what is 8+8"
         assert "tools" not in shadow_call
-        prisma.db.gateway_shadowevalattempt.create.assert_called_once()
+        prisma.db.shadowevalattempt.create.assert_called_once()
 
     @pytest.mark.parametrize(
         "response_mutation,kwargs_mutation",
@@ -407,7 +407,7 @@ class TestSurfaceNormalization:
         prisma, router = await self._drive(hook_kwargs, response)
 
         router.acompletion.assert_not_called()
-        prisma.db.gateway_shadowevalattempt.create.assert_not_called()
+        prisma.db.shadowevalattempt.create.assert_not_called()
 
     @pytest.mark.parametrize(
         "call_type,guardrail_mode,sampled",
@@ -440,10 +440,10 @@ class TestSurfaceNormalization:
         prisma, router = await self._drive(hook_kwargs, response)
 
         if sampled:
-            prisma.db.gateway_shadowevalattempt.create.assert_called_once()
+            prisma.db.shadowevalattempt.create.assert_called_once()
         else:
             router.acompletion.assert_not_called()
-            prisma.db.gateway_shadowevalattempt.create.assert_not_called()
+            prisma.db.shadowevalattempt.create.assert_not_called()
 
     @pytest.mark.parametrize(
         "call_type,messages,response_obj",
@@ -463,7 +463,7 @@ class TestSurfaceNormalization:
         prisma, router = await self._drive(hook_kwargs, response_obj)
 
         router.acompletion.assert_not_called()
-        prisma.db.gateway_shadowevalattempt.create.assert_not_called()
+        prisma.db.shadowevalattempt.create.assert_not_called()
 
 
 class TestSampling:
@@ -566,7 +566,7 @@ async def test_an_unverifiable_budget_skips_the_sample_instead_of_spending():
     await _drain(logger)
 
     router.acompletion.assert_not_called()
-    prisma.db.gateway_shadowevalattempt.create.assert_not_called()
+    prisma.db.shadowevalattempt.create.assert_not_called()
     assert logger._test_funnel == [("job-1", "withheld")]
 
 
@@ -594,7 +594,7 @@ class TestSuccessHookSkipChain:
         shadow_call = router.acompletion.call_args_list[0].kwargs
         assert shadow_call["temperature"] == 0.5
         assert "stream" not in shadow_call
-        create = prisma.db.gateway_shadowevalattempt.create
+        create = prisma.db.shadowevalattempt.create
         create.assert_awaited_once()
         row = create.call_args.kwargs["data"]
         assert row["job_id"] == "job-1"
@@ -607,7 +607,7 @@ class TestSuccessHookSkipChain:
         assert row["judge_cost"] == 0.005
         assert row["shadow_cost"] == 0.005
         assert row["error"] is None
-        assert prisma.db.gateway_shadowevaljob.find_many.await_count == 0
+        assert prisma.db.shadowevaljob.find_many.await_count == 0
 
     async def test_judge_call_carries_the_verdict_schema(self, monkeypatch: pytest.MonkeyPatch):
         from token_iq import gateway as gateway_module
@@ -649,7 +649,7 @@ class TestSuccessHookSkipChain:
         await logger.async_log_success_event(_success_kwargs(), RESPONSE, None, None)
         await _drain(logger)
 
-        row = prisma.db.gateway_shadowevalattempt.create.call_args.kwargs["data"]
+        row = prisma.db.shadowevalattempt.create.call_args.kwargs["data"]
         assert row["error"] is None
         assert row["outcome"] in ("real", "shadow", "tie")
 
@@ -677,7 +677,7 @@ class TestSuccessHookSkipChain:
         await logger.async_log_success_event(_success_kwargs(request_id="req-2"), RESPONSE, None, None)
         await _drain(logger)
 
-        rows = [c.kwargs["data"] for c in prisma.db.gateway_shadowevalattempt.create.call_args_list]
+        rows = [c.kwargs["data"] for c in prisma.db.shadowevalattempt.create.call_args_list]
         assert [rows[0]["outcome"], rows[1]["outcome"] in ("real", "shadow")] == ["error", True]
         assert "provider exploded" in rows[0]["error"]
         assert rows[1]["request_id"] == "req-2"
@@ -718,7 +718,7 @@ class TestSuccessHookSkipChain:
         await logger.async_log_success_event(_success_kwargs(**kwargs_mutation), RESPONSE, None, None)
         await _drain(logger)
 
-        prisma.db.gateway_shadowevalattempt.create.assert_not_called()
+        prisma.db.shadowevalattempt.create.assert_not_called()
         assert logger._job_starts.get("job-1", 0) == starts
 
     async def test_completed_pipelines_hold_turn_budget_within_a_cache_generation(self):
@@ -732,7 +732,7 @@ class TestSuccessHookSkipChain:
         await logger.async_log_success_event(_success_kwargs(request_id="req-2"), RESPONSE, None, None)
         await _drain(logger)
 
-        assert prisma.db.gateway_shadowevalattempt.create.await_count == 1
+        assert prisma.db.shadowevalattempt.create.await_count == 1
 
     async def test_completed_pipelines_hold_spend_budget_within_a_cache_generation(self, monkeypatch):
         """An attempt's recorded cost lands in the spend counter immediately, so the
@@ -749,7 +749,7 @@ class TestSuccessHookSkipChain:
         await logger.async_log_success_event(_success_kwargs(request_id="req-2"), RESPONSE, None, None)
         await _drain(logger)
 
-        assert prisma.db.gateway_shadowevalattempt.create.await_count == 1
+        assert prisma.db.shadowevalattempt.create.await_count == 1
         assert logger._test_counter["spend:shadow_eval:job-1"] == 0.01
 
     async def test_a_sibling_pod_sees_spend_through_the_shared_counter(self, monkeypatch):
@@ -774,8 +774,8 @@ class TestSuccessHookSkipChain:
         await pod_b.async_log_success_event(_success_kwargs(request_id="req-2"), RESPONSE, None, None)
         await _drain(pod_b)
 
-        assert prisma_a.db.gateway_shadowevalattempt.create.await_count == 1
-        prisma_b.db.gateway_shadowevalattempt.create.assert_not_called()
+        assert prisma_a.db.shadowevalattempt.create.await_count == 1
+        prisma_b.db.shadowevalattempt.create.assert_not_called()
         router_b.acompletion.assert_not_called()
 
     async def test_legacy_jobs_without_a_spend_budget_sample_on_turns_alone(self):
@@ -787,7 +787,7 @@ class TestSuccessHookSkipChain:
         await logger.async_log_success_event(_success_kwargs(request_id="req-1"), RESPONSE, None, None)
         await _drain(logger)
 
-        assert prisma.db.gateway_shadowevalattempt.create.await_count == 1
+        assert prisma.db.shadowevalattempt.create.await_count == 1
 
     async def test_v1_messages_surface_forwards_identity_from_litellm_metadata(self):
         """/v1/messages stores identity in litellm_params.litellm_metadata, so the hook
@@ -822,7 +822,7 @@ class TestSuccessHookSkipChain:
         await _drain(logger)
 
         router.acompletion.assert_not_called()
-        prisma.db.gateway_shadowevalattempt.create.assert_not_called()
+        prisma.db.shadowevalattempt.create.assert_not_called()
 
     async def test_inflight_cap_sheds_instead_of_queueing(self):
         prisma = _prisma()
@@ -832,7 +832,7 @@ class TestSuccessHookSkipChain:
         await logger.async_log_success_event(_success_kwargs(), RESPONSE, None, None)
 
         assert logger._inflight_shadow_tasks == _MAX_CONCURRENT_SHADOW_TASKS
-        prisma.db.gateway_shadowevalattempt.create.assert_not_called()
+        prisma.db.shadowevalattempt.create.assert_not_called()
 
 
 JWT_IDENTITY = {"user_api_key_hash": None, "user_api_key_team_id": "team-eng", "user_api_key_user_id": "dev-alice"}
@@ -864,11 +864,11 @@ class TestTargetMatching:
         await _drain(logger)
 
         if sampled:
-            prisma.db.gateway_shadowevalattempt.create.assert_awaited_once()
-            assert prisma.db.gateway_shadowevalattempt.create.call_args.kwargs["data"]["job_id"] == "job-1"
+            prisma.db.shadowevalattempt.create.assert_awaited_once()
+            assert prisma.db.shadowevalattempt.create.call_args.kwargs["data"]["job_id"] == "job-1"
         else:
             router.acompletion.assert_not_called()
-            prisma.db.gateway_shadowevalattempt.create.assert_not_called()
+            prisma.db.shadowevalattempt.create.assert_not_called()
 
     async def test_an_event_with_no_identity_early_returns_without_a_cache_read(self):
         prisma = _prisma()
@@ -887,7 +887,7 @@ class TestTargetMatching:
 
         cache.async_get_cache.assert_not_awaited()
         router.acompletion.assert_not_called()
-        prisma.db.gateway_shadowevalattempt.create.assert_not_called()
+        prisma.db.shadowevalattempt.create.assert_not_called()
 
     async def test_an_event_matching_a_key_job_and_a_team_job_fires_both(self):
         """A request's key and its team can each hold a job; the two are separately
@@ -910,7 +910,7 @@ class TestTargetMatching:
         await logger.async_log_success_event(hook_kwargs, RESPONSE, None, None)
         await _drain(logger)
 
-        rows = [call.kwargs["data"] for call in prisma.db.gateway_shadowevalattempt.create.call_args_list]
+        rows = [call.kwargs["data"] for call in prisma.db.shadowevalattempt.create.call_args_list]
         assert sorted(row["job_id"] for row in rows) == ["key-job", "team-job"]
         assert logger._job_starts == {"key-job": 1, "team-job": 1}
 
@@ -931,11 +931,11 @@ class TestActiveJobsCache:
 
         assert [job.id for job in first[("key", "key-hash")]] == ["job-1"]
         assert second[("key", "key-hash")][0].attempts == 7
-        assert prisma.db.gateway_shadowevaljob.find_many.await_count == 1
-        where = prisma.db.gateway_shadowevaljob.find_many.call_args.kwargs["where"]
+        assert prisma.db.shadowevaljob.find_many.await_count == 1
+        where = prisma.db.shadowevaljob.find_many.call_args.kwargs["where"]
         assert where["stopped_at"] is None
         assert "gt" in where["ends_at"]
-        count_where = prisma.db.gateway_shadowevalattempt.group_by.call_args.kwargs["where"]
+        count_where = prisma.db.shadowevalattempt.group_by.call_args.kwargs["where"]
         assert count_where == {"job_id": {"in": ["job-1"]}}
 
     async def test_no_active_jobs_is_cached_too(self):
@@ -948,12 +948,12 @@ class TestActiveJobsCache:
 
         assert await logger._active_jobs() == {}
         assert await logger._active_jobs() == {}
-        assert prisma.db.gateway_shadowevaljob.find_many.await_count == 1
-        prisma.db.gateway_shadowevalattempt.group_by.assert_not_called()
+        assert prisma.db.shadowevaljob.find_many.await_count == 1
+        prisma.db.shadowevalattempt.group_by.assert_not_called()
 
     async def test_db_fault_returns_empty_without_caching_the_fault(self):
         prisma = _prisma()
-        prisma.db.gateway_shadowevaljob.find_many = AsyncMock(side_effect=RuntimeError("db blip"))
+        prisma.db.shadowevaljob.find_many = AsyncMock(side_effect=RuntimeError("db blip"))
         logger = ShadowEvalLogger(
             router_provider=lambda: None,
             prisma_provider=lambda: prisma,
@@ -962,7 +962,7 @@ class TestActiveJobsCache:
 
         assert await logger._active_jobs() == {}
         assert await logger._active_jobs() == {}
-        assert prisma.db.gateway_shadowevaljob.find_many.await_count == 2
+        assert prisma.db.shadowevaljob.find_many.await_count == 2
 
     async def test_cache_refill_resets_the_starts_counter(self):
         job = _job()
@@ -1035,7 +1035,7 @@ class TestShadowPipeline:
         )
 
         router.acompletion.assert_not_called()
-        prisma.db.gateway_shadowevalattempt.create.assert_not_called()
+        prisma.db.shadowevalattempt.create.assert_not_called()
         assert logger._test_funnel == [("job-1", "withheld")]
 
     @pytest.mark.parametrize(
@@ -1083,7 +1083,7 @@ class TestShadowPipeline:
             parent_metadata={},
         )
 
-        row = prisma.db.gateway_shadowevalattempt.create.call_args.kwargs["data"]
+        row = prisma.db.shadowevalattempt.create.call_args.kwargs["data"]
         assert row["outcome"] == "error"
         assert expected_error in row["error"]
         assert row["confidence"] is None
@@ -1113,7 +1113,7 @@ class TestShadowPipeline:
             parent_metadata={},
         )
 
-        row = prisma.db.gateway_shadowevalattempt.create.call_args.kwargs["data"]
+        row = prisma.db.shadowevalattempt.create.call_args.kwargs["data"]
         assert row["outcome"] == "error"
         assert "empty response" in row["error"]
         assert row["shadow_cost"] == 0.007
@@ -1148,7 +1148,7 @@ class TestShadowPipeline:
             parent_metadata={},
         )
 
-        row = prisma.db.gateway_shadowevalattempt.create.call_args.kwargs["data"]
+        row = prisma.db.shadowevalattempt.create.call_args.kwargs["data"]
         assert row["outcome"] == "error"
         assert "pipeline error" in row["error"]
         assert row["shadow_cost"] == 0.007
@@ -1261,7 +1261,7 @@ class TestDirection:
         )
         await _drain(logger)
 
-        assert prisma.db.gateway_shadowevalattempt.create.await_count == attempt_rows
+        assert prisma.db.shadowevalattempt.create.await_count == attempt_rows
 
     async def test_reverse_duplicates_against_the_baseline_model(self):
         prisma = _prisma()
@@ -1284,7 +1284,7 @@ class TestDirection:
         )
         await _drain(logger)
 
-        row = prisma.db.gateway_shadowevalattempt.create.call_args.kwargs["data"]
+        row = prisma.db.shadowevalattempt.create.call_args.kwargs["data"]
         assert row["real_model"] == "router-pick"
         assert row["shadow_model"] == "baseline-model"
         assert row["tier"] == "COMPLEX"
@@ -1300,7 +1300,7 @@ class TestDirection:
         )
         await _drain(logger)
 
-        row = prisma.db.gateway_shadowevalattempt.create.call_args.kwargs["data"]
+        row = prisma.db.shadowevalattempt.create.call_args.kwargs["data"]
         assert row["tier"] == "SIMPLE"
         assert row["shadow_model"] == "cheap-model"
 
@@ -1318,7 +1318,7 @@ class TestDirection:
         await logger.async_log_success_event(_success_kwargs(request_metadata=_routed_by()), RESPONSE, None, None)
         await _drain(logger)
 
-        rows = [call.kwargs["data"] for call in prisma.db.gateway_shadowevalattempt.create.call_args_list]
+        rows = [call.kwargs["data"] for call in prisma.db.shadowevalattempt.create.call_args_list]
         assert sorted(row["job_id"] for row in rows) == ["forward-job", "reverse-job"]
         assert logger._job_starts == {"forward-job": 1, "reverse-job": 1}
 
@@ -1346,7 +1346,7 @@ class TestMultiRouterArms:
             parent_metadata={},
         )
 
-        rows = [call.kwargs["data"] for call in prisma.db.gateway_shadowevalattempt.create.await_args_list]
+        rows = [call.kwargs["data"] for call in prisma.db.shadowevalattempt.create.await_args_list]
         assert [row["router_name"] for row in rows] == ["my-router", "alt-router"]
         assert {row["request_id"] for row in rows} == {"req-1"}
         assert [row["shadow_model"] for row in rows] == ["cheap-model", "alt-router-pick"]
@@ -1371,7 +1371,7 @@ class TestMultiRouterArms:
             parent_metadata={},
         )
 
-        row = prisma.db.gateway_shadowevalattempt.create.call_args.kwargs["data"]
+        row = prisma.db.shadowevalattempt.create.call_args.kwargs["data"]
         assert row["router_name"] == "my-router"
 
     async def test_one_arms_failure_never_silences_the_sibling(self):
@@ -1401,7 +1401,7 @@ class TestMultiRouterArms:
             parent_metadata={},
         )
 
-        rows = [call.kwargs["data"] for call in prisma.db.gateway_shadowevalattempt.create.await_args_list]
+        rows = [call.kwargs["data"] for call in prisma.db.shadowevalattempt.create.await_args_list]
         assert [row["router_name"] for row in rows] == ["my-router", "alt-router"]
         assert rows[0]["outcome"] == "error"
         assert "provider exploded" in rows[0]["error"]
@@ -1421,7 +1421,7 @@ class TestMultiRouterArms:
         await logger.async_log_success_event(_success_kwargs(request_id="req-2"), RESPONSE, None, None)
         await _drain(logger)
 
-        rows = [call.kwargs["data"] for call in prisma.db.gateway_shadowevalattempt.create.await_args_list]
+        rows = [call.kwargs["data"] for call in prisma.db.shadowevalattempt.create.await_args_list]
         assert {row["request_id"] for row in rows} == {"req-1"}
         assert len(rows) == 2
 
@@ -1447,7 +1447,7 @@ class TestMultiRouterArms:
         )
 
         router.acompletion.assert_not_called()
-        prisma.db.gateway_shadowevalattempt.create.assert_not_called()
+        prisma.db.shadowevalattempt.create.assert_not_called()
         assert logger._test_funnel == [("job-1", "withheld")]
 
 
@@ -1549,7 +1549,7 @@ class TestCostComparison:
         await logger.async_log_success_event(_success_kwargs(response_cost=0.002), RESPONSE, None, None)
         await _drain(logger)
 
-        row = prisma.db.gateway_shadowevalattempt.create.call_args.kwargs["data"]
+        row = prisma.db.shadowevalattempt.create.call_args.kwargs["data"]
         assert row["real_cost"] == 0.002
         assert row["real_classifier_cost"] == 0.0
         assert row["shadow_classifier_cost"] == 0.0007
@@ -1572,7 +1572,7 @@ class TestCostComparison:
         )
         await _drain(logger)
 
-        row = prisma.db.gateway_shadowevalattempt.create.call_args.kwargs["data"]
+        row = prisma.db.shadowevalattempt.create.call_args.kwargs["data"]
         assert row["real_cost"] == 0.003
         assert row["real_classifier_cost"] == 0.0004
         assert row["shadow_classifier_cost"] == 0.0
@@ -1609,7 +1609,7 @@ class TestCostComparison:
         await logger.async_log_success_event(_success_kwargs(response_cost=0.0, cache_hit=True), RESPONSE, None, None)
         await _drain(logger)
 
-        row = prisma.db.gateway_shadowevalattempt.create.call_args.kwargs["data"]
+        row = prisma.db.shadowevalattempt.create.call_args.kwargs["data"]
         assert row["real_cache_hit"] is True
         assert row["real_cost"] == 0.0
 
@@ -1632,7 +1632,7 @@ class TestCostComparison:
         await logger.async_log_success_event(_success_kwargs(response_cost=0.002), RESPONSE, None, None)
         await _drain(logger)
 
-        row = prisma.db.gateway_shadowevalattempt.create.call_args.kwargs["data"]
+        row = prisma.db.shadowevalattempt.create.call_args.kwargs["data"]
         assert row["outcome"] == "error"
         assert row["shadow_classifier_cost"] == 0.0007
         assert row["real_cost"] == 0.002
@@ -1653,7 +1653,7 @@ class TestSamplingFunnel:
         await _drain(logger)
 
         router.acompletion.assert_not_called()
-        prisma.db.gateway_shadowevalattempt.create.assert_not_called()
+        prisma.db.shadowevalattempt.create.assert_not_called()
         assert logger._test_funnel == [("job-1", "withheld")]
 
     """Skips an admitting job cannot derive from attempt rows are counted per leg, so the
@@ -1673,7 +1673,7 @@ class TestSamplingFunnel:
         await _drain(logger)
 
         assert logger._test_funnel == [("job-1", "not_sampled")]
-        prisma.db.gateway_shadowevalattempt.create.assert_not_awaited()
+        prisma.db.shadowevalattempt.create.assert_not_awaited()
 
     async def test_an_unjudgeable_sampled_request_counts_unjudgeable(self):
         prisma = _prisma()
@@ -1684,7 +1684,7 @@ class TestSamplingFunnel:
         await _drain(logger)
 
         assert logger._test_funnel == [("job-1", "unjudgeable")]
-        prisma.db.gateway_shadowevalattempt.create.assert_not_awaited()
+        prisma.db.shadowevalattempt.create.assert_not_awaited()
 
     async def test_a_concurrency_shed_counts_shed_and_starts_nothing(self):
         prisma = _prisma()
@@ -1695,7 +1695,7 @@ class TestSamplingFunnel:
 
         assert logger._test_funnel == [("job-1", "shed")]
         assert logger._job_starts == {}
-        prisma.db.gateway_shadowevalattempt.create.assert_not_awaited()
+        prisma.db.shadowevalattempt.create.assert_not_awaited()
         logger._inflight_shadow_tasks = 0
 
     async def test_direction_mismatch_and_saturated_jobs_count_nothing(self):
@@ -1708,4 +1708,4 @@ class TestSamplingFunnel:
         await _drain(logger)
 
         assert logger._test_funnel == []
-        prisma.db.gateway_shadowevalattempt.create.assert_not_awaited()
+        prisma.db.shadowevalattempt.create.assert_not_awaited()

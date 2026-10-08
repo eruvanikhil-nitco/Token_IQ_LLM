@@ -237,12 +237,13 @@ function LoginPageContent() {
                   <AlertDescription>
                     <p className="text-sm">
                       By default, Username is <code className="bg-muted px-1 py-0.5 rounded-sm text-xs">admin</code> and
-                      Password is your set Token IQ
-                      <code className="bg-muted px-1 py-0.5 rounded-sm text-xs">MASTER_KEY</code>.
+                      Password is your set{" "}
+                      <code className="bg-muted px-1 py-0.5 rounded-sm text-xs">TOKEN_IQ_MASTER_KEY</code>.
                     </p>
                     <p className="mt-2 text-sm">
-                      Need to set UI credentials or SSO?
-                      .
+                      Need different credentials? Set{" "}
+                      <code className="bg-muted px-1 py-0.5 rounded-sm text-xs">UI_USERNAME</code> and{" "}
+                      <code className="bg-muted px-1 py-0.5 rounded-sm text-xs">UI_PASSWORD</code>, or configure SSO.
                     </p>
                   </AlertDescription>
                 </Alert>

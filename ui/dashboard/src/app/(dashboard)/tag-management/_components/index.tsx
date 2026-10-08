@@ -153,9 +153,7 @@ const TagManagement: React.FC<TagProps> = ({ accessToken, userID, userRole }) =>
           <div className="mb-4 text-sm">
             Click on a tag name to view and edit its details.
             <p>
-              You can use tags to restrict the usage of certain LLMs based on tags passed in the request. Read more
-              about tag routing
-              .
+              You can use tags to restrict the usage of certain LLMs based on tags passed in the request.
             </p>
           </div>
 

@@ -111,9 +111,7 @@ def _summary_row_or_none(row: object) -> SummaryRow | None:
     )
 
 
-def _recent_facts_where(
-    provider: str, before: datetime | None, before_fact_key: str | None
-) -> Mapping[str, object]:
+def _recent_facts_where(provider: str, before: datetime | None, before_fact_key: str | None) -> Mapping[str, object]:
     """The `where` clause for `recent_facts`.
 
     bucket_start alone is not unique (see `recent_facts`), so once a caller carries a
@@ -252,7 +250,7 @@ class ProviderUsageFactRepository:
 
     @property
     def _table(self) -> Any:  # any-ok: PrismaClient is an untyped runtime wrapper
-        return self._db.gateway_providerusagefact
+        return self._db.providerusagefact
 
     async def upsert_many(self, facts: Sequence[ProviderUsageFact]) -> int:
         """Write facts, overwriting any already stored under the same fact_key."""
@@ -271,9 +269,7 @@ class ProviderUsageFactRepository:
         rows: Final = await self._table.find_many(
             where={"provider": provider, "provider_request_id": {"in": list(request_ids)}}
         )
-        return frozenset(
-            found for row in rows if isinstance(found := getattr(row, "provider_request_id", None), str)
-        )
+        return frozenset(found for row in rows if isinstance(found := getattr(row, "provider_request_id", None), str))
 
     async def counts_by_credential(self, provider: str) -> Mapping[str, int]:
         """How many facts each account has produced, for deciding whether it has ever worked."""
@@ -282,8 +278,7 @@ class ProviderUsageFactRepository:
             {
                 name: count
                 for row in rows
-                if isinstance(name := _read(row, "credential_name"), str)
-                and isinstance(count := _count_of(row), int)
+                if isinstance(name := _read(row, "credential_name"), str) and isinstance(count := _count_of(row), int)
             }
         )
 

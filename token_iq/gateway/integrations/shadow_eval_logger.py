@@ -654,14 +654,14 @@ class ShadowEvalLogger(CustomLogger):
         if prisma is None:
             return _EMPTY_JOBS
         try:
-            records: Final = await prisma.db.gateway_shadowevaljob.find_many(
+            records: Final = await prisma.db.shadowevaljob.find_many(
                 where={  # mutable-ok: Prisma filter
                     "stopped_at": None,
                     "ends_at": {"gt": datetime.now(timezone.utc)},  # mutable-ok: Prisma filter
                 },
             )
             grouped: Final = (
-                await prisma.db.gateway_shadowevalattempt.group_by(
+                await prisma.db.shadowevalattempt.group_by(
                     by=["job_id"],
                     count=True,
                     # mutable-ok: Prisma aggregate spec
@@ -1023,7 +1023,7 @@ class ShadowEvalLogger(CustomLogger):
         if prisma is None:
             return
         try:
-            await prisma.db.gateway_shadowevalattempt.create(
+            await prisma.db.shadowevalattempt.create(
                 data={  # mutable-ok: Prisma payload
                     "job_id": job.id,
                     "request_id": request_id,

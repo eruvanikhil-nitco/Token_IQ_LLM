@@ -26,7 +26,7 @@ export const NoRedisWarningBanner: React.FC<NoRedisWarningBannerProps> = ({ acce
         <p>
           This proxy is running more than one worker (or the worker count could not be verified). Without Redis, rate
           limits, budgets, router state, and cache invalidation are per worker, so limits are enforced once per worker
-          and spend can overshoot. Set <code className="font-mono">LITELLM_DISABLE_NO_REDIS_WARNING=true</code> to hide this banner anyway.
+          and spend can overshoot. Set <code className="font-mono">TOKEN_IQ_DISABLE_NO_REDIS_WARNING=true</code> to hide this banner anyway.
         </p>
       </div>
     </div>

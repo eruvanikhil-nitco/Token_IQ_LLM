@@ -26,8 +26,8 @@ def _fact(key: str = "openrouter:gen-1") -> ProviderUsageFact:
 
 def _client() -> MagicMock:
     client = MagicMock()
-    client.db.gateway_providerusagefact.upsert = AsyncMock(return_value=MagicMock())
-    client.db.gateway_providerusagefact.find_many = AsyncMock(return_value=[])
+    client.db.providerusagefact.upsert = AsyncMock(return_value=MagicMock())
+    client.db.providerusagefact.find_many = AsyncMock(return_value=[])
     return client
 
 
@@ -42,8 +42,8 @@ async def test_refetching_the_same_fact_updates_rather_than_duplicates():
     written = await ProviderUsageFactRepository(client).upsert_many([_fact(), _fact()])
 
     assert written == 2
-    assert client.db.gateway_providerusagefact.upsert.await_count == 2
-    for call in client.db.gateway_providerusagefact.upsert.await_args_list:
+    assert client.db.providerusagefact.upsert.await_count == 2
+    for call in client.db.providerusagefact.upsert.await_args_list:
         assert call.kwargs["where"] == {"fact_key": "openrouter:gen-1"}
 
 
@@ -56,7 +56,7 @@ async def test_the_cost_reaches_the_database_as_a_string_not_a_float():
     client = _client()
     await ProviderUsageFactRepository(client).upsert_many([_fact()])
 
-    created = client.db.gateway_providerusagefact.upsert.await_args_list[0].kwargs["data"]["create"]
+    created = client.db.providerusagefact.upsert.await_args_list[0].kwargs["data"]["create"]
     assert isinstance(created["billed_cost"], str)
     assert created["billed_cost"] == "0.0000025"
 
@@ -68,7 +68,7 @@ async def test_writing_nothing_touches_the_database_not_at_all():
     client = _client()
 
     assert await ProviderUsageFactRepository(client).upsert_many([]) == 0
-    client.db.gateway_providerusagefact.upsert.assert_not_awaited()
+    client.db.providerusagefact.upsert.assert_not_awaited()
 
 
 @pytest.mark.asyncio
@@ -78,7 +78,7 @@ async def test_already_fetched_requests_are_reported_so_they_can_be_skipped():
     from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = _client()
-    client.db.gateway_providerusagefact.find_many = AsyncMock(
+    client.db.providerusagefact.find_many = AsyncMock(
         return_value=[MagicMock(provider_request_id="gen-1")]
     )
 
@@ -98,7 +98,7 @@ async def test_asking_about_no_requests_does_not_query():
     assert await ProviderUsageFactRepository(client).request_ids_already_fetched(
         provider="openrouter", request_ids=[]
     ) == frozenset()
-    client.db.gateway_providerusagefact.find_many.assert_not_awaited()
+    client.db.providerusagefact.find_many.assert_not_awaited()
 
 
 @pytest.mark.asyncio
@@ -110,7 +110,7 @@ async def test_the_providers_own_payload_is_written_to_the_raw_column():
     table = MagicMock()
     table.upsert = AsyncMock()
     client = MagicMock()
-    client.db.gateway_providerusagefact = table
+    client.db.providerusagefact = table
 
     fact = ProviderUsageFact(
         fact_key="openai:acct:2026-09-15:gpt-4o",
@@ -137,7 +137,7 @@ async def test_counts_by_credential_reads_the_all_count_prisma_actually_returns(
     from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = _client()
-    client.db.gateway_providerusagefact.group_by = AsyncMock(
+    client.db.providerusagefact.group_by = AsyncMock(
         return_value=[
             {"credential_name": "prod", "_count": {"_all": 40}},
             {"credential_name": "staging", "_count": {"_all": 0}},
@@ -147,7 +147,7 @@ async def test_counts_by_credential_reads_the_all_count_prisma_actually_returns(
     counts = await ProviderUsageFactRepository(client).counts_by_credential("openai")
 
     assert dict(counts) == {"prod": 40, "staging": 0}
-    client.db.gateway_providerusagefact.group_by.assert_awaited_once_with(
+    client.db.providerusagefact.group_by.assert_awaited_once_with(
         by=["credential_name"], where={"provider": "openai"}, count=True
     )
 
@@ -159,7 +159,7 @@ async def test_counts_by_credential_drops_a_row_it_cannot_read():
     from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = _client()
-    client.db.gateway_providerusagefact.group_by = AsyncMock(
+    client.db.providerusagefact.group_by = AsyncMock(
         return_value=[
             {"credential_name": "prod", "_count": {"_all": 5}},
             {"_count": {"_all": 3}},
@@ -360,7 +360,7 @@ async def test_recent_facts_are_bounded_ordered_newest_first_in_the_database():
     table = MagicMock()
     table.find_many = AsyncMock(return_value=[])
     client = MagicMock()
-    client.db.gateway_providerusagefact = table
+    client.db.providerusagefact = table
 
     await ProviderUsageFactRepository(client).recent_facts(provider="openai", limit=50, before=None)
 
@@ -383,7 +383,7 @@ async def test_paging_asks_only_for_rows_older_than_the_cursor():
     table = MagicMock()
     table.find_many = AsyncMock(return_value=[])
     client = MagicMock()
-    client.db.gateway_providerusagefact = table
+    client.db.providerusagefact = table
     cursor = datetime(2026, 9, 15, tzinfo=timezone.utc)
 
     await ProviderUsageFactRepository(client).recent_facts(provider="openai", limit=10, before=cursor)
@@ -406,7 +406,7 @@ async def test_the_fact_key_tiebreaker_keeps_rows_tied_on_bucket_start_reachable
     table = MagicMock()
     table.find_many = AsyncMock(return_value=[])
     client = MagicMock()
-    client.db.gateway_providerusagefact = table
+    client.db.providerusagefact = table
     cursor = datetime(2026, 9, 15, tzinfo=timezone.utc)
 
     await ProviderUsageFactRepository(client).recent_facts(
@@ -455,7 +455,7 @@ async def test_recent_facts_carry_the_raw_payload_and_exact_cost_unchanged():
     table = MagicMock()
     table.find_many = AsyncMock(return_value=[_fact_row()])
     client = MagicMock()
-    client.db.gateway_providerusagefact = table
+    client.db.providerusagefact = table
 
     page = await ProviderUsageFactRepository(client).recent_facts(provider="openrouter", limit=50, before=None)
 
@@ -476,7 +476,7 @@ async def test_recent_facts_drops_a_row_it_cannot_read_rather_than_fabricating_i
         return_value=[_fact_row(), _fact_row(fact_key="openrouter:gen-2", evidence="guessed")]
     )
     client = MagicMock()
-    client.db.gateway_providerusagefact = table
+    client.db.providerusagefact = table
 
     page = await ProviderUsageFactRepository(client).recent_facts(provider="openrouter", limit=50, before=None)
 
@@ -498,7 +498,7 @@ async def test_a_full_database_page_stays_full_even_when_one_row_is_dropped():
         return_value=[_fact_row(), _fact_row(fact_key="openrouter:gen-2", evidence="guessed")]
     )
     client = MagicMock()
-    client.db.gateway_providerusagefact = table
+    client.db.providerusagefact = table
 
     page = await ProviderUsageFactRepository(client).recent_facts(provider="openrouter", limit=2, before=None)
 
@@ -513,7 +513,7 @@ async def test_next_cursor_is_none_when_the_database_page_is_short():
     table = MagicMock()
     table.find_many = AsyncMock(return_value=[_fact_row()])
     client = MagicMock()
-    client.db.gateway_providerusagefact = table
+    client.db.providerusagefact = table
 
     page = await ProviderUsageFactRepository(client).recent_facts(provider="openrouter", limit=50, before=None)
 
@@ -530,7 +530,7 @@ async def test_the_meter_reaches_the_database_beside_the_model():
     fact = dataclasses.replace(_fact(), model="gpt-4.1-2026-04-14", meter="input")
     await ProviderUsageFactRepository(client).upsert_many([fact])
 
-    written = client.db.gateway_providerusagefact.upsert.await_args_list[0].kwargs["data"]["create"]
+    written = client.db.providerusagefact.upsert.await_args_list[0].kwargs["data"]["create"]
     assert written["model"] == "gpt-4.1-2026-04-14"
     assert written["meter"] == "input"
 
@@ -544,6 +544,6 @@ async def test_a_charge_against_no_model_still_records_its_meter():
     fact = dataclasses.replace(_fact(), model=None, meter="web search tool calls")
     await ProviderUsageFactRepository(client).upsert_many([fact])
 
-    written = client.db.gateway_providerusagefact.upsert.await_args_list[0].kwargs["data"]["create"]
+    written = client.db.providerusagefact.upsert.await_args_list[0].kwargs["data"]["create"]
     assert written["model"] is None
     assert written["meter"] == "web search tool calls"

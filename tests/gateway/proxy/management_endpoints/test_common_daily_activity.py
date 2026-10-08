@@ -70,12 +70,12 @@ async def test_get_daily_activity_empty_entity_id_list():
     mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
 
     # Set the table name dynamically
-    mock_prisma.db.litellm_dailyspend = mock_table
+    mock_prisma.db.dailyteamspend = mock_table
 
     # Call the function with empty entity_id list
     result = await get_daily_activity(
         prisma_client=mock_prisma,
-        table_name="litellm_dailyspend",
+        table_name="dailyteamspend",
         entity_id_field="team_id",
         entity_id=[],
         entity_metadata_field=None,
@@ -119,11 +119,11 @@ async def test_get_daily_activity_order_has_id_tiebreaker():
     _stub_window_totals(mock_table, [])
     mock_prisma.db.verificationtoken = MagicMock()
     mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
-    mock_prisma.db.litellm_dailyspend = mock_table
+    mock_prisma.db.dailyteamspend = mock_table
 
     await get_daily_activity(
         prisma_client=mock_prisma,
-        table_name="litellm_dailyspend",
+        table_name="dailyteamspend",
         entity_id_field="team_id",
         entity_id="team-1",
         entity_metadata_field=None,

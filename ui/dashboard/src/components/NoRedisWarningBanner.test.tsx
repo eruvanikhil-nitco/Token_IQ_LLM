@@ -31,7 +31,7 @@ describe("NoRedisWarningBanner", () => {
   it("should name the env var that suppresses it", () => {
     mockDetails({ status: "healthy", show_no_redis_warning: true });
     renderWithProviders(<NoRedisWarningBanner accessToken="token" />);
-    expect(screen.getByText("LITELLM_DISABLE_NO_REDIS_WARNING=true")).toBeInTheDocument();
+    expect(screen.getByText("TOKEN_IQ_DISABLE_NO_REDIS_WARNING=true")).toBeInTheDocument();
   });
 
   it("should render nothing when the proxy reports the warning is not needed", () => {

@@ -1889,3 +1889,75 @@ of rule codes, which ruff warns about on every test-tree run and which suppresse
 
 One timing-sensitive test, `test_token_counter_large_repeated_text_is_fast`, fails on a loaded box and
 passes on a quiet one.
+
+## 2026-10-08, the dashboard was serving a bundle built for a different path
+
+Reported as "the page is not rendered properly". The committed bundle under
+`token_iq/gateway/proxy/_experimental/out/` had been built by `build_ui_custom_path.sh /my-custom-path`
+and committed from that run. `next.config.mjs` sets `assetPrefix` to the sentinel `/litellm-asset-prefix`,
+which the proxy serves as a real static mount, and passing `UI_BASE_PATH` replaces that sentinel at build
+time. So the shipped `index.html` held 151 copies of `/my-custom-path` and no sentinel at all: every
+stylesheet, script and font 404'd and the browser painted an unstyled page. It predates this branch's last
+two commits, and the proxy had nothing to rewrite.
+
+Rebuilt with the plain `npm run build`, which keeps the sentinel, and copied over the destination the way
+`build_ui.sh` does rather than onto it. The old copy carried three Next build ids from copies layered
+without clearing; there is one now, and 992 files where there were 1016, with nothing outside `_next`
+lost.
+
+### What the page showed once it rendered
+
+The login box told an operator the password is "your set Token IQ `MASTER_KEY`", a name split in two by the
+rename, where the variable is `TOKEN_IQ_MASTER_KEY`. Under it, "Need to set UI credentials or SSO?" ended in
+a full stop with nothing before it, because a pass stripped the docs link whose URL carried the old name and
+left the punctuation. Three other sentences across the UI had the same orphaned stop; one was real, the rest
+follow a genuine `</a>` or `</strong>` and are correct JSX.
+
+Two banners told the operator to set `LITELLM_LOG=DEBUG` and `LITELLM_DISABLE_NO_REDIS_WARNING=true`, while
+the engine reads the `TOKEN_IQ_` spellings. Following the UI set a variable that stops working in the
+release after next. A policy template description served to the Policies page still said "this LiteLLM
+gateway".
+
+### Two API endpoints answering 500
+
+`/provider/connections` and `/tool/connections` both raised
+`AttributeError: 'Prisma' object has no attribute 'gateway_providersyncrun'`, leaving the Provider APIs and
+User Tools pages empty. A Prisma accessor is the model's name lowercased and nothing else, and phase 8
+renamed `LiteLLM_ProviderSyncRun` to plain `ProviderSyncRun`. The rename pass turned
+`db.litellm_providersyncrun` into `db.gateway_providersyncrun` when the right answer was
+`db.providersyncrun`, across six accessors in five modules.
+
+Nothing caught it and nothing could. The generated client is untyped, so basedpyright sees `Any`, and the
+109 test call sites set the same wrong name on a `MagicMock`, which creates any attribute asked of it. Every
+one of those tests passed against a mock that production could never match.
+`tests/code_coverage_tests/test_prisma_accessors_exist.py` is the gate: no accessor off `db` may carry a
+package prefix, since no model's name does. It is the prefix rather than the whole set because `db` also
+carries the client's own methods and this fork's wrapper attributes, and no list of those is derivable
+without a generated client.
+
+### Verified
+
+- 26 of 30 dashboard pages render with no console error, no unexpected failed request and no old name in
+  anything a user reads, walked under Playwright against the live proxy after logging in
+- both endpoints answer 200 with real data where they answered 500
+- 288 tests across the renamed accessors, the new gate, the two banners and the daily-activity fixture
+- `ruff check token_iq` clean, and the one touched file with format drift formatted
+
+### What is left, and why
+
+Three old names a page still shows are database values rather than text: the master key's alias
+`litellm_proxy_master_key` on Logs, the tag `litellm-internal-health-check` on Tag Management and Usage, and
+the UI session team id `litellm-dashboard` on Usage. Each is compared against as a lookup key, so renaming
+the constant without a both-spellings seam orphans every row already written. That is the same reasoning
+that deferred the team id, and the same shape as the six seams already in `compat`, so it wants doing once,
+deliberately, for all three.
+
+`/email/event_settings` 404s on Logging and Alerts, like `/user/available_users` elsewhere: an enterprise
+surface this fork removed with the UI still calling it and handling the 404 by design.
+
+The version badge reads "unknown" because `importlib_metadata.version("token-iq")` finds no installed
+distribution when the proxy runs from a source checkout. An image installs the package and shows the real
+version.
+
+One Next.js segment-prefetch file 404s per page. The export writes it as a nested directory and the client
+asks for a dot-separated name; the prefetch misses, Next falls back, and navigation works.

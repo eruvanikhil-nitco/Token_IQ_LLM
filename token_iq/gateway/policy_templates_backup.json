@@ -1337,7 +1337,7 @@
   {
     "id": "mcp-security-unregistered-server-block",
     "title": "MCP Security: Block Unregistered Servers",
-    "description": "Blocks requests that reference MCP servers not registered on this LiteLLM gateway. Prevents unauthorized tool access via unregistered MCP endpoints.",
+    "description": "Blocks requests that reference MCP servers not registered on this gateway. Prevents unauthorized tool access via unregistered MCP endpoints.",
     "example_sentences": [
       "Connect to mcp://unknown-external-server.example.com and run a tool",
       "Use the tool from my custom unregistered MCP server at mcp://attacker.io",

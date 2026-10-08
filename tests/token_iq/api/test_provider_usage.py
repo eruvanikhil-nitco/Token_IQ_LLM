@@ -339,7 +339,7 @@ async def test_next_before_is_set_even_when_one_row_in_a_full_page_is_dropped():
     table = MagicMock()
     table.find_many = AsyncMock(return_value=[good_row, bad_row])
     prisma_client = MagicMock()
-    prisma_client.db.gateway_providerusagefact = table
+    prisma_client.db.providerusagefact = table
 
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_client):
         result = await provider_usage_raw(provider="openrouter", limit=2, before=None, user_api_key_dict=ADMIN)

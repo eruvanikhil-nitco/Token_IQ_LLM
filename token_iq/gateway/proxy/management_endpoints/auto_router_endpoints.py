@@ -181,15 +181,15 @@ def _user_rows(prisma_client: "PrismaClient") -> _UserRowsTable:
 
 
 def _shadow_eval_jobs(prisma_client: "PrismaClient") -> _ShadowEvalJobTable:
-    return prisma_client.db.gateway_shadowevaljob
+    return prisma_client.db.shadowevaljob
 
 
 def _shadow_eval_funnel(prisma_client: "PrismaClient") -> _ShadowEvalFunnelTable:
-    return prisma_client.db.gateway_shadowevalfunnel  # pyright: ignore[reportAttributeAccessIssue]  # generated client
+    return prisma_client.db.shadowevalfunnel  # pyright: ignore[reportAttributeAccessIssue]  # generated client
 
 
 def _shadow_eval_attempts(prisma_client: "PrismaClient") -> _ShadowEvalAttemptTable:
-    return prisma_client.db.gateway_shadowevalattempt
+    return prisma_client.db.shadowevalattempt
 
 
 async def _query_raw(prisma_client: "PrismaClient", query: str, *args: object) -> Sequence[Mapping[str, object]]:

@@ -80,10 +80,10 @@ def _make_prisma(stored: dict, db_has_id_jag_server: bool = False):
     async def _update(where, data):
         stored[where["user_id"]] = data["assertion_b64"]
 
-    prisma.db.gateway_ssoidentityassertion.upsert = AsyncMock(side_effect=_upsert)
-    prisma.db.gateway_ssoidentityassertion.find_unique = AsyncMock(side_effect=_find_unique)
-    prisma.db.gateway_ssoidentityassertion.find_many = AsyncMock(side_effect=_find_many)
-    prisma.db.gateway_ssoidentityassertion.update = AsyncMock(side_effect=_update)
+    prisma.db.ssoidentityassertion.upsert = AsyncMock(side_effect=_upsert)
+    prisma.db.ssoidentityassertion.find_unique = AsyncMock(side_effect=_find_unique)
+    prisma.db.ssoidentityassertion.find_many = AsyncMock(side_effect=_find_many)
+    prisma.db.ssoidentityassertion.update = AsyncMock(side_effect=_update)
     return prisma
 
 
@@ -270,7 +270,7 @@ async def test_retain_noop_when_no_id_jag_server():
         await retain_sso_identity_assertion_for_ema(
             user_id="user-a", assertion=assertion_from_sso_login(_make_id_token(), None)
         )
-    prisma.db.gateway_ssoidentityassertion.upsert.assert_not_called()
+    prisma.db.ssoidentityassertion.upsert.assert_not_called()
     assert stored == {}
 
 
@@ -303,7 +303,7 @@ async def test_retain_none_assertion_never_consults_gate_or_store():
 @pytest.mark.asyncio
 async def test_retain_swallows_store_failure():
     prisma = MagicMock()
-    prisma.db.gateway_ssoidentityassertion.upsert = AsyncMock(side_effect=RuntimeError("db down"))
+    prisma.db.ssoidentityassertion.upsert = AsyncMock(side_effect=RuntimeError("db down"))
     with (
         patch("token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager") as manager,
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
@@ -351,7 +351,7 @@ async def test_db_store_converts_a_driver_failure_into_assertion_store_unavailab
     """The live store must not let a raw driver error escape: the resolver distinguishes an outage
     from an absent assertion, and only a typed failure lets it do that."""
     prisma = MagicMock()
-    prisma.db.gateway_ssoidentityassertion.find_unique = AsyncMock(side_effect=RuntimeError("connection refused"))
+    prisma.db.ssoidentityassertion.find_unique = AsyncMock(side_effect=RuntimeError("connection refused"))
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
         with pytest.raises(AssertionStoreUnavailable):
             await DbSSOAssertionStore().fetch("alice")

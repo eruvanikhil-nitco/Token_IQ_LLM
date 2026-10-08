@@ -986,11 +986,11 @@ def _shadow_prisma(
         )
         return {field: getattr(row, field) for field in fields}
 
-    prisma.db.gateway_shadowevaljob.find_many = AsyncMock(side_effect=find_many_legs)
-    prisma.db.gateway_shadowevaljob.create_many = AsyncMock(return_value=1)
-    prisma.db.gateway_shadowevaljob.update_many = AsyncMock(return_value=1)
-    prisma.db.gateway_shadowevalattempt.find_first = AsyncMock(return_value=None)
-    prisma.db.gateway_shadowevalfunnel.create_many = AsyncMock(return_value=1)
+    prisma.db.shadowevaljob.find_many = AsyncMock(side_effect=find_many_legs)
+    prisma.db.shadowevaljob.create_many = AsyncMock(return_value=1)
+    prisma.db.shadowevaljob.update_many = AsyncMock(return_value=1)
+    prisma.db.shadowevalattempt.find_first = AsyncMock(return_value=None)
+    prisma.db.shadowevalfunnel.create_many = AsyncMock(return_value=1)
     prisma.attempt_rows = []
 
     async def query_raw(sql: str, *params: object):
@@ -1197,7 +1197,7 @@ async def test_get_shadow_eval_job_pools_counts_and_slices_results_per_key(monke
         agg_rows=tier_rows,
         by_leg_rows=leg_rows,
     )
-    prisma.db.gateway_shadowevalattempt.find_first = AsyncMock(return_value=MagicMock(error="judge call failed: boom"))
+    prisma.db.shadowevalattempt.find_first = AsyncMock(return_value=MagicMock(error="judge call failed: boom"))
     monkeypatch.setattr(proxy_server, "prisma_client", prisma)
 
     response = await get_shadow_eval_job("job-1", VIEWER)
@@ -1232,7 +1232,7 @@ async def test_get_shadow_eval_job_pools_counts_and_slices_results_per_key(monke
     ]
     totals_args = [call.args for call in prisma.db.query_raw.await_args_list if "judged_count" in call.args[0]]
     assert totals_args == [(totals_args[0][0], ["leg-1", "leg-2"])]
-    error_where = prisma.db.gateway_shadowevalattempt.find_first.call_args.kwargs["where"]
+    error_where = prisma.db.shadowevalattempt.find_first.call_args.kwargs["where"]
     assert error_where == {"job_id": {"in": ["leg-1", "leg-2"]}, "outcome": "error"}
 
 
@@ -1358,7 +1358,7 @@ async def test_list_shadow_eval_jobs_collapses_legs_into_jobs_newest_first(monke
     assert prisma.db.query_raw.await_count == 2
     group_reads = [
         call
-        for call in prisma.db.gateway_shadowevaljob.find_many.call_args_list
+        for call in prisma.db.shadowevaljob.find_many.call_args_list
         if "group_id" in call.kwargs.get("where", {})
     ]
     assert group_reads == []
@@ -1597,7 +1597,7 @@ async def test_stop_rejects_a_job_that_already_spent_its_budget(monkeypatch: pyt
         await stop_shadow_eval_job("job-1", ADMIN)
     assert exhausted.value.status_code == 400
     assert "completed" in exhausted.value.detail
-    prisma.db.gateway_shadowevaljob.update_many.assert_not_called()
+    prisma.db.shadowevaljob.update_many.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -1644,7 +1644,7 @@ async def test_stop_rejects_a_job_whose_dollar_budget_is_spent(monkeypatch: pyte
         await stop_shadow_eval_job("job-1", ADMIN)
     assert exhausted.value.status_code == 400
     assert "completed" in exhausted.value.detail
-    prisma.db.gateway_shadowevaljob.update_many.assert_not_called()
+    prisma.db.shadowevaljob.update_many.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -1694,7 +1694,7 @@ async def test_stop_shadow_eval_stops_every_unstopped_leg_and_rejects_non_runnin
     assert (stop_group, stop_operator) == ("job-1", "admin")
     assert datetime.fromisoformat(stop_stamp).tzinfo is None
     assert prisma.db.execute_raw.await_count == 1
-    prisma.db.gateway_shadowevaljob.update_many.assert_not_called()
+    prisma.db.shadowevaljob.update_many.assert_not_called()
     by_target = {target.target_id: target.stopped_at for target in stopped.targets}
     assert by_target["key-hash-2"] == earned
     assert by_target["key-hash"] is not None and by_target["key-hash"] != earned
@@ -1888,7 +1888,7 @@ async def test_a_stop_racing_the_last_budgeted_attempt_reports_completed_not_sto
         await stop_shadow_eval_job("job-1", ADMIN)
     assert exc.value.status_code == 400
     assert "already completed" in exc.value.detail
-    assert prisma.db.gateway_shadowevaljob.find_many.await_args.kwargs["where"] == {"group_id": "job-1"}
+    assert prisma.db.shadowevaljob.find_many.await_args.kwargs["where"] == {"group_id": "job-1"}
 
 
 @pytest.mark.asyncio

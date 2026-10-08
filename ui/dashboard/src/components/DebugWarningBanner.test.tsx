@@ -21,10 +21,10 @@ describe("DebugWarningBanner", () => {
     expect(screen.getByText(/Performance Warning: Detailed Debug Mode Active/i)).toBeInTheDocument();
   });
 
-  it("should mention LITELLM_LOG=DEBUG in the description", () => {
+  it("should mention TOKEN_IQ_LOG=DEBUG in the description", () => {
     vi.mocked(useHealthReadinessDetails).mockReturnValue({ data: { is_detailed_debug: true } } as any);
     renderWithProviders(<DebugWarningBanner accessToken="token" />);
-    expect(screen.getByText("LITELLM_LOG=DEBUG")).toBeInTheDocument();
+    expect(screen.getByText("TOKEN_IQ_LOG=DEBUG")).toBeInTheDocument();
   });
 
   it("should render nothing when is_detailed_debug is false", () => {
