@@ -328,3 +328,50 @@ def both_claim_sources(sources: Iterable[str]) -> tuple[str, ...]:
         )
         if spelling is not None
     )
+
+
+OLD_MASTER_KEY_ALIAS: Final = "litellm_proxy_master_key"
+NEW_MASTER_KEY_ALIAS: Final = "token_iq_proxy_master_key"
+MASTER_KEY_ALIASES: Final = (NEW_MASTER_KEY_ALIAS, OLD_MASTER_KEY_ALIAS)
+"""What stands in for the master key everywhere it would otherwise be written down.
+
+Spend logs, audit rows and metrics already hold the old spelling, and two checks ask whether a key is this
+alias rather than a secret worth redacting. Those read both, or every row written before the rename starts
+failing the check that keeps a real key out of a log.
+"""
+
+OLD_HEALTH_CHECK_ACCOUNT: Final = "litellm-internal-health-check"
+NEW_HEALTH_CHECK_ACCOUNT: Final = "token-iq-internal-health-check"
+HEALTH_CHECK_ACCOUNTS: Final = (NEW_HEALTH_CHECK_ACCOUNT, OLD_HEALTH_CHECK_ACCOUNT)
+"""The service account the background health check bills its own calls to.
+
+It is the key, the team, both aliases and a tag on every row the health check writes, so a customer's spend
+history is full of the old spelling and their Tag Management page lists it.
+"""
+
+OLD_UI_SESSION_TEAM_ID: Final = "litellm-dashboard"
+NEW_UI_SESSION_TEAM_ID: Final = "token-iq-dashboard"
+UI_SESSION_TEAM_IDS: Final = (NEW_UI_SESSION_TEAM_ID, OLD_UI_SESSION_TEAM_ID)
+"""The team a dashboard login's key belongs to, which is how a session token is told from a real key.
+
+Sessions outlive an upgrade. Reading only the new spelling would leave every key issued before it looking
+like an ordinary virtual key: listed on the Virtual Keys page, counted in Prometheus, and never cleaned up
+when it expires.
+"""
+
+
+def is_master_key_alias(value: str) -> bool:
+    return value in MASTER_KEY_ALIASES
+
+
+def is_ui_session_team(team_id: str | None) -> bool:
+    return team_id in UI_SESSION_TEAM_IDS
+
+
+def ui_session_spellings(team_id: str) -> tuple[str, ...]:
+    """Both spellings when the id names the dashboard's session team, otherwise the one given.
+
+    Lets a filter that excludes a single team keep its signature while still excluding sessions minted
+    before the rename.
+    """
+    return UI_SESSION_TEAM_IDS if team_id in UI_SESSION_TEAM_IDS else (team_id,)

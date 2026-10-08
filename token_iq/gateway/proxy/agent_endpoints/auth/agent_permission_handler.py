@@ -8,9 +8,9 @@ Follows the same pattern as MCP permission handling.
 from dataclasses import dataclass
 from typing import Final, TypeAlias
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.proxy._types import (
-    UI_TEAM_ID,
     GatewayUserRoles,
     LiteLLM_ObjectPermissionTable,
     LiteLLM_TeamTable,
@@ -276,7 +276,7 @@ class AgentRequestHandler:
         except Exception as e:
             # litellm-dashboard is the default UI team and will never have agents;
             # skip noisy warnings for it.
-            if user_api_key_auth.team_id != UI_TEAM_ID:
+            if not compat.is_ui_session_team(user_api_key_auth.team_id):
                 verbose_logger.warning("Failed to get allowed agents for team: %s", e)
             return UnrestrictedAgentAccess()
 

@@ -1548,13 +1548,13 @@ try:
 except (ValueError, TypeError):
     BACKGROUND_HEALTH_CHECK_MAX_TOKENS_REASONING = None
 
-LITTELM_INTERNAL_HEALTH_SERVICE_ACCOUNT_NAME: Final = "litellm-internal-health-check"
+LITTELM_INTERNAL_HEALTH_SERVICE_ACCOUNT_NAME: Final = compat.NEW_HEALTH_CHECK_ACCOUNT
 LITTELM_CLI_SERVICE_ACCOUNT_NAME: Final = "litellm-cli"
 LITELLM_INTERNAL_JOBS_SERVICE_ACCOUNT_NAME: Final = "litellm_internal_jobs"
 # Stable identifier substituted in place of the master key on UserAPIKeyAuth
 # objects so the master key (or its hash) never propagates to spend logs,
 # Prometheus metrics, audit trails, or any other downstream consumer.
-LITELLM_PROXY_MASTER_KEY_ALIAS: Final = "litellm_proxy_master_key"
+LITELLM_PROXY_MASTER_KEY_ALIAS: Final = compat.NEW_MASTER_KEY_ALIAS
 
 # Marker placed in ``model_call_details`` on a synthetic ``Logging`` object that
 # records a proxy-gate error (auth/rate-limit rejection) for a request that never
@@ -1580,7 +1580,7 @@ LITELLM_KEY_ROTATION_GRACE_PERIOD: Final[str] = compat.env(
 LITELLM_KEY_ROTATION_LOCK_TTL_SECONDS: Final = int(
     compat.env("TOKEN_IQ_KEY_ROTATION_LOCK_TTL_SECONDS", 600)
 )  # 10 minutes default — caps the deadlock window if a pod crashes mid-rotation
-UI_SESSION_TOKEN_TEAM_ID: Final = "litellm-dashboard"
+UI_SESSION_TOKEN_TEAM_ID: Final = compat.NEW_UI_SESSION_TEAM_ID
 LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_ENABLED = compat.env("TOKEN_IQ_EXPIRED_UI_SESSION_KEY_CLEANUP_ENABLED", "false")
 LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_INTERVAL_SECONDS: Final = int(
     compat.env("TOKEN_IQ_EXPIRED_UI_SESSION_KEY_CLEANUP_INTERVAL_SECONDS", 86400)

@@ -379,3 +379,56 @@ def test_an_empty_new_header_is_a_value_and_not_an_absence() -> None:
     sent = {"x-token-iq-tags": "", "x-litellm-tags": "old"}
 
     assert compat.header(sent, "x-token-iq-tags", warn=lambda _m: None) == ""
+
+
+class TestStoredIdentitiesFromBeforeTheRename:
+    """Three values the engine writes into the database and then compares against to recognise its own rows.
+
+    Unlike a header or a config key, nobody retypes these: they are already in a customer's tables. Reading
+    only the new spelling would not fail loudly, it would quietly mislabel what is already there, so each
+    property below is said against both spellings on purpose.
+    """
+
+    @pytest.mark.parametrize("spelling", ["token-iq-dashboard", "litellm-dashboard"])
+    def test_a_dashboard_session_is_recognised_under_either_spelling(self, spelling: str) -> None:
+        """A session outlives an upgrade. Miss the old one and that key stops being a session: it is listed
+        on the Virtual Keys page, counted in Prometheus, and never cleaned up when it expires."""
+        assert compat.is_ui_session_team(spelling)
+
+    @pytest.mark.parametrize("team_id", ["team-alpha", "", None])
+    def test_an_ordinary_team_is_not_a_session(self, team_id: str | None) -> None:
+        """Guards the pair above, which pass just as well against a check that says yes to everything."""
+        assert not compat.is_ui_session_team(team_id)
+
+    @pytest.mark.parametrize("spelling", ["token_iq_proxy_master_key", "litellm_proxy_master_key"])
+    def test_the_master_key_alias_is_recognised_under_either_spelling(self, spelling: str) -> None:
+        """Two checks ask whether a key is this alias rather than a secret worth redacting. Spend logs
+        written before the rename hold the old one."""
+        assert compat.is_master_key_alias(spelling)
+
+    def test_a_real_key_is_not_the_master_key_alias(self) -> None:
+        assert not compat.is_master_key_alias("sk-abcdef0123456789")
+
+    def test_excluding_the_session_team_excludes_both_spellings(self) -> None:
+        """What a `notIn` filter is built from, so a listing hides sessions minted either side of the
+        upgrade."""
+        assert set(compat.ui_session_spellings("token-iq-dashboard")) == {
+            "token-iq-dashboard",
+            "litellm-dashboard",
+        }
+
+    def test_excluding_an_ordinary_team_excludes_only_it(self) -> None:
+        """Otherwise every filter that names one team would quietly widen to three."""
+        assert compat.ui_session_spellings("team-alpha") == ("team-alpha",)
+
+    def test_the_new_spelling_is_what_gets_written(self) -> None:
+        """The other half of a transition: both are read, one is written, and that one is the new name."""
+        assert compat.NEW_UI_SESSION_TEAM_ID == "token-iq-dashboard"
+        assert compat.NEW_MASTER_KEY_ALIAS == "token_iq_proxy_master_key"
+        assert compat.NEW_HEALTH_CHECK_ACCOUNT == "token-iq-internal-health-check"
+
+    def test_each_pair_is_the_new_spelling_first(self) -> None:
+        """Callers that take the first entry as the one to write depend on the order."""
+        for pair in (compat.UI_SESSION_TEAM_IDS, compat.MASTER_KEY_ALIASES, compat.HEALTH_CHECK_ACCOUNTS):
+            assert len(pair) == 2
+            assert "token" in pair[0] and "litellm" in pair[1]

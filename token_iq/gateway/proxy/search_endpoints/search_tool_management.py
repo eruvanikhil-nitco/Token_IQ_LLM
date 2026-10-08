@@ -9,8 +9,8 @@ from typing import Any, Final, TypeAlias
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
 from token_iq.gateway.proxy._types import (
     GatewayUserRoles,
     LiteLLM_TeamTable,
@@ -93,7 +93,7 @@ def _allowlist_team_id(user_api_key_dict: UserAPIKeyAuth) -> str | None:
     a failed lookup still surfaces.
     """
     team_id: Final = user_api_key_dict.team_id
-    if not team_id or team_id == UI_SESSION_TOKEN_TEAM_ID:
+    if not team_id or compat.is_ui_session_team(team_id):
         return None
     return team_id
 

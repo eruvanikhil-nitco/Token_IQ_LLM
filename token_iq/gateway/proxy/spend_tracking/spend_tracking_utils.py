@@ -9,12 +9,11 @@ from typing import Final, Literal, Protocol, cast, runtime_checkable
 from pydantic import BaseModel
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import (
-    LITELLM_PROXY_MASTER_KEY_ALIAS,
     LITELLM_TRUNCATED_PAYLOAD_FIELD,
     LITELLM_TRUNCATION_DB_SAFEGUARD_NOTE,
-    LITTELM_INTERNAL_HEALTH_SERVICE_ACCOUNT_NAME,
     REDACTED_BY_LITELM_STRING,
 )
 from token_iq.gateway.constants import (
@@ -47,12 +46,14 @@ from token_iq.gateway.types.utils import (
 )
 from token_iq.gateway.utils import get_end_user_id_for_cost_tracking
 
-INTERNAL_HEALTH_CHECK_API_KEYS: Final = (
-    LITTELM_INTERNAL_HEALTH_SERVICE_ACCOUNT_NAME,
-    hash_token(token=LITTELM_INTERNAL_HEALTH_SERVICE_ACCOUNT_NAME),
+INTERNAL_HEALTH_CHECK_API_KEYS: Final = tuple(
+    form for account in compat.HEALTH_CHECK_ACCOUNTS for form in (account, hash_token(token=account))
 )
-"""Both spellings the gateway's own health probes bill under: the service-account
-name and its hash, since a probe is logged with whichever form reached the writer."""
+"""Every form the gateway's own health probes bill under, so a usage report excludes all of them.
+
+Each account name and its hash, because a probe is logged with whichever reached the writer, and both the
+name this release writes and the one before it, because a customer's spend history holds rows under the
+old spelling and they would start showing up as traffic they did not make."""
 
 
 def _get_max_string_length_prompt_in_db() -> int:
@@ -84,9 +85,7 @@ _HASHED_JWT_RE = re.compile(r"hashed-jwt-[a-fA-F0-9]{64}")
 
 def _is_non_secret_key_value(value: str) -> bool:
     return (
-        value == LITELLM_PROXY_MASTER_KEY_ALIAS
-        or is_valid_sha256_hash(value)
-        or _HASHED_JWT_RE.fullmatch(value) is not None
+        compat.is_master_key_alias(value) or is_valid_sha256_hash(value) or _HASHED_JWT_RE.fullmatch(value) is not None
     )
 
 

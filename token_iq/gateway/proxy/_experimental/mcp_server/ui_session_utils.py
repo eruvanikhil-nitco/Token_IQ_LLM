@@ -6,8 +6,8 @@ from typing import Final
 
 from fastapi import HTTPException
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
@@ -29,7 +29,7 @@ def is_ui_session_credential(user_api_key_auth: UserAPIKeyAuth) -> bool:
     """Whether the caller is the dashboard's SSO-minted session token acting as its user,
     the only credential shape allowed to widen a request to the owning user's identity."""
 
-    return user_api_key_auth.team_id == UI_SESSION_TOKEN_TEAM_ID and bool(user_api_key_auth.user_id)
+    return compat.is_ui_session_team(user_api_key_auth.team_id) and bool(user_api_key_auth.user_id)
 
 
 async def resolve_ui_session_team_ids(

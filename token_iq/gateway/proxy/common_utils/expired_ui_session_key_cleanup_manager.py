@@ -8,12 +8,12 @@ from collections.abc import Sequence
 from datetime import datetime, timezone
 from typing import Any, Final, Protocol
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import (
     EXPIRED_UI_SESSION_KEY_CLEANUP_JOB_NAME,
     LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_BATCH_SIZE,
     LITELLM_INTERNAL_JOBS_SERVICE_ACCOUNT_NAME,
-    UI_SESSION_TOKEN_TEAM_ID,
 )
 from token_iq.gateway.proxy._types import KeyRequest, UserAPIKeyAuth
 from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
@@ -151,7 +151,7 @@ class ExpiredUISessionKeyCleanupManager:
         now: Final = datetime.now(timezone.utc)
         return await VerificationTokenRepository(self.prisma_client).table.find_many(
             where={
-                "team_id": UI_SESSION_TOKEN_TEAM_ID,
+                "team_id": {"in": list(compat.UI_SESSION_TEAM_IDS)},  # mutable-ok: Prisma in/notIn takes a list
                 "expires": {"lt": now},
             },
             take=LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_BATCH_SIZE,

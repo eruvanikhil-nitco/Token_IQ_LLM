@@ -4520,7 +4520,7 @@ class ProxyStateVariables(TypedDict):
     spend_logs_row_count: int
 
 
-UI_TEAM_ID = "litellm-dashboard"
+UI_TEAM_ID = compat.NEW_UI_SESSION_TEAM_ID
 
 
 class JWTAuthBuilderResult(TypedDict):

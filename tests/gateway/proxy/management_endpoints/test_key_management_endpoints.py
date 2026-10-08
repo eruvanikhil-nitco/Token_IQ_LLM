@@ -93,7 +93,9 @@ async def test_list_keys():
 
     where_condition = mock_find_many.call_args.kwargs["where"]
     print(f"where_condition: {where_condition}")
-    assert json.dumps({"team_id": {"not": "litellm-dashboard"}}) in json.dumps(
+    # Both spellings, not one: a session key minted before the rename carries the old team id, and
+    # listing it here would put it on the Virtual Keys page beside a customer's real keys.
+    assert json.dumps({"team_id": {"notIn": ["token-iq-dashboard", "litellm-dashboard"]}}) in json.dumps(
         where_condition
     )
 

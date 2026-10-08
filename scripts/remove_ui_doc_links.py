@@ -21,7 +21,7 @@ from collections.abc import Sequence
 from typing import Final
 
 REPO: Final = pathlib.Path(__file__).resolve().parents[1]
-UI: Final = REPO / "ui" / "litellm-dashboard" / "src"
+UI: Final = REPO / "ui" / "dashboard" / "src"
 
 DOCS_HOST: Final = r"https://docs\.litellm\.ai[^\"']*"
 

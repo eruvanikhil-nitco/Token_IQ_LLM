@@ -91,7 +91,7 @@ def _sandbox(tmp_path: Path) -> tuple[Path, Path]:
     (repo / "litellm" / "proxy").mkdir(parents=True)
     (repo / "litellm" / "foo.py").write_text("x = 1\n")
     (repo / "litellm" / "proxy" / "spec.py").write_text("y = 2\n")
-    dashboard = repo / "ui" / "litellm-dashboard"
+    dashboard = repo / "ui" / "dashboard"
     (dashboard / "src").mkdir(parents=True)
     (dashboard / "node_modules").mkdir()
     (dashboard / "src" / "app.ts").write_text("export {}\n")
@@ -211,7 +211,7 @@ def test_deleted_dashboard_file_still_triggers_dashboard_lint(tmp_path: Path) ->
     repo, bin_dir = _sandbox(tmp_path)
     _commit_all(repo, "base")
     _set_base_ref(repo)
-    (repo / "ui" / "litellm-dashboard" / "src" / "app.ts").unlink()
+    (repo / "ui" / "dashboard" / "src" / "app.ts").unlink()
     _commit_all(repo, "delete dashboard file")
     proc = _run(repo, bin_dir, {})
     assert proc.returncode == 0, proc.stdout + proc.stderr
@@ -397,7 +397,10 @@ def test_run_ends_with_a_summary_of_ran_and_skipped_blocks(tmp_path: Path) -> No
     assert "ran:     Python lint (make lint)" in proc.stdout
     assert "ran:     dashboard lint (prettier + eslint + lint budgets)" in proc.stdout
     assert "ran:     dashboard API-type sync (npm run gen:api)" in proc.stdout
-    assert "skipped: tests/e2e checks (basedpyright + raw HTTP client ban) (no tests/e2e Python files in scope)" in proc.stdout
+    assert (
+        "skipped: tests/e2e checks (basedpyright + raw HTTP client ban) (no tests/e2e Python files in scope)"
+        in proc.stdout
+    )
     assert "check: PASS" in proc.stdout
     assert "check: FAIL" not in proc.stdout
 

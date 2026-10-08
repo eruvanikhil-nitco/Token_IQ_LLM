@@ -2086,3 +2086,51 @@ rendering wrongly, the navigation labels for every one-to-one row, and the route
 Open, and both need a decision rather than more work: the four consolidation rows of the label table, which
 merge pages a customer navigates by today, and the three database values on Logs, Usage and Tag Management
 that are compared against as lookup keys and so need a both-spellings seam.
+
+## 2026-10-08, the three stored identities get a both-spellings seam
+
+The last names a customer could still see on Logs, Usage and Tag Management were not text but values the
+engine writes into the database and then compares against to recognise its own rows: the master key's alias
+`litellm_proxy_master_key`, the health check's service account `litellm-internal-health-check`, and the
+dashboard's session team `litellm-dashboard`. Nobody retypes these, so reading only the new spelling would
+not fail loudly, it would quietly mislabel rows that are already there.
+
+Each now has a pair in `compat`, new spelling first, alongside the six seams already there. The engine
+writes the Token IQ name and reads both.
+
+The first two were clean: each literal appeared once, in `constants.py`, and everything else went through
+the constant. The health check needed one more thing, since a usage report excludes the gateway's own
+probes by key: that exclusion set now holds four forms, each account name and its hash, old and new, or a
+customer's own history would start counting as traffic they made.
+
+The session team was the large one, twenty comparisons and five database filters. Equality checks became
+`compat.is_ui_session_team`. Two Prisma `not` filters became `notIn` over both spellings, and the cleanup
+job's `team_id` equality became an `in`. The raw SQL that lists key aliases seeded `$1` with the single id;
+it now seeds every spelling and builds the placeholder list from the count, so the later placeholders, which
+are already numbered from `len(query_params)`, keep working whatever that count becomes.
+
+One filter was narrowed back after the fact. `exclude_team_id` takes a single team, and rewriting it to
+`notIn` unconditionally changed the query shape for ordinary teams too. It now widens only when the id is
+the session team, so an ordinary exclusion keeps the `not` it always had.
+
+### Verified
+
+- 67 compat tests including eight new ones that say each property against both spellings, and a guard that
+  an ordinary team is not a session
+- five tests fail when the seams are mutated to drop the old spelling, including the real endpoint test
+  that asserts the key listing excludes both
+- 169 auth tests, 706 across auth, compat and key management, and 1094 across the MCP, search, proxy-setting
+  and common-utils suites
+- `ruff check token_iq` clean, the test tree clean, and both runnable budget gates within ceiling
+
+### Also fixed, from this morning's folder move
+
+Four files still pointed at `ui/litellm-dashboard`: the inventory capture script, the doc-link remover, and
+two tests that read the real tree, which were failing 35 tests between them. They read `ui/dashboard` now.
+What remains in those two test files is Windows-only: they execute `.sh` scripts, which fails with
+`WinError 193` here and passes on a POSIX runner.
+
+### Pre-existing, confirmed against this commit's parent in a worktree
+
+Two key-management tests, one needing `litellm_enterprise` which is not installed here and one where an
+`AsyncMock` reaches a response model. Three UI-theme tests and one symlink test, all static-asset handling.

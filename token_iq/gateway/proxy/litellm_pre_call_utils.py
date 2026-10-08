@@ -21,7 +21,6 @@ from token_iq.gateway._uuid import uuid
 from token_iq.gateway.constants import (
     CONSUMED_REQUEST_TAGS_METADATA_KEY,
     INTERNAL_CALL_ORIGIN_METADATA_KEY,
-    LITELLM_PROXY_MASTER_KEY_ALIAS,
     OTEL_SERVICE_NAME_METADATA_KEYS,
     PRE_CALL_EXECUTED_GUARDRAILS_KEY,
     SESSION_DEPLOYMENT_AFFINITY_TTL_METADATA_KEY,
@@ -125,7 +124,7 @@ def _stampable_key_hash(user_api_key_dict: UserAPIKeyAuth) -> str | None:
     api_key: Final = user_api_key_dict.api_key
     if not user_api_key_dict.via_virtual_key or api_key is None:
         return None
-    if api_key == LITELLM_PROXY_MASTER_KEY_ALIAS or _SHA256_HEX_RE.fullmatch(api_key):
+    if compat.is_master_key_alias(api_key) or _SHA256_HEX_RE.fullmatch(api_key):
         return api_key
     return None
 

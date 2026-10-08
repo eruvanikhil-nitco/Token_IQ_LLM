@@ -57,7 +57,7 @@ SUITES: Final[Mapping[str, tuple[str, ...]]] = {
     "unit": ("tests/gateway",),
 }
 
-UI: Final = REPO / "ui" / "litellm-dashboard"
+UI: Final = REPO / "ui" / "dashboard"
 
 COMMANDS: Final[Mapping[str, tuple[str, ...]]] = {
     "ci_coverage": (sys.executable, ".github/scripts/assert_ci_coverage.py"),

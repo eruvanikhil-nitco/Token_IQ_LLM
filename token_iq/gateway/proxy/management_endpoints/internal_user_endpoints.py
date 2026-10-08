@@ -1186,7 +1186,6 @@ def _process_keys_for_user_info(
     keys: Sequence[LiteLLM_VerificationToken] | None,
     all_teams: list[LiteLLM_TeamTable] | list[TeamListResponseObject] | None,
 ):
-    from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
     from token_iq.gateway.proxy.proxy_server import gateway_master_key_hash, general_settings
 
     returned_keys: Final = []
@@ -1208,10 +1207,10 @@ def _process_keys_for_user_info(
                 _key = key.dict()
 
             # Filter out UI session tokens (team_id="litellm-dashboard")
-            if _key.get("team_id") == UI_SESSION_TOKEN_TEAM_ID:
+            if compat.is_ui_session_team(_key.get("team_id")):
                 continue
 
-            if "team_id" in _key and _key["team_id"] is not None and _key["team_id"] != "litellm-dashboard":
+            if "team_id" in _key and _key["team_id"] is not None and not compat.is_ui_session_team(_key["team_id"]):
                 team_info = get_team_from_list(team_list=all_teams, team_id=_key["team_id"])
                 if team_info is not None:
                     team_alias = getattr(team_info, "team_alias", None)
@@ -1941,7 +1940,6 @@ async def get_user_key_counts(
     Returns:
         Dictionary mapping user_id to key count
     """
-    from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
 
     if not user_ids or len(user_ids) == 0:
         return {}
@@ -1955,7 +1953,7 @@ async def get_user_key_counts(
                 "user_id": user_id,
                 "OR": [
                     {"team_id": None},
-                    {"team_id": {"not": UI_SESSION_TOKEN_TEAM_ID}},
+                    {"team_id": {"notIn": list(compat.UI_SESSION_TEAM_IDS)}},  # mutable-ok: Prisma notIn takes a list
                 ],
             }
         )

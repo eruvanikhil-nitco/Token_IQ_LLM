@@ -35,7 +35,6 @@ from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.sessio
     is_session_bearer_shaped,
 )
 from token_iq.gateway.proxy._types import (
-    UI_TEAM_ID,
     LiteLLM_ObjectPermissionTable,
     LiteLLM_TeamTable,
     ProxyException,
@@ -1939,7 +1938,7 @@ class MCPRequestHandler:
         if not user_api_key_auth or not user_api_key_auth.team_id or not prisma_client:
             return None
 
-        if user_api_key_auth.team_id == UI_TEAM_ID:
+        if compat.is_ui_session_team(user_api_key_auth.team_id):
             return None
 
         # Get the team object (which has object_permission already loaded)
@@ -2425,7 +2424,9 @@ class MCPRequestHandler:
         resolves to no teams exactly as before."""
         if user_api_key_auth is None or not user_api_key_auth.team_id:
             return []
-        return [] if user_api_key_auth.team_id == UI_TEAM_ID else [user_api_key_auth.team_id]
+        return (
+            [] if compat.is_ui_session_team(user_api_key_auth.team_id) else [user_api_key_auth.team_id]
+        )  # mutable-ok: the list is this function's return contract
 
     @staticmethod
     async def _resolve_user_team_ids(user_id: str, user_api_key_auth: UserAPIKeyAuth) -> list[str]:
@@ -2455,7 +2456,9 @@ class MCPRequestHandler:
             return []
         if user_object is None or not user_object.teams:
             return []
-        return list(dict.fromkeys(t for t in user_object.teams if t and t != UI_TEAM_ID))
+        return list(
+            dict.fromkeys(t for t in user_object.teams if t and not compat.is_ui_session_team(t))
+        )  # mutable-ok: the list is this function's return contract
 
     @staticmethod
     async def _team_granted_servers(team_obj: LiteLLM_TeamTable, team_access_group_servers: list[str]) -> set[str]:
@@ -2510,7 +2513,7 @@ class MCPRequestHandler:
                 user_api_key_cache,
             )
 
-            if not team_id or team_id == UI_TEAM_ID or prisma_client is None:
+            if not team_id or compat.is_ui_session_team(team_id) or prisma_client is None:
                 return []
 
             parent_otel_span: Final = user_api_key_auth.parent_otel_span if user_api_key_auth is not None else None
@@ -3308,7 +3311,7 @@ class MCPRequestHandler:
             verbose_logger.debug("prisma_client is None")
             return []
 
-        if user_api_key_auth.team_id == UI_TEAM_ID:
+        if compat.is_ui_session_team(user_api_key_auth.team_id):
             return []
 
         try:

@@ -25,6 +25,7 @@ from pydantic import BaseModel, JsonValue
 from typing_extensions import ReadOnly, TypedDict
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
@@ -1353,7 +1354,7 @@ async def new_team(
         if data.team_id is None:
             data.team_id = str(uuid.uuid4())
         else:
-            if data.team_id == UI_TEAM_ID:
+            if compat.is_ui_session_team(data.team_id):
                 raise HTTPException(
                     status_code=400,
                     detail={

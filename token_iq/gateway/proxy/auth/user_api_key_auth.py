@@ -1788,7 +1788,7 @@ async def _user_api_key_auth_builder(
             valid_token is not None
             and isinstance(valid_token, UserAPIKeyAuth)
             and valid_token.team_id is not None
-            and valid_token.team_id != UI_TEAM_ID
+            and not compat.is_ui_session_team(valid_token.team_id)
         ):
             ## UPDATE TEAM VALUES BASED ON CACHED TEAM OBJECT - allows `/team/update` values to work for cached token
             try:
@@ -2168,7 +2168,7 @@ async def _user_api_key_auth_builder(
             # Check 6: Additional Common Checks across jwt + key auth
             if valid_token.team_id is not None:
                 try:
-                    if valid_token.team_id == UI_TEAM_ID:
+                    if compat.is_ui_session_team(valid_token.team_id):
                         raise TeamNotFoundError(team_id=UI_TEAM_ID)
                     with tracer.trace("token_iq.proxy.auth.get_team_object"):
                         _team_obj = await get_team_object(
@@ -2368,7 +2368,7 @@ def _token_can_vouch_for_team(valid_token: UserAPIKeyAuth, lookup_error: BaseExc
     back out, and is only consulted here because the failure is known by this
     point to be a degraded read.
     """
-    if valid_token.team_id == UI_TEAM_ID:
+    if compat.is_ui_session_team(valid_token.team_id):
         return True
     if isinstance(lookup_error, TeamNotFoundError):
         return False
@@ -2464,7 +2464,7 @@ async def _run_centralized_common_checks(
         )
 
     fetch_coros: Final = []
-    if user_api_key_auth_obj.team_id is not None and user_api_key_auth_obj.team_id != UI_TEAM_ID:
+    if user_api_key_auth_obj.team_id is not None and not compat.is_ui_session_team(user_api_key_auth_obj.team_id):
         fetch_coros.append(
             _safe_fetch(
                 "team",
@@ -2589,7 +2589,9 @@ async def _run_centralized_common_checks(
             raise team_result
     else:
         team_object = (
-            _team_obj_from_token(user_api_key_auth_obj) if user_api_key_auth_obj.team_id == UI_TEAM_ID else team_result
+            _team_obj_from_token(user_api_key_auth_obj)
+            if compat.is_ui_session_team(user_api_key_auth_obj.team_id)
+            else team_result
         )
 
     user_object: LiteLLM_UserTable | None = None if isinstance(user_result, BaseException) else user_result

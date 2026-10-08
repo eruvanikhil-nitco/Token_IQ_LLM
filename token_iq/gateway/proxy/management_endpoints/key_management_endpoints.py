@@ -37,7 +37,6 @@ from token_iq.gateway.constants import (
     LENGTH_OF_GATEWAY_GENERATED_KEY,
     LITELLM_PROXY_ADMIN_NAME,
     MINIMUM_CUSTOM_KEY_LENGTH,
-    UI_SESSION_TOKEN_TEAM_ID,
 )
 from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
@@ -385,7 +384,7 @@ def _is_allowed_to_make_key_request(
         )
 
     if team_id is not None:
-        if user_api_key_dict.team_id is not None and user_api_key_dict.team_id == UI_TEAM_ID:
+        if user_api_key_dict.team_id is not None and compat.is_ui_session_team(user_api_key_dict.team_id):
             return True  # handle
 
     return True
@@ -1034,7 +1033,7 @@ async def _common_key_generation_helper(
 
     # Delegated-authority ceiling (GHSA-q775-qw9r-2r4g): a non-admin caller
     # cannot grant a key a higher budget than their own authority.
-    is_ui_session_team_key = user_api_key_dict.team_id == UI_SESSION_TOKEN_TEAM_ID and _requested_team_id is not None
+    is_ui_session_team_key = compat.is_ui_session_team(user_api_key_dict.team_id) and _requested_team_id is not None
     # Session tokens (lite login) carry max_budget=None to avoid a per-session
     # LLM spend cap, but that None must not be read as "unlimited delegation
     # authority". A personal key (no team) has no team-budget enforcement at
@@ -6053,12 +6052,16 @@ async def key_aliases(
         # memory. Raw SQL is used because the Prisma client wrapper does not
         # support column-level SELECT projection on find_many.
         #
-        # $1 is always UI_SESSION_TOKEN_TEAM_ID (filters out UI session tokens).
-        query_params: Final[list[object]] = [UI_SESSION_TOKEN_TEAM_ID]
+        # The leading parameters are every spelling of the UI session team, which this filters out.
+        # Later placeholders are numbered from len(query_params), so the count here is free to change.
+        query_params: Final[list[object]] = list(
+            compat.UI_SESSION_TEAM_IDS
+        )  # mutable-ok: query_raw takes positional params this code appends to
+        session_teams: Final = ", ".join(f"${i}" for i in range(1, len(query_params) + 1))
         where_parts: Final = [
             "key_alias IS NOT NULL",
             "key_alias != ''",
-            "(team_id IS NULL OR team_id != $1)",
+            f"(team_id IS NULL OR team_id NOT IN ({session_teams}))",
         ]
 
         # Scope results for non-admin users: only show aliases for keys the
@@ -6216,7 +6219,12 @@ def _build_key_filter_conditions(
         else:
             user_condition["user_id"] = user_id
     if exclude_team_id and isinstance(exclude_team_id, str):
-        user_condition["team_id"] = {"not": exclude_team_id}
+        # One spelling for an ordinary team, both for the dashboard's session team, whose keys were
+        # minted under the old id before the rename and must stay excluded.
+        spellings: Final = compat.ui_session_spellings(exclude_team_id)
+        user_condition["team_id"] = (  # mutable-ok: Prisma in/notIn takes a list
+            {"not": exclude_team_id} if len(spellings) == 1 else {"notIn": list(spellings)}
+        )
     if organization_id and isinstance(organization_id, str):
         user_condition["organization_id"] = organization_id
 
@@ -6489,7 +6497,7 @@ def _get_condition_to_filter_out_ui_session_tokens() -> Mapping[str, object]:
     return {
         "OR": [
             {"team_id": None},  # Include records where team_id is null
-            {"team_id": {"not": UI_SESSION_TOKEN_TEAM_ID}},  # Include records where team_id != UI_SESSION_TOKEN_TEAM_ID
+            {"team_id": {"notIn": list(compat.UI_SESSION_TEAM_IDS)}},  # mutable-ok: Prisma notIn takes a list
         ]
     }
 
