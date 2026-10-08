@@ -15,6 +15,7 @@ import pathlib
 import textwrap
 from collections.abc import Callable
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 import fastapi
 import httpx
@@ -527,3 +528,66 @@ def test_a_guardrail_claim_source_works_under_either_spelling(spelling: str) -> 
     """These sit in a customer's guardrail config, so the old spelling keeps resolving. Nothing sends one
     back, so unlike a header there is no new-names-only side to this."""
     assert spelling in compat.both_claim_sources(("token_iq:user_id",))
+
+
+class TestRowsWrittenBeforeTheRename:
+    """The engine recognising its own rows, not the helper that holds the spellings.
+
+    `test_compat.py` says `compat.is_ui_session_team` accepts both. These say the call paths that matter
+    read it, which is the question this file exists for: whether the engine uses the helper's answer. A
+    customer upgrading has a database full of the old spelling and no way to correct it.
+    """
+
+    @staticmethod
+    def _key_row(team_id: str | None) -> object:
+        row = MagicMock()
+        row.token = "sk-token"
+        row.model_dump.return_value = {
+            "token": "sk-token",
+            "team_id": team_id,
+            "user_id": "u1",
+            "key_alias": "a-key",
+        }
+        return row
+
+    @pytest.mark.parametrize("team_id", ["token-iq-dashboard", "litellm-dashboard"])
+    def test_a_dashboard_session_key_stays_off_the_user_info_response(
+        self, team_id: str, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Miss the old spelling and every session minted before the upgrade appears beside a customer's
+        real keys, labelled with whatever alias the dashboard gave it."""
+        from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
+            _process_keys_for_user_info,
+        )
+
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {})
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.gateway_master_key_hash", "other-hash")
+
+        returned = _process_keys_for_user_info(
+            keys=[self._key_row(team_id), self._key_row("a-real-team")], all_teams=None
+        )
+
+        assert [key["team_id"] for key in returned] == ["a-real-team"]
+
+    @pytest.mark.parametrize("alias", ["token_iq_proxy_master_key", "litellm_proxy_master_key"])
+    def test_the_master_key_alias_is_not_treated_as_a_secret(self, alias: str) -> None:
+        """The alias stands in for the master key precisely so the key itself never reaches a spend log.
+        Read as a secret, a row written before the rename is redacted and stops naming who spent."""
+        from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import _is_non_secret_key_value
+
+        assert _is_non_secret_key_value(alias)
+
+    def test_a_real_key_is_still_treated_as_a_secret(self) -> None:
+        """Guards the pair above, which pass just as well against a check that says yes to everything."""
+        from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import _is_non_secret_key_value
+
+        assert not _is_non_secret_key_value("sk-a-real-looking-key-value")
+
+    def test_usage_reports_exclude_the_health_probes_under_both_names(self) -> None:
+        """The gateway bills its own probes to a service account and leaves them out of a usage report.
+        Under one name only, a customer's history starts counting as traffic they made."""
+        from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
+
+        assert "token-iq-internal-health-check" in INTERNAL_HEALTH_CHECK_API_KEYS
+        assert "litellm-internal-health-check" in INTERNAL_HEALTH_CHECK_API_KEYS
+        assert len(INTERNAL_HEALTH_CHECK_API_KEYS) == 4, "each name and its hash"

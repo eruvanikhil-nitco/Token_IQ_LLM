@@ -388,6 +388,22 @@ re-upload.
 The claim sources a guardrail config can name, `litellm:user_id` and its three neighbours, keep working
 alongside `token_iq:user_id`.
 
+#### Names already in your database
+
+Three names the gateway writes for itself change, and two of them you will see. Rows written before this
+release keep the name they were written with, and the gateway reads both, so nothing needs correcting.
+
+| Where you see it | Was | Is now |
+| --- | --- | --- |
+| The key alias on Logs for anything the master key did | `litellm_proxy_master_key` | `token_iq_proxy_master_key` |
+| The tag on Tag Management and Usage for the gateway's own health probes | `litellm-internal-health-check` | `token-iq-internal-health-check` |
+
+The third is the team a dashboard login's key belongs to, which you never see because those keys are
+filtered out of the Virtual Keys page. It changes too, and sessions you already have keep working: there is
+no need to sign everybody out before upgrading.
+
+Usage reports still exclude the health probes under both names, so your own figures do not move.
+
 #### What is not renamed
 
 The Prometheus label `litellm_model_name` keeps its name. It is also a key in the engine's hidden

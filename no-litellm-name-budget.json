@@ -18,9 +18,9 @@
     "litellm-rust": 562,
     "migrations": 8,
     "packaging": 19,
-    "scripts": 569,
+    "scripts": 557,
     "terraform": 2271,
-    "tests": 28469,
+    "tests": 28470,
     "token-iq-migrations": 1110,
     "token_iq": 23503,
     "ui": 3007

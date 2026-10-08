@@ -2183,3 +2183,37 @@ quality guard step along with the two gates written earlier today, which `assert
 The 65,739 remaining, in the order the plan sets: the config keys and engine kwargs once the transition
 release ends, the table names with step 2 of phase 8 and its runbook, and the price map's `litellm_provider`
 key, which is a data schema a customer's own tooling may read.
+
+## 2026-10-08, the upgrade notes cover the stored identities, and the gate caught its own author
+
+The plan's two "fixes to make along the way" are both already shipped, checked rather than assumed.
+`split_line_item` in the OpenAI connector splits "gpt-4.1, input" into model and meter, gives a no-model
+item a `None` model, and leaves `fact_key` built from the raw line item so existing keys stay stable. The
+Bedrock connector takes a role ARN with an external ID and documents it as the recommended method with
+static keys "still accepted... but not recommended", and it goes further than the plan asked: a role ARN
+with no external ID is refused rather than tried, because without one anyone who learns the ARN can assume
+it from their own account.
+
+What was missing was the other half of the definition of done, that a customer upgrading knows what
+changes. The three identities renamed earlier today appeared nowhere in the upgrade notes, and two of them
+change what a customer sees: the key alias on Logs for anything the master key did, and the health probe's
+tag on Tag Management and Usage. The notes now carry a "Names already in your database" section saying
+which, that rows keep the name they were written with, that sessions survive the upgrade so nobody has to
+be signed out, and that usage reports still exclude the probes under both names so no figure moves.
+
+`test_upgrade_keeps_working.py` gained six tests. The ones in `test_compat.py` say the helper accepts both
+spellings; these say the engine reads the helper, which is what that file exists for. A dashboard session
+key carrying the old team id stays off a user-info response, the old master key alias is still treated as
+non-secret so a spend row keeps naming who spent, and the health-check exclusion holds all four forms.
+Three of the six turn red when the seams are mutated to drop the old spelling.
+
+### The new gate caught its own author twice
+
+Adding old spellings to the notes generator pushed `scripts` two over its ceiling, which is the gate doing
+its job on the first change after it landed. The generator writes the upgrade notes, so it names what each
+setting used to be called for exactly the reason `CHANGELOG.md` does, and it is exempt on that reasoning
+rather than by raising a ceiling.
+
+The second was subtler. `(root)` rose by one each time the budget was recorded, because one of the areas
+the budget names is `litellm-rust`, so the file counted itself. Exempt now, and the count is stable at
+65,700 across two consecutive recordings, which is the property that makes a ratchet trustworthy.

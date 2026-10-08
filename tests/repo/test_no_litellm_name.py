@@ -40,6 +40,7 @@ BUDGET_PATH: Final = REPO / "no-litellm-name-budget.json"
 NAME: Final = re.compile(r"litellm", re.I)
 
 ALLOWED: Final[Mapping[str, str]] = {
+    "no-litellm-name-budget.json": "this gate's own ceilings; one area is named litellm-rust, so counting it would count the bookkeeping",
     "LICENSE": "the MIT licence the fork was granted; removing it is a licence violation",
     "NOTICE": "the attribution the licence requires",
     "CHANGELOG.md": "releases and upgrade notes, which name what each setting used to be called",
@@ -52,6 +53,7 @@ ALLOWED: Final[Mapping[str, str]] = {
     "tests/gateway/test_compat.py": "its test, for the same reason",
     "token_iq/gateway/proxy/_experimental/out/": "the built dashboard bundle, generated from ui/dashboard",
     "scripts/update_model_prices.py": "the upstream price source names itself",
+    "scripts/rename/write_upgrading_notes.py": "it writes the upgrade notes, which name what each setting used to be called, the same reason CHANGELOG.md is here",
     ".github/workflows/update-model-prices.yml": "the same, in CI",
 }
 """Each exemption with the reason it exists. The plan lists these; a new one needs a reason here."""
