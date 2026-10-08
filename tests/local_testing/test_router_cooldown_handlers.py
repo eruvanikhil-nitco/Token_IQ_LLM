@@ -154,7 +154,7 @@ async def test_cooldown_time_zero_uses_zero_not_default():
             await router.acompletion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Hey, how's it going?"}],
-                mock_response="litellm.RateLimitError",
+                mock_response="token_iq.RateLimitError",
             )
         except gateway.RateLimitError:
             pass
@@ -271,7 +271,7 @@ def test_single_deployment_no_cooldowns(num_deployments):
             router.completion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Hey, how's it going?"}],
-                mock_response="litellm.RateLimitError",
+                mock_response="token_iq.RateLimitError",
             )
         except gateway.RateLimitError:
             pass
@@ -319,7 +319,7 @@ async def test_single_deployment_no_cooldowns_test_prod():
             await router.acompletion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Hey, how's it going?"}],
-                mock_response="litellm.RateLimitError",
+                mock_response="token_iq.RateLimitError",
             )
         except gateway.RateLimitError:
             pass
@@ -469,7 +469,7 @@ async def test_single_deployment_no_cooldowns_test_prod_mock_completion_calls():
             await router.acompletion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Hey, how's it going?"}],
-                mock_response="litellm.RateLimitError",
+                mock_response="token_iq.RateLimitError",
             )
         except gateway.RateLimitError:
             pass
@@ -562,7 +562,7 @@ async def test_high_traffic_cooldowns_all_healthy_deployments():
                 if random.random() < 0.5:
                     mock_response = "hi"
                 else:
-                    mock_response = "litellm.InternalServerError"
+                    mock_response = "token_iq.InternalServerError"
             else:
                 mock_response = "hi"
 
@@ -652,14 +652,14 @@ async def test_high_traffic_cooldowns_one_bad_deployment():
             elif bad_deployment_id == model_id:
                 if num_failures / total_requests <= 0.6:
 
-                    mock_response = "litellm.InternalServerError"
+                    mock_response = "token_iq.InternalServerError"
 
             elif num_failures / total_requests <= 0.25:
                 # Randomly decide between fail and succeed
                 if random.random() < 0.5:
                     mock_response = "hi"
                 else:
-                    mock_response = "litellm.InternalServerError"
+                    mock_response = "token_iq.InternalServerError"
             else:
                 mock_response = "hi"
 
@@ -749,14 +749,14 @@ async def test_high_traffic_cooldowns_one_rate_limited_deployment():
             elif bad_deployment_id == model_id:
                 if num_failures / total_requests <= 0.6:
 
-                    mock_response = "litellm.RateLimitError"
+                    mock_response = "token_iq.RateLimitError"
 
             elif num_failures / total_requests <= 0.25:
                 # Randomly decide between fail and succeed
                 if random.random() < 0.5:
                     mock_response = "hi"
                 else:
-                    mock_response = "litellm.InternalServerError"
+                    mock_response = "token_iq.InternalServerError"
             else:
                 mock_response = "hi"
 
@@ -816,7 +816,7 @@ def test_router_fallbacks_with_cooldowns_and_model_id():
         router.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "hi"}],
-            mock_response="litellm.RateLimitError",
+            mock_response="token_iq.RateLimitError",
         )
     except gateway.RateLimitError:
         pass
@@ -856,7 +856,7 @@ async def test_router_fallbacks_with_cooldowns_and_dynamic_credentials():
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "hi"}],
             api_key="my-bad-key-1",
-            mock_response="litellm.RateLimitError",
+            mock_response="token_iq.RateLimitError",
         )
         pytest.fail("Expected RateLimitError")
     except gateway.RateLimitError:

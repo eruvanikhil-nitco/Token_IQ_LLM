@@ -498,7 +498,7 @@ class TestRequestNumRetriesBeatsGlobal:
                     "litellm_params": {
                         "model": "openai/mock",
                         "api_key": "sk-fake",
-                        "mock_response": "litellm.InternalServerError",
+                        "mock_response": "token_iq.InternalServerError",
                     },
                 }
             ],
@@ -553,7 +553,7 @@ class TestRequestNumRetriesBeatsGlobal:
                     "litellm_params": {
                         "model": "openai/mock",
                         "api_key": "sk-fake",
-                        "mock_response": "litellm.InternalServerError",
+                        "mock_response": "token_iq.InternalServerError",
                         "num_retries": 2,
                     },
                 }
@@ -595,7 +595,7 @@ class TestRequestNumRetriesBeatsDeployment:
         litellm_params = {
             "model": "openai/mock",
             "api_key": "sk-fake",
-            "mock_response": "litellm.InternalServerError",
+            "mock_response": "token_iq.InternalServerError",
         }
         if deployment_num_retries is not None:
             litellm_params["num_retries"] = deployment_num_retries

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import functools
 import os
+import re
 import warnings
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from types import MappingProxyType
@@ -375,3 +376,26 @@ def ui_session_spellings(team_id: str) -> tuple[str, ...]:
     before the rename.
     """
     return UI_SESSION_TEAM_IDS if team_id in UI_SESSION_TEAM_IDS else (team_id,)
+
+
+OLD_ERROR_PREFIX: Final = "litellm."
+NEW_ERROR_PREFIX: Final = "token_iq."
+ERROR_PREFIXES: Final = (NEW_ERROR_PREFIX, OLD_ERROR_PREFIX)
+"""What every API error message is prefixed with, as in `token_iq.AuthenticationError: ...`.
+
+The engine parses this back off an error string to re-raise the right exception type, so it has to read
+both: an error that travelled through a gateway on the older release still names itself the old way. A
+customer matching on the text in their own error handling gets one release to move, which is what the
+upgrade notes say.
+"""
+
+ERROR_NAME: Final = re.compile(rf"(?:{'|'.join(re.escape(p) for p in ERROR_PREFIXES)})\w+Error")
+"""An error class named inside a message, under either prefix."""
+
+
+def strip_error_prefix(name: str) -> str:
+    """The bare exception name, whichever prefix it carries."""
+    for prefix in ERROR_PREFIXES:
+        if name.startswith(prefix):
+            return name[len(prefix) :]
+    return name

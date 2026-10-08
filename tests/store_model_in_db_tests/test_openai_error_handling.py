@@ -114,7 +114,7 @@ def test_missing_model_parameter_curl(curl_command):
     assert "error" in response
     print("error in response", json.dumps(response, indent=4))
 
-    assert "litellm.BadRequestError" in response["error"]["message"]
+    assert "token_iq.BadRequestError" in response["error"]["message"]
 
 
 @pytest.mark.asyncio
@@ -200,7 +200,7 @@ async def test_chat_completion_bad_model_with_spend_logs():
         assert "traceback" in error_info
         assert error_info["error_code"] == "400"
         assert error_info["error_class"] == "BadRequestError"
-        assert "litellm.BadRequestError" in error_info["error_message"]
+        assert "token_iq.BadRequestError" in error_info["error_message"]
         assert "non-existent-model" in error_info["error_message"]
 
         # Verify request details

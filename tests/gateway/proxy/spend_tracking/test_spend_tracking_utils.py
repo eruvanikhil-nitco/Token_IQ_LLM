@@ -2310,7 +2310,7 @@ def test_sanitize_error_information_reproduces_lit_2992(mock_should_store):
             f"'input': [{{'role': 'user', 'content': '{huge_conversation_blob}'}}]}}"
         )
     error_message = (
-        "litellm.RateLimitError: RateLimitError: OpenAIException - "
+        "token_iq.RateLimitError: RateLimitError: OpenAIException - "
         '{"error":{"message":"' + "\\n  ".join(validation_entries) + '"}}'
     )
 

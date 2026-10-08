@@ -12,7 +12,7 @@ from token_iq.gateway.router_utils.add_retry_fallback_headers import get_hidden_
 def test_apply_fallback_hidden_params_copies_from_fallback_response():
     fallback_errors = [
         {
-            "message": "litellm.RateLimitError: upstream limited request",
+            "message": "token_iq.RateLimitError: upstream limited request",
             "type": "RateLimitError",
             "param": None,
             "code": "429",

@@ -25,7 +25,7 @@ from claude_code.cli_driver import (
 
 _BEDROCK_503 = (
     "[claude-opus-4-7-bedrock-converse] tool_search probe failed: status 503: "
-    '{"error":{"message":"litellm.ServiceUnavailableError: BedrockException - '
+    '{"error":{"message":"token_iq.ServiceUnavailableError: BedrockException - '
     '{\\"message\\":\\"Bedrock is unable to process your request.\\"}"}}'
 )
 _ANTHROPIC_529 = "status 529: {\"type\":\"overloaded_error\"}"

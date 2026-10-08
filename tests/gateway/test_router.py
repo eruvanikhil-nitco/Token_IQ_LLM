@@ -6474,7 +6474,7 @@ def _cyclic_fallback_router(num_retries=0):
                 "litellm_params": {
                     "model": "openai/gpt-4o-mini",
                     "api_key": "sk-fake",
-                    "mock_response": "litellm.InternalServerError",
+                    "mock_response": "token_iq.InternalServerError",
                 },
             }
             for group in groups

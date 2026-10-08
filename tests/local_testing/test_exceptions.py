@@ -463,7 +463,7 @@ def test_completion_bedrock_invalid_role_exception():
     #  litellm.BadRequestError: litellm.BadRequestError: Invalid Message passed in {'role': 'very-bad-role', 'content': 'hello'}
     assert (
         str(exc_info.value)
-        == "litellm.BadRequestError: Invalid Message passed in {'role': 'very-bad-role', 'content': 'hello'}"
+        == "token_iq.BadRequestError: Invalid Message passed in {'role': 'very-bad-role', 'content': 'hello'}"
     )
 
 
@@ -988,7 +988,7 @@ async def test_exception_with_headers(sync_mode, provider, model, call_type, str
     but Azure says to retry in at most 9s
 
     ```
-    {"message": "litellm.proxy.proxy_server.embeddings(): Exception occured - No deployments available for selected model, Try again in 60 seconds. Passed model=text-embedding-ada-002. pre-call-checks=False, allowed_model_region=n/a, cooldown_list=[('b49cbc9314273db7181fe69b1b19993f04efb88f2c1819947c538bac08097e4c', {'Exception Received': 'litellm.RateLimitError: AzureException RateLimitError - Requests to the Embeddings_Create Operation under Azure OpenAI API version 2023-09-01-preview have exceeded call rate limit of your current OpenAI S0 pricing tier. Please retry after 9 seconds. Please go here: https://aka.ms/oai/quotaincrease if you would like to further increase the default rate limit.', 'Status Code': '429'})]", "level": "ERROR", "timestamp": "2024-08-22T03:25:36.900476"}
+    {"message": "litellm.proxy.proxy_server.embeddings(): Exception occured - No deployments available for selected model, Try again in 60 seconds. Passed model=text-embedding-ada-002. pre-call-checks=False, allowed_model_region=n/a, cooldown_list=[('b49cbc9314273db7181fe69b1b19993f04efb88f2c1819947c538bac08097e4c', {'Exception Received': 'token_iq.RateLimitError: AzureException RateLimitError - Requests to the Embeddings_Create Operation under Azure OpenAI API version 2023-09-01-preview have exceeded call rate limit of your current OpenAI S0 pricing tier. Please retry after 9 seconds. Please go here: https://aka.ms/oai/quotaincrease if you would like to further increase the default rate limit.', 'Status Code': '429'})]", "level": "ERROR", "timestamp": "2024-08-22T03:25:36.900476"}
     ```
     """
     print(f"Received args: {locals()}")
@@ -1160,7 +1160,7 @@ async def test_exception_with_headers_httpx(
     but Azure says to retry in at most 9s
 
     ```
-    {"message": "litellm.proxy.proxy_server.embeddings(): Exception occured - No deployments available for selected model, Try again in 60 seconds. Passed model=text-embedding-ada-002. pre-call-checks=False, allowed_model_region=n/a, cooldown_list=[('b49cbc9314273db7181fe69b1b19993f04efb88f2c1819947c538bac08097e4c', {'Exception Received': 'litellm.RateLimitError: AzureException RateLimitError - Requests to the Embeddings_Create Operation under Azure OpenAI API version 2023-09-01-preview have exceeded call rate limit of your current OpenAI S0 pricing tier. Please retry after 9 seconds. Please go here: https://aka.ms/oai/quotaincrease if you would like to further increase the default rate limit.', 'Status Code': '429'})]", "level": "ERROR", "timestamp": "2024-08-22T03:25:36.900476"}
+    {"message": "litellm.proxy.proxy_server.embeddings(): Exception occured - No deployments available for selected model, Try again in 60 seconds. Passed model=text-embedding-ada-002. pre-call-checks=False, allowed_model_region=n/a, cooldown_list=[('b49cbc9314273db7181fe69b1b19993f04efb88f2c1819947c538bac08097e4c', {'Exception Received': 'token_iq.RateLimitError: AzureException RateLimitError - Requests to the Embeddings_Create Operation under Azure OpenAI API version 2023-09-01-preview have exceeded call rate limit of your current OpenAI S0 pricing tier. Please retry after 9 seconds. Please go here: https://aka.ms/oai/quotaincrease if you would like to further increase the default rate limit.', 'Status Code': '429'})]", "level": "ERROR", "timestamp": "2024-08-22T03:25:36.900476"}
     ```
     """
     print(f"Received args: {locals()}")
@@ -1287,7 +1287,7 @@ def test_context_window_exceeded_error_from_gateway_proxy():
 
     args = {
         "response": Response(status_code=400, text="Bad Request"),
-        "error_str": "Error code: 400 - {'error': {'message': \"litellm.ContextWindowExceededError: litellm.BadRequestError: this is a mock context window exceeded error\\nmodel=gpt-3.5-turbo. context_window_fallbacks=None. fallbacks=None.\\n\\nSet 'context_window_fallback' - https://docs.litellm.ai/docs/routing#fallbacks\\nReceived Model Group=gpt-3.5-turbo\\nAvailable Model Group Fallbacks=None\", 'type': None, 'param': None, 'code': '400'}}",
+        "error_str": "Error code: 400 - {'error': {'message': \"token_iq.ContextWindowExceededError: litellm.BadRequestError: this is a mock context window exceeded error\\nmodel=gpt-3.5-turbo. context_window_fallbacks=None. fallbacks=None.\\n\\nSet 'context_window_fallback' - https://docs.litellm.ai/docs/routing#fallbacks\\nReceived Model Group=gpt-3.5-turbo\\nAvailable Model Group Fallbacks=None\", 'type': None, 'param': None, 'code': '400'}}",
         "model": "gpt-3.5-turbo",
         "custom_llm_provider": "litellm_proxy",
     }
@@ -1314,7 +1314,7 @@ def test_bad_request_error_with_response_without_request():
     # Test that extract_and_raise_litellm_exception can handle this
     args = {
         "response": response_without_request,
-        "error_str": "Error code: 400 - {'error': {'message': 'litellm.BadRequestError: Invalid request parameters', 'type': None, 'param': None, 'code': '400'}}",
+        "error_str": "Error code: 400 - {'error': {'message': 'token_iq.BadRequestError: Invalid request parameters', 'type': None, 'param': None, 'code': '400'}}",
         "model": "gpt-3.5-turbo",
         "custom_llm_provider": "openai",
     }

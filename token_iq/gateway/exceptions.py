@@ -130,7 +130,7 @@ class AuthenticationError(openai.AuthenticationError):
         num_retries: int | None = None,
     ):
         self.status_code = 401
-        self.message = f"litellm.AuthenticationError: {message}"
+        self.message = f"token_iq.AuthenticationError: {message}"
         self.llm_provider = llm_provider
         self.model = model
         self.litellm_debug_info = litellm_debug_info
@@ -174,7 +174,7 @@ class NotFoundError(openai.NotFoundError):
         num_retries: int | None = None,
     ):
         self.status_code = 404
-        self.message = f"litellm.NotFoundError: {message}"
+        self.message = f"token_iq.NotFoundError: {message}"
         self.model = model
         self.llm_provider = llm_provider
         self.litellm_debug_info = litellm_debug_info
@@ -218,7 +218,7 @@ class BadRequestError(openai.BadRequestError):
         body: dict | None = None,
     ):
         self.status_code = 400
-        self.message = f"litellm.BadRequestError: {message}"
+        self.message = f"token_iq.BadRequestError: {message}"
         self.model = model
         self.llm_provider = llm_provider
         self.litellm_debug_info = litellm_debug_info
@@ -292,7 +292,7 @@ class UnprocessableEntityError(openai.UnprocessableEntityError):
         num_retries: int | None = None,
     ):
         self.status_code = 422
-        self.message = f"litellm.UnprocessableEntityError: {message}"
+        self.message = f"token_iq.UnprocessableEntityError: {message}"
         self.model = model
         self.llm_provider = llm_provider
         self.litellm_debug_info = litellm_debug_info
@@ -337,7 +337,7 @@ class Timeout(openai.APITimeoutError):
         )
         super().__init__(request=request)  # Call the base class constructor with the parameters it needs
         self.status_code = exception_status_code or 408
-        self.message = f"litellm.Timeout: {message}"
+        self.message = f"token_iq.Timeout: {message}"
         self.model = model
         self.llm_provider = llm_provider
         self.litellm_debug_info = litellm_debug_info
@@ -375,7 +375,7 @@ class PermissionDeniedError(openai.PermissionDeniedError):
         num_retries: int | None = None,
     ):
         self.status_code = 403
-        self.message = f"litellm.PermissionDeniedError: {message}"
+        self.message = f"token_iq.PermissionDeniedError: {message}"
         self.llm_provider = llm_provider
         self.model = model
         self.litellm_debug_info = litellm_debug_info
@@ -430,7 +430,7 @@ class RateLimitError(openai.RateLimitError):
         detail: Any = None,
     ):
         self.status_code = 429
-        self.message = f"litellm.RateLimitError: {message}"
+        self.message = f"token_iq.RateLimitError: {message}"
         self.llm_provider = llm_provider
         self.model = model
         self.litellm_debug_info = litellm_debug_info
@@ -515,7 +515,7 @@ class ContextWindowExceededError(BadRequestError):
         )  # Call the base class constructor with the parameters it needs
 
         # set after, to make it clear the raised error is a context window exceeded error
-        self.message = f"litellm.ContextWindowExceededError: {self.message}"
+        self.message = f"token_iq.ContextWindowExceededError: {self.message}"
 
     def __str__(self):
         _message = self.message
@@ -545,7 +545,7 @@ class RejectedRequestError(BadRequestError):
         litellm_debug_info: str | None = None,
     ):
         self.status_code = 400
-        self.message = f"litellm.RejectedRequestError: {message}"
+        self.message = f"token_iq.RejectedRequestError: {message}"
         self.model = model
         self.llm_provider = llm_provider
         self.litellm_debug_info = litellm_debug_info
@@ -590,7 +590,7 @@ class ContentPolicyViolationError(BadRequestError):
         body: dict | None = None,
     ):
         self.status_code = 400
-        self.message = f"litellm.ContentPolicyViolationError: {message}"
+        self.message = f"token_iq.ContentPolicyViolationError: {message}"
         self.model = model
         self.llm_provider = llm_provider
         self.litellm_debug_info = litellm_debug_info
@@ -634,7 +634,7 @@ class ServiceUnavailableError(openai.APIStatusError):
         num_retries: int | None = None,
     ):
         self.status_code = 503
-        self.message = f"litellm.ServiceUnavailableError: {message}"
+        self.message = f"token_iq.ServiceUnavailableError: {message}"
         self.llm_provider = llm_provider
         self.model = model
         self.litellm_debug_info = litellm_debug_info
@@ -682,7 +682,7 @@ class BadGatewayError(openai.APIStatusError):
         num_retries: int | None = None,
     ):
         self.status_code = 502
-        self.message = f"litellm.BadGatewayError: {message}"
+        self.message = f"token_iq.BadGatewayError: {message}"
         self.llm_provider = llm_provider
         self.model = model
         self.litellm_debug_info = litellm_debug_info
@@ -730,7 +730,7 @@ class InternalServerError(openai.InternalServerError):
         num_retries: int | None = None,
     ):
         self.status_code = 500
-        self.message = f"litellm.InternalServerError: {message}"
+        self.message = f"token_iq.InternalServerError: {message}"
         self.llm_provider = llm_provider
         self.model = model
         self.litellm_debug_info = litellm_debug_info
@@ -780,7 +780,7 @@ class APIError(openai.APIError):
         num_retries: int | None = None,
     ):
         self.status_code = status_code
-        self.message = f"litellm.APIError: {message}"
+        self.message = f"token_iq.APIError: {message}"
         self.llm_provider = llm_provider
         self.model = model
         self.litellm_debug_info = litellm_debug_info
@@ -819,7 +819,7 @@ class APIConnectionError(openai.APIConnectionError):
         max_retries: int | None = None,
         num_retries: int | None = None,
     ):
-        self.message = f"litellm.APIConnectionError: {message}"
+        self.message = f"token_iq.APIConnectionError: {message}"
         self.llm_provider = llm_provider
         self.model = model
         self.status_code = 500
@@ -857,7 +857,7 @@ class APIResponseValidationError(openai.APIResponseValidationError):
         max_retries: int | None = None,
         num_retries: int | None = None,
     ):
-        self.message = f"litellm.APIResponseValidationError: {message}"
+        self.message = f"token_iq.APIResponseValidationError: {message}"
         self.llm_provider = llm_provider
         self.model = model
         request: Final = httpx.Request(method="POST", url="https://api.openai.com/v1")
@@ -889,7 +889,7 @@ class JSONSchemaValidationError(APIResponseValidationError):
         self.raw_response = raw_response
         self.schema = schema
         self.model = model
-        message = f"litellm.JSONSchemaValidationError: model={model}, returned an invalid response={raw_response}, for schema={schema}.\nAccess raw response with `e.raw_response`"
+        message = f"token_iq.JSONSchemaValidationError: model={model}, returned an invalid response={raw_response}, for schema={schema}.\nAccess raw response with `e.raw_response`"
         self.message = message
         super().__init__(model=model, message=message, llm_provider=llm_provider)
 
@@ -913,7 +913,7 @@ class UnsupportedParamsError(BadRequestError):
         num_retries: int | None = None,
     ):
         self.status_code = 400
-        self.message = f"litellm.UnsupportedParamsError: {message}"
+        self.message = f"token_iq.UnsupportedParamsError: {message}"
         self.model = model
         self.llm_provider = llm_provider
         self.litellm_debug_info = litellm_debug_info
@@ -1008,7 +1008,7 @@ class MockException(openai.APIError):
         num_retries: int | None = None,
     ):
         self.status_code = status_code
-        self.message = f"litellm.MockException: {message}"
+        self.message = f"token_iq.MockException: {message}"
         self.llm_provider = llm_provider
         self.model = model
         self.litellm_debug_info = litellm_debug_info
@@ -1091,7 +1091,7 @@ class MidStreamFallbackError(ServiceUnavailableError):
     ):
         original_status: Final = getattr(original_exception, "status_code", None)
         self.status_code = int(original_status) if original_status is not None else 503
-        self.message = f"litellm.MidStreamFallbackError: {message}"
+        self.message = f"token_iq.MidStreamFallbackError: {message}"
         self.model = model
         self.llm_provider = llm_provider
         self.original_exception = original_exception

@@ -1197,7 +1197,7 @@ def test_async_post_call_failure_hook_stamps_error_on_root_span():
     logger, exporter = _logger()
     server = logger._emitter.start_span(SpanRole.PROXY_REQUEST, LITELLM_PROXY_REQUEST_SPAN_NAME)
     set_request_root_span(server)
-    exc = _proxy_exc("litellm.BadRequestError: messages is required", 400)
+    exc = _proxy_exc("token_iq.BadRequestError: messages is required", 400)
     result = asyncio.run(
         logger.async_post_call_failure_hook(
             request_data={}, original_exception=exc, user_api_key_dict=UserAPIKeyAuth()

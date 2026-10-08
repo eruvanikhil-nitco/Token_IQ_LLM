@@ -160,6 +160,19 @@ re-upload.
 The claim sources a guardrail config can name, `litellm:user_id` and its three neighbours, keep working
 alongside `token_iq:user_id`.
 
+#### The prefix on an error message
+
+Every error the API returns begins with the exception's name, and that name now says `token_iq`:
+
+```
+token_iq.RateLimitError: AnthropicException - rate limited
+```
+
+It said `litellm.RateLimitError` before. If your own code matches on that text to decide what went wrong,
+this is the release to change it. The gateway reads both, so an error that reaches it from an older
+gateway in front is still understood, and `mock_response="litellm.RateLimitError"` keeps working in a test
+suite you already have.
+
 #### Names already in your database
 
 Three names the gateway writes for itself change, and two of them you will see. Rows written before this

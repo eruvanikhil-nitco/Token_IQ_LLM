@@ -34,7 +34,7 @@ def test_add_fallback_headers_serializes_fallback_errors():
     response = StreamingWrapper()
     fallback_errors = [
         {
-            "message": "litellm.RateLimitError: upstream limited request",
+            "message": "token_iq.RateLimitError: upstream limited request",
             "type": "RateLimitError",
             "param": None,
             "code": "429",

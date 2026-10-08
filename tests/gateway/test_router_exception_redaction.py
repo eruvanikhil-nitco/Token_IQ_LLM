@@ -57,7 +57,7 @@ def _router_with_rate_limit_failure() -> Router:
                 "litellm_params": {
                     "model": "gpt-4o",
                     "api_key": "key",
-                    "mock_response": "litellm.RateLimitError",
+                    "mock_response": "token_iq.RateLimitError",
                 },
                 "model_info": {"id": "secret-deployment-id"},
             },
@@ -74,7 +74,7 @@ def _router_with_context_window_failure() -> Router:
                 "litellm_params": {
                     "model": "gpt-4o",
                     "api_key": "key",
-                    "mock_response": "litellm.ContextWindowExceededError",
+                    "mock_response": "token_iq.ContextWindowExceededError",
                 },
                 "model_info": {"id": "secret-deployment-id"},
             },
@@ -94,7 +94,7 @@ def _router_with_credentialed_fallback() -> Router:
                 "litellm_params": {
                     "model": "gpt-4o",
                     "api_key": "key",
-                    "mock_response": "litellm.RateLimitError",
+                    "mock_response": "token_iq.RateLimitError",
                 },
                 "model_info": {"id": "secret-deployment-id"},
             },
@@ -105,7 +105,7 @@ def _router_with_credentialed_fallback() -> Router:
                     {
                         "model": "gpt-4o",
                         "api_key": _FALLBACK_CREDENTIAL,
-                        "mock_response": "litellm.RateLimitError",
+                        "mock_response": "token_iq.RateLimitError",
                     }
                 ]
             }

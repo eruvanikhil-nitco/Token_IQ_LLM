@@ -6,6 +6,7 @@ from typing import Any, Final, Protocol, cast
 import httpx
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import _ENABLE_SECRET_REDACTION, _redact_string, verbose_logger
 from token_iq.gateway.core_utils.secret_redaction import redact_string
 from token_iq.gateway.types.utils import LlmProviders
@@ -215,15 +216,13 @@ def extract_and_raise_gateway_exception(
 
     Relevant Issue
     """
-    pattern: Final = r"litellm\.\w+Error"
-
-    # Search for the exception in the error string
-    match: Final = re.search(pattern, error_str)
+    # Either prefix: an error that came through a gateway on the older release names itself the old way,
+    # and failing to recognise it would re-raise the wrong type for the caller.
+    match: Final = compat.ERROR_NAME.search(error_str)
 
     # Extract the exception if found
     if match:
-        exception_name = match.group(0)
-        exception_name = exception_name.strip().replace("litellm.", "")
+        exception_name = compat.strip_error_prefix(match.group(0).strip())
         raised_exception_obj: Final = getattr(gateway, exception_name, None)
         if raised_exception_obj:
             # Try with response parameter first, fall back to without it
@@ -1016,7 +1015,7 @@ def _map_sagemaker_exception(
 ) -> None:
     if "Unable to locate credentials" in error_str:
         raise BadRequestError(
-            message=f"litellm.BadRequestError: SagemakerException - {error_str}",
+            message=f"token_iq.BadRequestError: SagemakerException - {error_str}",
             model=model,
             llm_provider="sagemaker",
             response=getattr(original_exception, "response", None),
@@ -1123,7 +1122,7 @@ def _map_vertex_exception(
 ) -> None:
     if "Vertex AI API has not been used in project" in error_str or "Unable to find your project" in error_str:
         raise BadRequestError(
-            message=f"litellm.BadRequestError: {custom_llm_provider}Exception - {error_str}",
+            message=f"token_iq.BadRequestError: {custom_llm_provider}Exception - {error_str}",
             model=model,
             llm_provider=custom_llm_provider,
             response=httpx.Response(
@@ -1150,7 +1149,7 @@ def _map_vertex_exception(
         )
     elif "None Unknown Error." in error_str or "Content has no parts." in error_str:
         raise gateway.InternalServerError(
-            message=f"litellm.InternalServerError: {custom_llm_provider}Exception - {error_str}",
+            message=f"token_iq.InternalServerError: {custom_llm_provider}Exception - {error_str}",
             model=model,
             llm_provider=custom_llm_provider,
             response=httpx.Response(
@@ -1206,7 +1205,7 @@ def _map_vertex_exception(
         or "429 Unable to submit request because the service is temporarily out of capacity." in error_str
     ):
         raise RateLimitError(
-            message=f"litellm.RateLimitError: {custom_llm_provider}Exception - {error_str}",
+            message=f"token_iq.RateLimitError: {custom_llm_provider}Exception - {error_str}",
             model=model,
             llm_provider=custom_llm_provider,
             litellm_debug_info=extra_information,
@@ -1228,7 +1227,7 @@ def _map_vertex_exception(
         # Scoped to 5xx so HTTP 400/401 with body code:429
         # still maps to BadRequestError / AuthenticationError.
         raise RateLimitError(
-            message=f"litellm.RateLimitError: {custom_llm_provider}Exception - {error_str}",
+            message=f"token_iq.RateLimitError: {custom_llm_provider}Exception - {error_str}",
             model=model,
             llm_provider=custom_llm_provider,
             litellm_debug_info=extra_information,
@@ -1242,7 +1241,7 @@ def _map_vertex_exception(
         )
     elif "500 Internal Server Error" in error_str or "The model is overloaded." in error_str:
         raise gateway.InternalServerError(
-            message=f"litellm.InternalServerError: {custom_llm_provider}Exception - {error_str}",
+            message=f"token_iq.InternalServerError: {custom_llm_provider}Exception - {error_str}",
             model=model,
             llm_provider=custom_llm_provider,
             litellm_debug_info=extra_information,
@@ -1296,7 +1295,7 @@ def _map_vertex_exception(
 
         if original_exception.status_code == 429:
             raise RateLimitError(
-                message=f"litellm.RateLimitError: {custom_llm_provider.capitalize()}Exception - {error_str}",
+                message=f"token_iq.RateLimitError: {custom_llm_provider.capitalize()}Exception - {error_str}",
                 model=model,
                 llm_provider=custom_llm_provider,
                 litellm_debug_info=extra_information,

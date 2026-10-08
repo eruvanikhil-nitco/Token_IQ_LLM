@@ -581,7 +581,7 @@ class TestExtractAndRaiseGatewayException:
 
         Relevant Issue: https://github.com/BerriAI/litellm/issues/XXXXX
         """
-        error_str = "litellm.APIConnectionError: GeminiException - some error message"
+        error_str = "token_iq.APIConnectionError: GeminiException - some error message"
 
         with pytest.raises(gateway.APIConnectionError) as excinfo:
             extract_and_raise_gateway_exception(
@@ -599,7 +599,7 @@ class TestExtractAndRaiseGatewayException:
 
         BadRequestError does accept the response parameter, so this should work.
         """
-        error_str = "litellm.BadRequestError: Invalid request format"
+        error_str = "token_iq.BadRequestError: Invalid request format"
 
         with pytest.raises(gateway.BadRequestError) as excinfo:
             extract_and_raise_gateway_exception(
@@ -615,7 +615,7 @@ class TestExtractAndRaiseGatewayException:
         """
         Test that ContextWindowExceededError can be raised.
         """
-        error_str = "litellm.ContextWindowExceededError: Token limit exceeded"
+        error_str = "token_iq.ContextWindowExceededError: Token limit exceeded"
 
         with pytest.raises(gateway.ContextWindowExceededError) as excinfo:
             extract_and_raise_gateway_exception(
@@ -989,7 +989,7 @@ def test_a_minimax_bad_key_is_an_authentication_error(quiet_exception_mapping):
 
     assert raised.value.status_code == 401
     assert raised.value.llm_provider == "minimax"
-    assert raised.value.message.startswith("litellm.AuthenticationError: MinimaxException - ")
+    assert raised.value.message.startswith("token_iq.AuthenticationError: MinimaxException - ")
     assert "login fail" in raised.value.message
 
 

@@ -20,9 +20,9 @@
     "packaging": 19,
     "scripts": 557,
     "terraform": 2271,
-    "tests": 28470,
+    "tests": 28409,
     "token-iq-migrations": 1110,
-    "token_iq": 23483,
+    "token_iq": 23447,
     "ui": 3007
   }
 }

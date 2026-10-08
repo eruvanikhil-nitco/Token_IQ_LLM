@@ -2296,3 +2296,59 @@ That is a layering question rather than a rename one. A dedicated hook package w
 import surface to depend on instead of eight, but moving six call sites across auth and spend tracking is a
 design change with its own risk, and the programme has no phase that owns it. Recorded here so the next
 reading of the layout does not mistake it for something a rename phase skipped.
+
+## 2026-10-08, the first line of every API error, and a live check at last
+
+Docker was running after all. Earlier the launcher hit a transient API error while Docker Desktop was
+restarting, and that was taken as "Docker is down" and left there instead of retried, which cost the live
+verification for several commits. It is up, the database has been running for hours, and the proxy is back.
+
+### What the live database proved
+
+The installation holds 50 dashboard session keys written under the old team id, which is exactly the
+upgrade the seams were built for and better evidence than any fixture. Three probe rows went in, one per
+team id, and the key-alias endpoint, which runs the raw SQL rewritten yesterday, returned the one on a real
+team and hid both session spellings. The probes were deleted afterwards.
+
+### The first line of every API error
+
+A request through the gateway came back reading `litellm.AuthenticationError: ...`. That prefix is the
+opening of the body of every error the API returns, hardcoded in 27 places, and the most customer-visible
+old name left anywhere. It now says `token_iq.`
+
+Three directions had to be handled separately and only the first is obvious. The engine **writes** the new
+prefix. It **reads** both, because `exception_mapping_utils` parses the class name back out of an error
+string to re-raise the right type, and an error arriving from an older gateway in front still names itself
+the old way. And `mock_response="litellm.RateLimitError"` is a value a **caller passes in**: the blanket
+rename broke three comparisons in `main.py` so a customer's existing test suite would have got no error at
+all, silently. Those compare on the stripped name now, and both spellings raise.
+
+The upgrade notes carry it, since anyone matching on that text in their own error handling has one release
+to move.
+
+### The gate had a gap, and it was the reason
+
+`test_no_litellm_name.py` asserts no customer message names the old product, and it passed throughout.
+Its pattern matches `LiteLLM`, and these say `litellm.` in lowercase, so 27 strings in the body of every
+error sat underneath a green check. Widening it to ignore case surfaced 59 more, but most are advice like
+"set `litellm.drop_params`", naming a Python attribute whose rename waits on the module rename, so a
+case-insensitive check cannot go green and a check that cannot go green teaches people to ignore it.
+
+The error prefix therefore has its own pattern and its own test at zero, scanning the engine only. The
+advice text stays in the counted budget until the module rename reaches it.
+
+### Verified
+
+- the live error body now opens `token_iq.AuthenticationError`, against the running proxy
+- 1,371 tests across the exception mapping, compat, header-preservation, redaction and upgrade suites
+- both spellings still raise through `mock_response`, checked by calling `completion` each way
+- mutating the seam to drop the old prefix fails three compat tests and makes the old `mock_response`
+  silently raise nothing, which is the failure it exists to prevent
+- the name budget ratchets down 97, and both budget gates stay within ceiling
+
+### A mistake worth recording
+
+The regex for the new check was written through a heredoc, and bash turned its `\b` into a literal
+backspace byte, so the pattern demanded a control character and matched nothing while reading as correct.
+`cat -A` showed it as `^H`. That is the third heredoc escaping failure today after `\n` and `\.`; anything
+carrying a backslash goes through the editing tool or `chr(92)`, not a heredoc.

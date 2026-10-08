@@ -775,7 +775,7 @@ async def test_rate_limit_error_callback():
                 "model_name": "my-test-gpt",
                 "litellm_params": {
                     "model": "gpt-5-mini",
-                    "mock_response": "litellm.RateLimitError",
+                    "mock_response": "token_iq.RateLimitError",
                 },
             }
         ],

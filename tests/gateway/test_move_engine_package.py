@@ -247,7 +247,7 @@ def test_a_registry_file_has_every_dotted_path_rewritten() -> None:
         'call_type = kwargs.get("call_type", "token_iq.completion")',
         # A sentinel a caller passes as mock_response to force an error. Renaming it breaks a
         # documented way of calling the engine, which is phase 7's problem and not this pass's.
-        'if mock_response == "litellm.RateLimitError":',
+        'if mock_response == "token_iq.RateLimitError":',
         # A forward reference, which still resolves here because the old name stays bound.
         'def _config() -> "litellm.DashScopeChatConfig":',
         # A health endpoint's own response fields. `token_iq.request_timeout` is a real setting on the

@@ -57,7 +57,7 @@ class TestCooldownCacheExceptionMasking:
             "No deployments available for selected model, Try again in 5 seconds. "
             "Passed model=anthropic_claude_sonnet_4_v1_0. pre-call-checks=False, "
             "cooldown_list=[('deepseek_r1-eastus', {'exception_received': "
-            "'litellm.RateLimitError: RateLimitError: Azure_aiException - "
+            "'token_iq.RateLimitError: RateLimitError: Azure_aiException - "
             '{"error":{"code":"Invalid input","status":422,"message":"invalid input error",'
             '"details":[{"type":"model_attributes_type","loc":["body"],'
             '"msg":"Tell me a story about a dragon and a princess in a magical kingdom '

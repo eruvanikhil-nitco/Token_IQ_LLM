@@ -536,7 +536,7 @@ def test_demo_tokens_as_input_to_embeddings_fails_for_titan():
     with pytest.raises(
         gateway.BadRequestError,
         match=re.escape(
-            'litellm.BadRequestError: BedrockException - {"message":"Malformed input request: '
+            'token_iq.BadRequestError: BedrockException - {"message":"Malformed input request: '
             'expected type: String, found: JSONArray, please reformat your input and try again."}'
         ),
     ):
@@ -545,7 +545,7 @@ def test_demo_tokens_as_input_to_embeddings_fails_for_titan():
     with pytest.raises(
         gateway.BadRequestError,
         match=re.escape(
-            'litellm.BadRequestError: BedrockException - {"message":"Malformed input request: '
+            'token_iq.BadRequestError: BedrockException - {"message":"Malformed input request: '
             'expected type: String, found: Integer, please reformat your input and try again."}'
         ),
     ):

@@ -284,7 +284,7 @@ async def test_call_router_callbacks_on_failure():
             await router.acompletion(
                 model="gemini/gemini-1.5-flash",
                 messages=[{"role": "user", "content": "Hello, how are you?"}],
-                mock_response="litellm.RateLimitError",
+                mock_response="token_iq.RateLimitError",
                 num_retries=0,
             )
         await asyncio.sleep(3)

@@ -26,7 +26,7 @@ async def test_pagerduty_alerting():
         await gateway.acompletion(
             model="gpt-5-mini",
             messages=[{"role": "user", "content": "hi"}],
-            mock_response="litellm.RateLimitError",
+            mock_response="token_iq.RateLimitError",
         )
     except gateway.RateLimitError:
         pass
@@ -47,7 +47,7 @@ async def test_pagerduty_alerting_high_failure_rate():
         await gateway.acompletion(
             model="gpt-5-mini",
             messages=[{"role": "user", "content": "hi"}],
-            mock_response="litellm.RateLimitError",
+            mock_response="token_iq.RateLimitError",
         )
     except gateway.RateLimitError:
         pass
@@ -60,7 +60,7 @@ async def test_pagerduty_alerting_high_failure_rate():
             await gateway.acompletion(
                 model="gpt-5-mini",
                 messages=[{"role": "user", "content": "hi"}],
-                mock_response="litellm.RateLimitError",
+                mock_response="token_iq.RateLimitError",
             )
         except gateway.RateLimitError:
             pass

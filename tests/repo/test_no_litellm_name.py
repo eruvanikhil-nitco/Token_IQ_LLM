@@ -62,7 +62,15 @@ MESSAGE: Final = re.compile(
     r"""(?:\bdetail|\bmessage|\bexceeded_message|\bevent_message|["']error["'])\s*[:=]\s*f?"""
     r"""(?:"(?P<double>[^"\n]*LiteLLM[^"\n]*)"|'(?P<single>[^'\n]*LiteLLM[^'\n]*)')"""
 )
-"""A string the proxy hands back to a caller. From the gate this test replaces."""
+"""A string the proxy hands back to a caller, naming the product. From the gate this test replaces."""
+
+ERROR_PREFIX: Final = re.compile(r"""f?["']litellm\.(?:\w*(?:Error|Exception)|Timeout)\b""")
+"""The exception name that opens the body of every API error, as in `litellm.RateLimitError: ...`.
+
+Its own pattern because the one above matches `LiteLLM` and these are lowercase, so 27 of them sat in
+customer-visible text unseen. Searching the whole lowercase word instead would also match advice like
+"set `litellm.drop_params`", which names a Python attribute whose own rename waits on the module rename,
+and a check that cannot go green teaches people to ignore it."""
 
 MESSAGE_ALLOWED: Final[Mapping[str, str]] = {
     "token_iq/gateway/proxy/example_config_yaml/custom_auth.py": "sample code a customer copies and edits",
@@ -147,6 +155,33 @@ def test_no_message_the_proxy_returns_names_the_old_product() -> None:
     assert not offenders, "these messages name the old product: " + ", ".join(
         f"{one.file}:{one.line} {one.text}" for one in offenders
     )
+
+
+def test_no_api_error_opens_with_the_old_name() -> None:
+    """The first thing in the body of every error a caller receives. It said `litellm.RateLimitError` until
+    the engine was taught to write `token_iq.` and read both, and nothing was watching because the other
+    pattern here is case-sensitive."""
+    offenders: Final = tuple(
+        f"{name}:{number}"
+        for name in _tracked()
+        # The engine only. A rename codemod names what it renames, and so does the generator for the
+        # upgrade notes; neither is the proxy answering a caller.
+        if name.startswith("token_iq/") and name.endswith(".py") and not _exempt(name)
+        for text in (_read(name),)
+        if text is not None
+        for number, line in enumerate(text.splitlines(), start=1)
+        if ERROR_PREFIX.search(line)
+    )
+
+    assert not offenders, f"these errors still open with the old name: {offenders}"
+
+
+def test_the_error_prefix_check_can_tell() -> None:
+    """Said against the exact line it exists for, since the assertion above is an absence."""
+    assert ERROR_PREFIX.search('self.message = f"litellm.RateLimitError: {message}"')
+    assert ERROR_PREFIX.search('self.message = f"litellm.Timeout: {message}"')
+    assert not ERROR_PREFIX.search('self.message = f"token_iq.RateLimitError: {message}"')
+    assert not ERROR_PREFIX.search('"set `litellm.drop_params` to ignore it"'), "advice text is not this check's job"
 
 
 def test_the_message_check_can_still_tell() -> None:

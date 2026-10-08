@@ -254,7 +254,7 @@ async def test_failed_fallbacks_raise_most_recent_exception(function_name):
             fallback_model_group=fallback_model_group,
             original_model_group=original_model_group,
             original_exception=original_exception,
-            mock_response="litellm.RateLimitError",
+            mock_response="token_iq.RateLimitError",
             max_fallbacks=5,
             fallback_depth=0,
             **request_kwargs,

@@ -357,7 +357,7 @@ def test_is_positive_int_like_invalid_and_edge_values():
 def test_get_streaming_fallback_metadata_reads_headers():
     fallback_errors = [
         {
-            "message": "litellm.RateLimitError: upstream limited request",
+            "message": "token_iq.RateLimitError: upstream limited request",
             "type": "RateLimitError",
             "param": None,
             "code": "429",
@@ -458,7 +458,7 @@ def test_restamp_streaming_chunk_model_setattr_exception_logs_and_returns():
 def test_format_fallback_metadata_sse_event():
     fallback_errors = [
         {
-            "message": "litellm.RateLimitError: upstream limited request",
+            "message": "token_iq.RateLimitError: upstream limited request",
             "type": "RateLimitError",
             "param": None,
             "code": "429",
@@ -770,7 +770,7 @@ async def test_async_data_generator_emits_fallback_error_metadata_event(monkeypa
 
     fallback_errors = [
         {
-            "message": "litellm.RateLimitError: upstream limited request",
+            "message": "token_iq.RateLimitError: upstream limited request",
             "type": "RateLimitError",
             "param": None,
             "code": "429",
@@ -819,7 +819,7 @@ async def test_async_data_generator_skips_fallback_error_event_without_opt_in(
 
     fallback_errors = [
         {
-            "message": "litellm.RateLimitError: upstream limited request",
+            "message": "token_iq.RateLimitError: upstream limited request",
             "type": "RateLimitError",
             "param": None,
             "code": "429",

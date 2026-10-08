@@ -26,7 +26,7 @@ class A2AError(Exception):
         num_retries: int | None = None,
     ):
         self.status_code = status_code
-        self.message = f"litellm.A2AError: {message}"
+        self.message = f"token_iq.A2AError: {message}"
         self.llm_provider = llm_provider
         self.model = model
         self.litellm_debug_info = litellm_debug_info

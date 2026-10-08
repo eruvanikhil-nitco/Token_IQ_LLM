@@ -309,7 +309,7 @@ async def test_should_cooldown_deployment(testing_gateway_router):
                 model=deployment_id,
                 messages=[{"role": "user", "content": "Hello, world!"}],
                 max_tokens=100,
-                mock_response="litellm.InternalServerError",
+                mock_response="token_iq.InternalServerError",
             )
         )
     try:

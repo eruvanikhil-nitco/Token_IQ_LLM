@@ -835,7 +835,7 @@ async def test_router_retries_model_specific_and_global():
             await router.acompletion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Hello, how are you?"}],
-                mock_response="litellm.RateLimitError",
+                mock_response="token_iq.RateLimitError",
             )
         except Exception as e:
             print("got exception", e)

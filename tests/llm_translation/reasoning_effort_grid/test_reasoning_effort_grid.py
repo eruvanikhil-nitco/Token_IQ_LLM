@@ -227,7 +227,7 @@ def test_model_unavailable_tolerates_only_the_declared_error() -> None:
         unavailable_error="is not available for this account",
     )
     entitlement_error = Exception(
-        "litellm.APIConnectionError: BedrockException - "
+        "token_iq.APIConnectionError: BedrockException - "
         '{"message":"anthropic.claude-opus-4-7 is not available for this account."}'
     )
 

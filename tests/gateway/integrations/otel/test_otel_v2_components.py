@@ -670,7 +670,7 @@ def test_emitter_without_call_id_is_not_deduped():
     assert len(exporter.get_finished_spans()) == 2
 
 
-def _emit_error_span(message, error_type="litellm.APIError"):
+def _emit_error_span(message, error_type="token_iq.APIError"):
     from token_iq.gateway.integrations.otel.emitter import SpanEmitter
 
     cfg = OpenTelemetryV2Config(exporter="in_memory")
@@ -711,16 +711,16 @@ def test_error_message_recorded_as_full_exception_event_untruncated():
     from token_iq.gateway.integrations.otel.model.semconv import Error, ExceptionEvent
 
     long_message = "boom: " + "x" * 5000
-    span = _emit_error_span(long_message, error_type="litellm.APIError")
+    span = _emit_error_span(long_message, error_type="token_iq.APIError")
 
     event = _exception_event(span)
     assert event.attributes[ExceptionEvent.MESSAGE] == long_message
     assert len(event.attributes[ExceptionEvent.MESSAGE]) == len(long_message) > 1024
-    assert event.attributes[ExceptionEvent.TYPE] == "litellm.APIError"
+    assert event.attributes[ExceptionEvent.TYPE] == "token_iq.APIError"
 
     # error.type stays a low-cardinality attribute; the exception EVENT field
     # ``exception.message`` never becomes a bare string attribute.
-    assert span.attributes[Error.TYPE] == "litellm.APIError"
+    assert span.attributes[Error.TYPE] == "token_iq.APIError"
     assert ExceptionEvent.MESSAGE not in span.attributes
     assert span.status.description == long_message
 
@@ -746,7 +746,7 @@ def test_error_details_stamped_as_span_attributes_for_labels_ingest():
         usage=LLMUsage(),
         finish_reasons=(),
         error=SpanError(
-            error_type="litellm.BadRequestError",
+            error_type="token_iq.BadRequestError",
             message="400: violated moderation policy",
             code="400",
             stack_trace="File proxy_server.py line 8570 ...",
@@ -760,7 +760,7 @@ def test_error_details_stamped_as_span_attributes_for_labels_ingest():
     (span,) = exporter.get_finished_spans()
 
     # OTel-defined keys (from the ``error.*`` semconv registry).
-    assert span.attributes[Error.TYPE] == "litellm.BadRequestError"
+    assert span.attributes[Error.TYPE] == "token_iq.BadRequestError"
     assert span.attributes[Error.MESSAGE] == "400: violated moderation policy"
     # LiteLLM-specific detail keys, under the ``litellm.provider.error.*``
     # vendor namespace, not defined by OTel semconv.

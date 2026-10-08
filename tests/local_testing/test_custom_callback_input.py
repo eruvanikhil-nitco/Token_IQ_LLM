@@ -1552,7 +1552,7 @@ def test_standard_logging_retries():
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Hey, how's it going?"}],
                 num_retries=1,
-                mock_response="litellm.RateLimitError",
+                mock_response="token_iq.RateLimitError",
             )
         except gateway.RateLimitError:
             pass

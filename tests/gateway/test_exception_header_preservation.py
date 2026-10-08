@@ -148,7 +148,7 @@ class TestExceptionMessageFormatting:
             llm_provider="azure",
         )
 
-        assert "litellm.BadRequestError" in error.message
+        assert "token_iq.BadRequestError" in error.message
         assert "test error" in error.message
 
     def test_content_policy_violation_error_message_format(self):
@@ -159,7 +159,7 @@ class TestExceptionMessageFormatting:
             llm_provider="azure",
         )
 
-        assert "litellm.ContentPolicyViolationError" in error.message
+        assert "token_iq.ContentPolicyViolationError" in error.message
         assert "test error" in error.message
 
     def test_context_window_exceeded_error_message_format(self):
@@ -170,7 +170,7 @@ class TestExceptionMessageFormatting:
             llm_provider="azure",
         )
 
-        assert "litellm.ContextWindowExceededError" in error.message
+        assert "token_iq.ContextWindowExceededError" in error.message
         assert "test error" in error.message
 
 
@@ -239,8 +239,8 @@ class TestExceptionAttributes:
         assert midstream_error.status_code == 429
         assert midstream_error.response.status_code == 429
         assert str(midstream_error.response.request.url) == "https://openai.com/v1/"
-        assert midstream_error.message == "litellm.MidStreamFallbackError: stream broke"
-        assert midstream_error.args == ("litellm.MidStreamFallbackError: stream broke",)
+        assert midstream_error.message == "token_iq.MidStreamFallbackError: stream broke"
+        assert midstream_error.args == ("token_iq.MidStreamFallbackError: stream broke",)
 
         # With no original exception, should default to 503.
         midstream_fallback = MidStreamFallbackError(

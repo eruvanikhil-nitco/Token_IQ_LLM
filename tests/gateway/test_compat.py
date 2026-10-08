@@ -432,3 +432,46 @@ class TestStoredIdentitiesFromBeforeTheRename:
         for pair in (compat.UI_SESSION_TEAM_IDS, compat.MASTER_KEY_ALIASES, compat.HEALTH_CHECK_ACCOUNTS):
             assert len(pair) == 2
             assert "token" in pair[0] and "litellm" in pair[1]
+
+
+class TestTheErrorPrefixACallerSees:
+    """`token_iq.AuthenticationError: ...` is the first thing in every API error body.
+
+    Two directions matter and they are not the same. The engine writes the new prefix, and it reads both,
+    because an error that travelled through a gateway on the older release still names itself the old way
+    and the reader re-raises the right exception type from that name. `mock_response` is a third case: a
+    caller passes the string in, so a customer's existing test suite must keep working unchanged.
+    """
+
+    @pytest.mark.parametrize(
+        ("named", "bare"),
+        [
+            ("token_iq.RateLimitError", "RateLimitError"),
+            ("litellm.RateLimitError", "RateLimitError"),
+            ("token_iq.ContextWindowExceededError", "ContextWindowExceededError"),
+            ("litellm.ContextWindowExceededError", "ContextWindowExceededError"),
+        ],
+    )
+    def test_either_prefix_resolves_to_the_same_exception_name(self, named: str, bare: str) -> None:
+        assert compat.strip_error_prefix(named) == bare
+
+    def test_a_name_with_no_prefix_is_left_alone(self) -> None:
+        """Guards the pair above, which pass just as well against a function that strips any dotted head."""
+        assert compat.strip_error_prefix("RateLimitError") == "RateLimitError"
+        assert compat.strip_error_prefix("openai.RateLimitError") == "openai.RateLimitError"
+
+    @pytest.mark.parametrize("prefix", ["token_iq.", "litellm."])
+    def test_an_error_name_is_found_inside_a_message(self, prefix: str) -> None:
+        """How the reader spots the type: the name is embedded in prose, not the whole string."""
+        found = compat.ERROR_NAME.search(f"{prefix}RateLimitError: upstream refused the call")
+
+        assert found is not None
+        assert compat.strip_error_prefix(found.group(0)) == "RateLimitError"
+
+    def test_a_message_naming_no_error_matches_nothing(self) -> None:
+        assert compat.ERROR_NAME.search("something went wrong") is None
+
+    def test_the_new_prefix_is_the_one_written(self) -> None:
+        """One is written, both are read. Reversing these would keep emitting the old name forever."""
+        assert compat.ERROR_PREFIXES[0] == compat.NEW_ERROR_PREFIX == "token_iq."
+        assert compat.OLD_ERROR_PREFIX == "litellm."

@@ -708,11 +708,11 @@ def test_redact_internal_details_drops_embedded_traceback():
         raise RuntimeError("socket hung up")
     except RuntimeError:
         raw_tb = traceback.format_exc()
-    message = f"litellm.APIConnectionError: MinimaxException - socket hung up\n{raw_tb}"
+    message = f"token_iq.APIConnectionError: MinimaxException - socket hung up\n{raw_tb}"
 
     result = redact_internal_details(message)
 
-    assert result == "litellm.APIConnectionError: MinimaxException - socket hung up"
+    assert result == "token_iq.APIConnectionError: MinimaxException - socket hung up"
     assert "Traceback (most recent call last)" not in result
     assert __file__.split("/")[-1] not in result
 
