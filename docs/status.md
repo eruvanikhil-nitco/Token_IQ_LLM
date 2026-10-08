@@ -2058,3 +2058,31 @@ access-groups (15/16) and projects (4/28).
 
 `src/token-iq/` for Token IQ's hooks, components and lib. The same ownership question applies and the
 shared folders are large: `components/` holds 906 files and `(dashboard)/hooks/` is imported 545 times.
+
+## 2026-10-08, src/token-iq/ has nothing to move into it yet
+
+The other half of phase 9's UI bullet asks for Token IQ's hooks, components and lib in `src/token-iq/`.
+Measured rather than assumed: of the 317 modules under `components/`, `lib/`, `utils/`, `hooks/`,
+`contexts/` and `data/` that anything imports, **none** is imported only from the Token IQ tree. The seven
+moved pages reach into the shared folders 39 times, and all 39 are infrastructure the whole dashboard uses:
+the shadcn primitives under `components/ui/`, `lib/http`, `lib/toast`, `utils/roles`, `components/networking`
+and the shared form and chart components.
+
+Three shared modules are Token IQ-authored, `components/shared/SavingsTiles`,
+`components/templates/KeySavingsTab` and `lib/money`, but each is consumed by pages that are not Token IQ's,
+`KeySavingsTab` by the key-detail page among them. Moving those would leave inherited pages importing from
+`@/token-iq/...`, which points the dependency the wrong way and is worse than leaving them where they are.
+
+So the folder is not created. Everything exclusive to a Token IQ page already lives in that page's
+`_components/` and moved with it into the route group. `src/token-iq/` earns its place when a second Token
+IQ page needs something a first one wrote, and not before.
+
+### Phase 9 after today
+
+Done: the Prometheus metrics, the cache key prefixes, the logs and trace attributes, the Docker and
+Terraform names, the dev script move, the dashboard folder and package name, the visible strings found
+rendering wrongly, the navigation labels for every one-to-one row, and the route group.
+
+Open, and both need a decision rather than more work: the four consolidation rows of the label table, which
+merge pages a customer navigates by today, and the three database values on Logs, Usage and Tag Management
+that are compared against as lookup keys and so need a both-spellings seam.
