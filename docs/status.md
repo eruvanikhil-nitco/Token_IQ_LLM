@@ -2266,3 +2266,33 @@ its example metadata. No engine Python file now names `berri.ai`, `litellm-listi
 keeps `fact_key` built from the raw item. The Bedrock connector documents role-plus-external-ID as
 recommended and static keys as not, and refuses a role ARN with no external ID rather than trying it,
 because without one anyone who learns the ARN can assume it from their own account.
+
+## 2026-10-08, phase 2's remaining steps and phase 11's layout, checked
+
+Working through the definition of done for anything still actionable here.
+
+Section 6.3's steps are done bar the owner's. Every workflow it names for deletion is already gone, all
+fifteen, and `create-release*` with them; 33 remain and they are the test, lint, scan and build ones it says
+to keep. Dependabot covers all four ecosystems it asks for, uv, npm in five directories, docker and
+github-actions, and `test_dependabot_config.py` checks each directory exists. What is left in that section
+needs the repository owner: the `upstream` remote still points at BerriAI in this clone, the branch and
+repository settings are GitHub-side, and the owners of P2 and P3 have to be named by someone who can commit
+people to it.
+
+Phase 11's layout matches, with three differences worth recording rather than silently fixing.
+
+Two are the diagram being imprecise. `plan.py` sits at `token_iq/policy/plan.py` rather than the package
+root, and `token_iq_migrations` is the package inside the `token-iq-migrations` distribution directory,
+which is how a Python distribution is laid out. The tree also does not mention `policy/` or `pricing/`,
+both of which exist and carry real code.
+
+The third is architectural. The diagram has `token_iq/proxy/` for "Token IQ hooks inside the gateway", and
+there is no such package. Instead six engine files import Token IQ's own modules directly: `proxy_server`,
+`auth_checks`, the credential and model-management endpoints, pass-through endpoints and spend tracking,
+reaching into `policy/`, `connectors/` and others. The dependency runs both ways, since 23 files under
+`api/`, `ledger/`, `policy/` and `connectors/` import from `token_iq.gateway`.
+
+That is a layering question rather than a rename one. A dedicated hook package would give the engine one
+import surface to depend on instead of eight, but moving six call sites across auth and spend tracking is a
+design change with its own risk, and the programme has no phase that owns it. Recorded here so the next
+reading of the layout does not mistake it for something a rename phase skipped.
