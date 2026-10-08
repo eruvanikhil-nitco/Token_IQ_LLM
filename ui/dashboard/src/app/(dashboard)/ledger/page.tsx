@@ -10,7 +10,7 @@ export default function LedgerPage() {
     <main className="flex h-full flex-col gap-6 p-8">
       <PageHeader
         icon={<BookOpen />}
-        title="Ledger"
+        title="Invoice Reconciliation"
         subtitle="Every cost line the providers reported, the bills they sent, and what the difference is."
       />
       <LedgerTabs />

@@ -1985,3 +1985,37 @@ name: "rename the engine: `litellm/` becomes `token_iq/gateway/`", "about 185 li
 CI test fails on any litellm outside LICENSE, NOTICE, CHANGELOG". Two more compare Token IQ to LiteLLM and
 Bifrost as gateways. Stripping any of them would make the sentences meaningless, which is why the codemods
 list `docs/product/` beside the decision records as out of scope.
+
+## 2026-10-08, phase 9's navigation labels
+
+The label table is in section 12 of the plan, and its rows are two different kinds of change. Six are
+one-to-one: a page keeps its identity and gets the blueprint's name, sometimes under a different heading.
+Four are consolidations, seven sidebar entries into Data Sources with four tabs, Teams and Projects into
+Organization, Users and Access Groups and the audit log into Access Control, and three settings pages into
+Settings. Those merge pages, which needs asking first, so only the one-to-one rows are done.
+
+Usage is Cost Explorer, Ledger is Invoice Reconciliation, Attribution Rules is Cost Allocation, Budgets is
+Budgets & Forecasts and Cost Tracking is Pricing & Rates. Recommendations and Cost Optimization moved to a
+new Optimization heading, Budgets & Forecasts to Governance, and Organisation became Administration, which
+is the blueprint's name for it, with Pricing & Rates joining it from Settings.
+
+Nothing was removed or merged: 35 sidebar pages before, 35 after, each still at the address it had. The
+`page` key drives the URL and none of them changed; only `label` and `groupLabel` did. The ledger page's own
+heading moved with its sidebar entry, so the two agree.
+
+Four places had to agree about a label and now do: the sidebar, the test that pins every group's contents,
+the e2e fixture mapping a label to a page, and the e2e walk that clicks each entry by name. The last would
+have thrown `No page mapping found for menu label` on the first renamed entry.
+
+### Left for an owner's call
+
+The four consolidation rows. Each removes entries a customer navigates by today, and `docs/status.md`
+already records that the Data Sources rebuild is phase 5A's work rather than a rename.
+
+### Verified
+
+- the sidebar reads HOME, ANALYTICS (Cost Explorer, Invoice Reconciliation, Classic Usage, Logs),
+  OPTIMIZATION, GOVERNANCE, ADMINISTRATION, DATA SOURCES, GATEWAY, SAFETY, BUILD, SETTINGS against the live
+  proxy, with Virtual Keys loading its rows underneath
+- 37 sidebar unit tests, and the type checker and linter clean on the three changed files
+- one navbar test about the version badge fails here and fails identically at the previous commit

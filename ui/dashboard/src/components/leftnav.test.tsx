@@ -171,13 +171,15 @@ describe("Sidebar (leftnav)", () => {
 
     expect(placements).toEqual({
       HOME: ["overview"],
-      ANALYTICS: ["new_usage", "ledger", "recommendations", "usage", "cost-optimization", "logs"],
-      ORGANISATION: ["teams", "projects", "users", "access-groups", "budgets", "attribution"],
+      ANALYTICS: ["new_usage", "ledger", "usage", "logs"],
+      OPTIMIZATION: ["recommendations", "cost-optimization"],
+      GOVERNANCE: ["budgets"],
+      ADMINISTRATION: ["teams", "projects", "users", "access-groups", "attribution", "cost-tracking"],
       "DATA SOURCES": ["provider-apis", "user-tools", "llm-provider-credentials"],
       GATEWAY: ["api-keys", "providers", "models", "llm-playground", "transform-request"],
       SAFETY: ["guardrails", "guardrails-monitor", "policies"],
       BUILD: ["mcp-servers", "skills", "prompts", "tag-management", "model-hub-table", "api_ref"],
-      SETTINGS: ["admin-panel", "router-settings", "logging-and-alerts", "cost-tracking", "ui-theme"],
+      SETTINGS: ["admin-panel", "router-settings", "logging-and-alerts", "ui-theme"],
     });
   });
 
@@ -190,11 +192,23 @@ describe("Sidebar (leftnav)", () => {
   it("renders the agreed group labels and page names for an admin", () => {
     renderWithProviders(<Sidebar {...defaultProps} enableProjectsUI />);
 
-    ["HOME", "ANALYTICS", "ORGANISATION", "DATA SOURCES", "GATEWAY", "SAFETY", "BUILD", "SETTINGS"].forEach((label) => {
+    [
+      "HOME",
+      "ANALYTICS",
+      "OPTIMIZATION",
+      "GOVERNANCE",
+      "ADMINISTRATION",
+      "DATA SOURCES",
+      "GATEWAY",
+      "SAFETY",
+      "BUILD",
+      "SETTINGS",
+    ].forEach((label) => {
       expect(screen.getByText(label)).toBeInTheDocument();
     });
     [
-      "Usage",
+      "Cost Explorer",
+      "Invoice Reconciliation",
       "Classic Usage",
       "Cost Optimization",
       "Logs",
@@ -202,7 +216,8 @@ describe("Sidebar (leftnav)", () => {
       "Projects",
       "Users",
       "Access Groups",
-      "Budgets",
+      "Budgets & Forecasts",
+      "Cost Allocation",
       "LLM Provider Credentials",
       "Virtual Keys",
       "Providers",
@@ -221,7 +236,7 @@ describe("Sidebar (leftnav)", () => {
       "Admin Settings",
       "Router Settings",
       "Logging & Alerts",
-      "Cost Tracking",
+      "Pricing & Rates",
       "UI Theme",
     ].forEach((label) => {
       expect(screen.getByText(label)).toBeInTheDocument();
@@ -340,7 +355,7 @@ describe("Sidebar (leftnav)", () => {
       mockUseAuthorized.mockReturnValue(internalAuth);
       renderWithProviders(<Sidebar {...defaultProps} />);
 
-      expect(screen.getByText("Usage")).toBeInTheDocument();
+      expect(screen.getByText("Cost Explorer")).toBeInTheDocument();
       expect(screen.queryByText("Classic Usage")).not.toBeInTheDocument();
     });
 
@@ -354,7 +369,7 @@ describe("Sidebar (leftnav)", () => {
       mockUseAuthorized.mockReturnValue(internalAuth);
       renderWithProviders(<Sidebar {...defaultProps} />);
 
-      expect(screen.getByText("Usage")).toBeInTheDocument();
+      expect(screen.getByText("Cost Explorer")).toBeInTheDocument();
       expect(screen.queryByText("LLM Provider Credentials")).not.toBeInTheDocument();
     });
   });
@@ -423,7 +438,7 @@ describe("Sidebar (leftnav)", () => {
       renderWithProviders(<Sidebar {...defaultProps} />);
 
       expect(screen.queryByText("Guardrails Monitor")).not.toBeInTheDocument();
-      expect(screen.getByText("Usage")).toBeInTheDocument();
+      expect(screen.getByText("Cost Explorer")).toBeInTheDocument();
       expect(screen.getByText("Cost Optimization")).toBeInTheDocument();
     });
 
@@ -561,7 +576,7 @@ describe("getBreadcrumb", () => {
   it("resolves a page to its new section and title", () => {
     expect(getBreadcrumb("api-keys")).toEqual({ section: "Gateway", title: "Virtual Keys" });
     expect(getBreadcrumb("logs")).toEqual({ section: "Analytics", title: "Logs" });
-    expect(getBreadcrumb("users")).toEqual({ section: "Organisation", title: "Users" });
+    expect(getBreadcrumb("users")).toEqual({ section: "Administration", title: "Users" });
     expect(getBreadcrumb("usage")).toEqual({ section: "Analytics", title: "Classic Usage" });
     expect(getBreadcrumb("prompts")).toEqual({ section: "Build", title: "Prompts" });
     expect(getBreadcrumb("policies")).toEqual({ section: "Safety", title: "Policies" });

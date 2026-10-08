@@ -130,20 +130,13 @@ const menuGroups: MenuGroup[] = [
         page: "new_usage",
         icon: <BarChart3 {...ICON} />,
         roles: [...all_admin_roles, ...internalUserRoles],
-        label: "Usage",
+        label: "Cost Explorer",
       },
       {
         key: "ledger",
         page: "ledger",
-        label: "Ledger",
+        label: "Invoice Reconciliation",
         icon: <BookOpen {...ICON} />,
-        roles: all_admin_roles,
-      },
-      {
-        key: "recommendations",
-        page: "recommendations",
-        label: "Recommendations",
-        icon: <Lightbulb {...ICON} />,
         roles: all_admin_roles,
       },
       {
@@ -152,6 +145,19 @@ const menuGroups: MenuGroup[] = [
         label: "Classic Usage",
         icon: <BarChart3 {...ICON} />,
         roles: rolesWithCapability("viewGlobalSpend"),
+      },
+      { key: "logs", page: "logs", label: "Logs", icon: <Activity {...ICON} /> },
+    ],
+  },
+  {
+    groupLabel: "OPTIMIZATION",
+    items: [
+      {
+        key: "recommendations",
+        page: "recommendations",
+        label: "Recommendations",
+        icon: <Lightbulb {...ICON} />,
+        roles: all_admin_roles,
       },
       {
         key: "cost-optimization",
@@ -164,11 +170,16 @@ const menuGroups: MenuGroup[] = [
           </span>
         ),
       },
-      { key: "logs", page: "logs", label: "Logs", icon: <Activity {...ICON} /> },
     ],
   },
   {
-    groupLabel: "ORGANISATION",
+    groupLabel: "GOVERNANCE",
+    items: [
+      { key: "budgets", page: "budgets", label: "Budgets & Forecasts", icon: <Wallet {...ICON} />, roles: all_admin_roles },
+    ],
+  },
+  {
+    groupLabel: "ADMINISTRATION",
     items: [
       { key: "teams", page: "teams", label: "Teams", icon: <Users {...ICON} /> },
       {
@@ -186,12 +197,18 @@ const menuGroups: MenuGroup[] = [
         icon: <Boxes {...ICON} />,
         roles: all_admin_roles,
       },
-      { key: "budgets", page: "budgets", label: "Budgets", icon: <Wallet {...ICON} />, roles: all_admin_roles },
       {
         key: "attribution",
         page: "attribution",
-        label: "Attribution Rules",
+        label: "Cost Allocation",
         icon: <Waypoints {...ICON} />,
+        roles: all_admin_roles,
+      },
+      {
+        key: "cost-tracking",
+        page: "cost-tracking",
+        label: "Pricing & Rates",
+        icon: <BarChart3 {...ICON} />,
         roles: all_admin_roles,
       },
     ],
@@ -318,13 +335,6 @@ const menuGroups: MenuGroup[] = [
         icon: <Bell {...ICON} />,
         roles: all_admin_roles,
       },
-      {
-        key: "cost-tracking",
-        page: "cost-tracking",
-        label: "Cost Tracking",
-        icon: <BarChart3 {...ICON} />,
-        roles: all_admin_roles,
-      },
       { key: "ui-theme", page: "ui-theme", label: "UI Theme", icon: <Palette {...ICON} />, roles: all_admin_roles },
     ],
   },
@@ -341,7 +351,9 @@ const findMenuItemKey = (page: string): string => {
 
 const SECTION_DISPLAY: Record<string, string> = {
   ANALYTICS: "Analytics",
-  ORGANISATION: "Organisation",
+  OPTIMIZATION: "Optimization",
+  GOVERNANCE: "Governance",
+  ADMINISTRATION: "Administration",
   "DATA SOURCES": "Data Sources",
   GATEWAY: "Gateway",
   SAFETY: "Safety",

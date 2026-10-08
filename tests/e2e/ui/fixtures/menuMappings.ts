@@ -9,7 +9,7 @@ export const menuLabelToPage: Record<string, Page> = {
   Playground: Page.LlmPlayground,
   Models: Page.Models,
   "Models + Endpoints": Page.Models,
-  Usage: Page.NewUsage,
+  "Cost Explorer": Page.NewUsage,
   Teams: Page.Teams,
   Users: Page.Users,
   "Internal User": Page.Users, // Legacy label support
@@ -22,12 +22,12 @@ export const menuLabelToPage: Record<string, Page> = {
   "Router Settings": Page.RouterSettings,
   "Logging & Alerts": Page.LoggingAndAlerts,
   "Admin Settings": Page.AdminPanel,
-  "Cost Tracking": Page.CostTracking,
+  "Pricing & Rates": Page.CostTracking,
   "UI Theme": Page.UiTheme,
   "Response Cache": Page.Caching,
   Caching: Page.Caching, // Legacy label support
   Prompts: Page.Prompts,
-  Budgets: Page.Budgets,
+  "Budgets & Forecasts": Page.Budgets,
   "API Playground": Page.TransformRequest,
   "Tag Management": Page.TagManagement,
   "Classic Usage": Page.Usage,

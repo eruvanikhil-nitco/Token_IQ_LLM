@@ -12,7 +12,7 @@ const sidebarButtons = {
     "Virtual Keys",
     "Playground",
     "Models + Endpoints",
-    "Usage",
+    "Cost Explorer",
     "Teams",
     "Users",
     "AI Hub",
