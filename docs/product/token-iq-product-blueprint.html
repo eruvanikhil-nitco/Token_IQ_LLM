@@ -176,8 +176,8 @@ tr.us td{background:var(--accent-soft)}
 @media (max-width:560px){.step{grid-template-columns:44px 1fr}.step .wk{grid-column:2}}
 .changes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px 20px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
 .changes h3{grid-column:1/-1;font-size:1rem}
-.changes div{font-size:.86rem;display:grid;grid-template-columns:16px 1fr;gap:8px}
-.changes div::before{content:"✓";color:var(--accent);font-weight:700}
+.changes div{font-size:.86rem;position:relative;padding-left:24px}
+.changes div::before{content:"✓";color:var(--accent);font-weight:700;position:absolute;left:0;top:0}
 .where2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:700px){.where2{grid-template-columns:1fr}}
 .wcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:6px}
@@ -210,8 +210,8 @@ tr.us td{background:var(--accent-soft)}
 
 details.prev{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 16px}
 details.prev summary{cursor:pointer;font:600 .92rem var(--display)}
-details.prev > div{font-size:.84rem;display:grid;grid-template-columns:16px 1fr;gap:8px;margin-top:6px}
-details.prev > div::before{content:"·";color:var(--muted)}
+details.prev > div{font-size:.84rem;position:relative;padding-left:24px;margin-top:6px}
+details.prev > div::before{content:"·";color:var(--muted);position:absolute;left:0;top:0}
 kbd{font:500 .74rem var(--mono);border:1px solid var(--line);border-radius:4px;padding:0 5px;background:var(--surface)}
 .anat{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface);font-size:.84rem}
 .an-top,.an-foot{padding:9px 14px;background:var(--sunk);border-bottom:1px solid var(--line)}

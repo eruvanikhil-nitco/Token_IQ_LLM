@@ -1961,3 +1961,27 @@ version.
 
 One Next.js segment-prefetch file 404s per page. The export writes it as a nested directory and the client
 asks for a dot-separated name; the prefetch misses, Next falls back, and navigation works.
+
+## 2026-10-08, the blueprint's bullets were a vertical column of single words
+
+Asked whether the product blueprint had been looked at. This session had changed one line in it, a folder
+path in a tree diagram, as part of the dashboard move. Rendering it showed something else.
+
+`.changes div` made each bullet a two-column grid, `16px 1fr`, with the tick supplied by `::before`. That
+works only while the bullet holds exactly one text node. Every bullet holds four: a `<b>`, some prose, a
+`<code>`, and more prose. Each is its own grid item, so with five items and two columns the prose landed in
+the 16px column and wrapped one word per line. The first bullet rendered 48 lines tall where it needed 9,
+and the box 1670px where it needed 355. `details.prev > div` had the same rule, so all 35 bullets in the
+collapsed previous-version sections did the same, the worst 53 lines tall.
+
+Both are now `position:relative` with `padding-left:24px`, which is the same 16px column plus the 8px gap,
+and the marker is absolutely positioned. Inline content flows as one block, so the markup did not have to
+change. Measured across the whole document with every `details` expanded, text boxes rendering far taller
+than their words need went from 38 to 4, and those four are navigation lists where one item per line is the
+design.
+
+The blueprint still says LiteLLM 39 times and should. It is the document describing the removal of the
+name: "rename the engine: `litellm/` becomes `token_iq/gateway/`", "about 185 links to LiteLLM docs", "one
+CI test fails on any litellm outside LICENSE, NOTICE, CHANGELOG". Two more compare Token IQ to LiteLLM and
+Bifrost as gateways. Stripping any of them would make the sentences meaningless, which is why the codemods
+list `docs/product/` beside the decision records as out of scope.
