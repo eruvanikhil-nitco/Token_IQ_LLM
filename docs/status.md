@@ -2538,3 +2538,51 @@ with `WinError 193` on every run. The file is skipped on Windows with that reaso
 permanently red file trains people to ignore a red run. `tests/gateway/test_gate_slot_lock.py` is
 12 passed and 2 skipped, the two being a `make` lookup and the POSIX 128-plus-signal exit
 convention.
+
+## 9 Oct 2026, Teams and Projects become one entry
+
+The owner enabled Dependabot security updates, confirmed the provider list (OpenAI, Azure OpenAI
+and Azure AI, Anthropic, Bedrock, Vertex AI and Gemini, OpenRouter) and said to follow the plan on
+the rest. That closes the Dependabot line of the definition of done and unblocks the one phase 5
+question that needed an answer from outside the code.
+
+The first of phase 9's four consolidation rows is done: Teams and Projects are one Administration >
+Organization entry with a tab each.
+
+### What a merge actually involves, since this is the first
+
+The two entries had two different sets of rules. Teams was open to everyone subject to an
+installation's `enabled_ui_pages_internal_users` list. Projects needed `enable_projects_ui`, a role
+in the admin or internal-user sets, and for a non-admin, administering some team. Merging the
+entries moves those rules inside the page, so they now live in one function, `visibleOrganizationTabs`,
+which both the sidebar and the page ask. That is the part worth getting right: a viewer who could
+not open Projects must not reach it through a tab, and an entry that leads nowhere must not appear.
+Six mutants over those rules, one per condition, are all killed.
+
+Nothing stops resolving. Each tab keeps its own URL, `/organization/` and `/organization/projects/`,
+the legacy `?page=teams` and `?page=projects` links redirect to the right one, and `/teams` and
+`/projects` stay as redirects so a path bookmark still arrives somewhere.
+
+### Two bugs the merge introduced and the tests now hold down
+
+`findMenuItemKey` falls through to Virtual Keys for a page no entry declares, so standing on
+`/organization/projects` highlighted Virtual Keys. `getBreadcrumb` has the same shape and would
+have read as a prettified page id rather than a section anyone navigates. Both resolve a tab to the
+entry that owns it now, and reverting either one fails a test.
+
+### Verified
+
+- 74 unit tests across the new rule, the sidebar and the tab routing, with no type errors
+- 6 of 6 mutants killed on the visibility rules, and both navigation fixes killed by their own tests
+- the eslint findings left in `leftnav.tsx` are the pre-existing `<img>` ones
+
+### Still owner's, and now smaller
+
+Three consolidation rows remain: Users with Access Groups and the audit log into Access Control,
+three settings pages into Settings, and seven entries into Data Sources, which `docs/status.md`
+already records as phase 5A's rebuild rather than a rename.
+
+Phase 5's deletions stay as the evidence left them. The provider list closes the third of the three
+reasons recorded above, and the first two stand unchanged: guardrails is entangled with a security
+check in `auth_checks.py`, and most other candidates are live HTTP surfaces a customer can call.
+Section 9's own rule, keep what still imports, decides those.

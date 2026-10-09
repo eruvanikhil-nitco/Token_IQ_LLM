@@ -1,9 +1,16 @@
 "use client";
 
-import Teams from "@/components/Teams";
-import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
+import { useEffect } from "react";
 
+import { migratedHref } from "@/utils/migratedPages";
+
+/**
+ * Teams moved into Administration > Organization as its first tab. This stays so a bookmark or a
+ * link to /teams still arrives somewhere, rather than hitting a route that no longer exists.
+ */
 export default function TeamsPage() {
-  const { accessToken, userId, userRole, premiumUser } = useAuthorized();
-  return <Teams accessToken={accessToken} userID={userId} userRole={userRole} premiumUser={premiumUser ?? false} />;
+  useEffect(() => {
+    window.location.replace(`${migratedHref("organization")}/`);
+  }, []);
+  return null;
 }

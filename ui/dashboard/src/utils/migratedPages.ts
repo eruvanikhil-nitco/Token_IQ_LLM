@@ -16,7 +16,6 @@ export const MIGRATED_PAGES: Record<string, string> = {
   // Legacy alias: older bookmarks used the hyphenated ?page=api-reference form.
   "api-reference": "api-reference",
   "llm-playground": "playground",
-  projects: "projects",
   chat: "chat",
   "access-groups": "access-groups",
   budgets: "budgets",
@@ -56,7 +55,13 @@ export const MIGRATED_PAGES: Record<string, string> = {
   agents: "agents",
   "router-settings": "router-settings",
   users: "users",
-  teams: "teams",
+  // Administration > Organization, which merged Teams and Projects. The merged id comes first:
+  // legacyKeyForPathname returns the first key whose segment matches, and the sidebar uses it to
+  // decide which entry is highlighted.
+  organization: "organization",
+  // Legacy aliases, so a ?page=teams or ?page=projects link still lands on the right tab.
+  teams: "organization",
+  projects: "organization/projects",
   organizations: "organizations",
 };
 

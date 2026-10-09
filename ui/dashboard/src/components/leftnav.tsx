@@ -28,7 +28,6 @@ import {
   Code2,
   ExternalLink,
   FileText,
-  Folder,
   HeartPulse,
   KeyRound,
   LayoutGrid,
@@ -64,10 +63,14 @@ import {
   all_admin_roles,
   internalUserRoles,
   isAdminRole,
-  isUserTeamAdminForAnyTeam,
   rolesAllowedToViewWriteScopedPages,
   rolesWithWriteAccess,
 } from "../utils/roles";
+import {
+  ORGANIZATION_TABS,
+  ORGANIZATION_TAB_LEGACY_PAGE,
+  organizationIsVisible,
+} from "@/app/(dashboard)/organization/organizationTabs";
 import BetaBadge from "./BetaBadge";
 import BrandLogo, { BRAND_NAME } from "./BrandLogo";
 import SidebarAccountMenu from "./SidebarAccountMenu/SidebarAccountMenu";
@@ -181,14 +184,9 @@ const menuGroups: MenuGroup[] = [
   {
     groupLabel: "ADMINISTRATION",
     items: [
-      { key: "teams", page: "teams", label: "Teams", icon: <Users {...ICON} /> },
-      {
-        key: "projects",
-        page: "projects",
-        label: "Projects",
-        icon: <Folder {...ICON} />,
-        roles: [...all_admin_roles, ...internalUserRoles],
-      },
+      // Teams and Projects, which were two entries. Each tab keeps its own URL and its own
+      // visibility rule; `organizationIsVisible` decides whether this entry leads anywhere.
+      { key: "organization", page: "organization", label: "Organization", icon: <Users {...ICON} /> },
       { key: "users", page: "users", label: "Users", icon: <User {...ICON} />, roles: all_admin_roles },
       {
         key: "access-groups",
@@ -340,10 +338,21 @@ const menuGroups: MenuGroup[] = [
   },
 ];
 
+/**
+ * A page id that is now a tab inside a merged entry, mapped to the entry that owns it.
+ *
+ * Without this, a merged tab's own URL highlights nothing: the lookup below finds no item with
+ * that page and falls through to Virtual Keys, so standing on Projects lit up the wrong entry.
+ */
+const TAB_OWNER: Record<string, string> = Object.fromEntries(
+  ORGANIZATION_TABS.map((tab) => [ORGANIZATION_TAB_LEGACY_PAGE[tab], "organization"]),
+);
+
 const findMenuItemKey = (page: string): string => {
+  const owner = TAB_OWNER[page] ?? page;
   for (const group of menuGroups) {
     for (const item of group.items) {
-      if (item.page === page) return item.key;
+      if (item.page === owner) return item.key;
     }
   }
   return "api-keys";
@@ -371,10 +380,11 @@ const labelText = (item: MenuItem): string => (typeof item.label === "string" ? 
 
 // Breadcrumb ("Section" / "Page") for the top bar, derived from the same nav config.
 export const getBreadcrumb = (page: string): { section: string | null; title: string } => {
+  const owner = TAB_OWNER[page] ?? page;
   for (const group of menuGroups) {
     for (const item of group.items) {
       const section = SECTION_DISPLAY[group.groupLabel] ?? group.groupLabel;
-      if (item.page === page)
+      if (item.page === owner)
         return { section, title: typeof item.label === "string" ? item.label : prettify(item.key) };
     }
   }
@@ -415,9 +425,16 @@ const Sidebar_: React.FC<SidebarProps> = ({
         if (!isAdmin && enabledPagesInternalUsers != null) return enabledPagesInternalUsers.includes(item.page);
         return true;
       }
-      if (item.key === "projects") {
-        if (!enableProjectsUI) return false;
-        if (!isAdmin && !isUserTeamAdminForAnyTeam(teams ?? null, userId ?? "")) return false;
+      if (item.key === "organization") {
+        return organizationIsVisible({
+          userRole,
+          userId: userId ?? null,
+          teams: teams ?? null,
+          enabledPagesInternalUsers,
+          enableProjectsUI,
+          internalUserRoles,
+          adminRoles: all_admin_roles,
+        });
       }
       if (item.roles && !item.roles.includes(userRole)) return false;
       if (!isAdmin && enabledPagesInternalUsers != null) {

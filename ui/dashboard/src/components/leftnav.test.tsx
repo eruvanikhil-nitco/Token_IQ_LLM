@@ -174,7 +174,7 @@ describe("Sidebar (leftnav)", () => {
       ANALYTICS: ["new_usage", "ledger", "usage", "logs"],
       OPTIMIZATION: ["recommendations", "cost-optimization"],
       GOVERNANCE: ["budgets"],
-      ADMINISTRATION: ["teams", "projects", "users", "access-groups", "attribution", "cost-tracking"],
+      ADMINISTRATION: ["organization", "users", "access-groups", "attribution", "cost-tracking"],
       "DATA SOURCES": ["provider-apis", "user-tools", "llm-provider-credentials"],
       GATEWAY: ["api-keys", "providers", "models", "llm-playground", "transform-request"],
       SAFETY: ["guardrails", "guardrails-monitor", "policies"],
@@ -212,8 +212,7 @@ describe("Sidebar (leftnav)", () => {
       "Classic Usage",
       "Cost Optimization",
       "Logs",
-      "Teams",
-      "Projects",
+      "Organization",
       "Users",
       "Access Groups",
       "Budgets & Forecasts",
@@ -518,17 +517,16 @@ describe("Sidebar (leftnav)", () => {
     expect(costOptimization!).toHaveTextContent(/Cost Optimization/);
     expect(costOptimization!).toHaveTextContent(/Beta/);
 
-    expect(container.querySelector('a[href*="projects"]')).toBeNull();
+    expect(container.querySelector('a[href*="organization"]')).not.toBeNull();
   });
 
   it("keeps a readable collapsed-rail tooltip for items whose label carries a badge", () => {
     const { container } = renderWithProviders(<Sidebar {...defaultProps} enableProjectsUI collapsed />);
 
     expect(container.querySelector('a[href*="cost-optimization"]')).toHaveAttribute("title", "Cost Optimization");
-    expect(container.querySelector('a[href*="projects"]')).toHaveAttribute("title", "Projects");
   });
 
-  describe("Projects entry", () => {
+  describe("Organization entry", () => {
     const internalAuth = {
       userId: "lead-user-id",
       accessToken: "test-access-token",
@@ -545,28 +543,53 @@ describe("Sidebar (leftnav)", () => {
       mockIsTeamAdmin.mockReset();
     });
 
-    it("shows Projects to an admin without a Beta label", () => {
+    it("shows one Organization entry rather than separate Teams and Projects entries", () => {
       const { container } = renderWithProviders(<Sidebar {...defaultProps} enableProjectsUI />);
 
-      const projects = container.querySelector('a[href*="projects"]');
-      expect(projects).toHaveTextContent("Projects");
-      expect(projects).not.toHaveTextContent("Beta");
+      expect(container.querySelector('a[href*="organization"]')).toHaveTextContent("Organization");
+      expect(screen.queryByText("Projects")).toBeNull();
+      expect(screen.queryByText("Teams")).toBeNull();
     });
 
-    it("shows Projects to a user who administers a team", () => {
-      mockUseAuthorized.mockReturnValue(internalAuth);
-      mockIsTeamAdmin.mockReturnValue(true);
-      const { container } = renderWithProviders(<Sidebar {...defaultProps} enableProjectsUI />);
-
-      expect(container.querySelector('a[href*="projects"]')).not.toBeNull();
-    });
-
-    it("hides Projects from a user who administers no team", () => {
+    it("still shows it to a user who administers no team, because Teams is inside it", () => {
+      // The visibility rule moved into the page, so the entry is shown whenever any tab is
+      // reachable. The old test asserted a Projects link was absent, which an entry that no longer
+      // exists satisfies for the wrong reason.
       mockUseAuthorized.mockReturnValue(internalAuth);
       mockIsTeamAdmin.mockReturnValue(false);
       const { container } = renderWithProviders(<Sidebar {...defaultProps} enableProjectsUI />);
 
-      expect(container.querySelector('a[href*="projects"]')).toBeNull();
+      expect(container.querySelector('a[href*="organization"]')).not.toBeNull();
+      expect(screen.getByText("Logs")).toBeInTheDocument();
+    });
+
+    it("shows it to a user who administers a team", () => {
+      mockUseAuthorized.mockReturnValue(internalAuth);
+      mockIsTeamAdmin.mockReturnValue(true);
+      const { container } = renderWithProviders(<Sidebar {...defaultProps} enableProjectsUI />);
+
+      expect(container.querySelector('a[href*="organization"]')).not.toBeNull();
+    });
+
+    it("highlights Organization when standing on one of its tabs", () => {
+      // findMenuItemKey falls through to Virtual Keys for a page no entry declares, so a merged
+      // tab's own URL lit up the wrong entry entirely.
+      const { container } = renderWithProviders(
+        <Sidebar {...defaultProps} defaultSelectedKey="projects" enableProjectsUI />,
+      );
+      const organization = container.querySelector('a[href*="organization"]');
+
+      expect(organization).toHaveAttribute("data-active", "true");
+    });
+
+    it("hides it when the installation allows the viewer neither tab", () => {
+      mockUseAuthorized.mockReturnValue(internalAuth);
+      mockIsTeamAdmin.mockReturnValue(false);
+      const { container } = renderWithProviders(
+        <Sidebar {...defaultProps} enableProjectsUI enabledPagesInternalUsers={["logs"]} />,
+      );
+
+      expect(container.querySelector('a[href*="organization"]')).toBeNull();
       expect(screen.getByText("Logs")).toBeInTheDocument();
     });
   });
@@ -588,6 +611,13 @@ describe("getBreadcrumb", () => {
 
   it("falls back to the prettified page id for a page with no sidebar entry", () => {
     expect(getBreadcrumb("search-tools")).toEqual({ section: null, title: "Search Tools" });
+  });
+
+  it("resolves a merged tab to the entry that owns it", () => {
+    // Projects and Teams are tabs of Administration > Organization now. Each still has its own
+    // page id, and resolving it to a prettified title would read as a section nobody navigates.
+    expect(getBreadcrumb("projects")).toEqual({ section: "Administration", title: "Organization" });
+    expect(getBreadcrumb("teams")).toEqual({ section: "Administration", title: "Organization" });
   });
 
   it("resolves router-settings under the Settings section", () => {

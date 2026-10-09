@@ -10,7 +10,8 @@ export const menuLabelToPage: Record<string, Page> = {
   Models: Page.Models,
   "Models + Endpoints": Page.Models,
   "Cost Explorer": Page.NewUsage,
-  Teams: Page.Teams,
+  Organization: Page.Organization,
+  Teams: Page.Teams, // Legacy label support
   Users: Page.Users,
   "Internal User": Page.Users, // Legacy label support
   Organizations: Page.Organizations,

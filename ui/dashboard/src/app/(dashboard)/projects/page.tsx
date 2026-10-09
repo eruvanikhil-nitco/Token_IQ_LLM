@@ -1,9 +1,16 @@
 "use client";
 
-import { ProjectsPage } from "./_components/ProjectsPage";
-import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
+import { useEffect } from "react";
 
-export default function Projects() {
-  useAuthorized();
-  return <ProjectsPage />;
+import { migratedHref } from "@/utils/migratedPages";
+
+/**
+ * Projects moved into Administration > Organization as a tab. This stays so a bookmark or a link
+ * to /projects still arrives somewhere, rather than hitting a route that no longer exists.
+ */
+export default function ProjectsRedirect() {
+  useEffect(() => {
+    window.location.replace(`${migratedHref("organization/projects")}/`);
+  }, []);
+  return null;
 }

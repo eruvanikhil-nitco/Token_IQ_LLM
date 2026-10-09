@@ -8,6 +8,8 @@ export enum Page {
   LlmPlayground = "llm-playground",
   Users = "users",
   Teams = "teams",
+  // Administration > Organization, which merged Teams and Projects into one entry.
+  Organization = "organization",
   Organizations = "organizations",
   AdminPanel = "admin-panel",
   ApiRef = "api_ref",
