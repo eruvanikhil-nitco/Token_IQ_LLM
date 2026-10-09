@@ -1,6 +1,13 @@
-import ast
-import os
-import sys
+"""A benchmark, not a test: how long 150 image fetches take through three HTTP clients.
+
+It asserts nothing and it reaches a live S3 bucket, so it is run by hand with
+`python tests/code_coverage_tests/test_aio_http_image_conversion.py`.
+
+Its three timing helpers were named `test_*` and took arguments, so pytest collected them and
+errored on a fixture called `urls` on every run. They are `measure_*` now, which is what they do,
+and the file stays where the rest of the fork's measurements live.
+"""
+
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
 import asyncio
 import aiohttp
@@ -67,7 +74,7 @@ async def get_image_details_aio(image_url) -> Tuple[str, str]:
         raise e
 
 
-async def test_asyncified(urls: list[str], iterations: int = 3) -> list[float]:
+async def measure_asyncified(urls: list[str], iterations: int = 3) -> list[float]:
     times = []
     for _ in range(iterations):
         start = time.perf_counter()
@@ -76,7 +83,7 @@ async def test_asyncified(urls: list[str], iterations: int = 3) -> list[float]:
     return times
 
 
-async def test_async_httpx(urls: list[str], iterations: int = 3) -> list[float]:
+async def measure_async_httpx(urls: list[str], iterations: int = 3) -> list[float]:
     times = []
     for _ in range(iterations):
         start = time.perf_counter()
@@ -85,7 +92,7 @@ async def test_async_httpx(urls: list[str], iterations: int = 3) -> list[float]:
     return times
 
 
-async def test_aiohttp(urls: list[str], iterations: int = 3) -> list[float]:
+async def measure_aiohttp(urls: list[str], iterations: int = 3) -> list[float]:
     times = []
     for _ in range(iterations):
         start = time.perf_counter()
@@ -100,13 +107,13 @@ async def run_comparison():
     ] * 150
 
     print("Testing asyncified version...")
-    asyncified_times = await test_asyncified(urls)
+    asyncified_times = await measure_asyncified(urls)
 
     print("Testing async httpx version...")
-    async_httpx_times = await test_async_httpx(urls)
+    async_httpx_times = await measure_async_httpx(urls)
 
     print("Testing aiohttp version...")
-    aiohttp_times = await test_aiohttp(urls)
+    aiohttp_times = await measure_aiohttp(urls)
 
     print("\nResults:")
     print(

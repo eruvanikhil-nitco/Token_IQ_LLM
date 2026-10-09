@@ -1,6 +1,5 @@
 {
   "include": [
-    "litellm",
     "token_iq"
   ],
   "ignore": [],

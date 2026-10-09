@@ -1,4 +1,11 @@
-"""Phase 0 census: the per-category progress measure for the rename phases."""
+"""Phase 0 census: the per-category progress measure for the rename phases.
+
+Three of these broke by being renamed. The fixtures spell the old name out, because that is what
+the census counts, and a blanket rename rewrote them: a metric named `litellm_spend_metric` became
+`token_iq_spend_metric`, a file holding `LiteLLM` came to hold `Gateway`, and the committed bundle's
+path was left at the one phase 6 replaced. Each then asked the counter to find something that was no
+longer there. A fixture for a gate on a name cannot be renamed along with the code it measures.
+"""
 
 from __future__ import annotations
 
@@ -23,7 +30,9 @@ class TestExclusions:
 
     def test_skips_the_committed_ui_bundle(self) -> None:
         """1,016 tracked files of build output are not source."""
-        assert is_excluded(pathlib.PurePosixPath("litellm/proxy/_experimental/out/_next/static/chunks/a.js"))
+        assert is_excluded(
+            pathlib.PurePosixPath("token_iq/gateway/proxy/_experimental/out/_next/static/chunks/a.js")
+        )
 
     def test_does_not_skip_real_source(self) -> None:
         assert not is_excluded(pathlib.PurePosixPath("token_iq/gateway/proxy/proxy_server.py"))
@@ -49,7 +58,10 @@ class TestCategories:
 
     def test_counts_metrics_separately_from_other_snake_case_names(self, tmp_path: pathlib.Path) -> None:
         """A metric is declared, not merely mentioned, so a bare identifier must not count."""
-        _tree(tmp_path, {"a.py": 'Counter("token_iq_spend_metric")\nGauge("litellm_requests")\nlitellm_logging.foo()'})
+        _tree(
+            tmp_path,
+            {"a.py": 'Counter("litellm_spend_metric")\nGauge("litellm_requests")\nlitellm_logging.foo()'},
+        )
         assert count_tree(tmp_path).categories["metrics"] == 2
 
     def test_separates_python_from_ui_source(self, tmp_path: pathlib.Path) -> None:
@@ -67,7 +79,7 @@ class TestCategories:
 
 class TestFileCount:
     def test_counts_files_holding_the_name_not_files_scanned(self, tmp_path: pathlib.Path) -> None:
-        _tree(tmp_path, {"a.py": "litellm", "b.py": "clean", "c.py": "Gateway"})
+        _tree(tmp_path, {"a.py": "litellm", "b.py": "clean", "c.py": "LiteLLM"})
         assert count_tree(tmp_path).files == 2
 
     def test_an_excluded_file_adds_nothing(self, tmp_path: pathlib.Path) -> None:

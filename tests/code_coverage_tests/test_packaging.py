@@ -1,10 +1,13 @@
 """What the wheel is told to ship, and that a job checks what it really shipped.
 
-maturin builds the one Python package `module-name` points at, which is `litellm`. A second
-top-level package, and any data outside a package, ship only because `tool.maturin.include`
-names them. Nothing in a source checkout notices when that stops being true, because the
-directories are right there on `sys.path`: phase 2 found a wheel that would have installed with
-no price list at all, and every test had passed.
+maturin builds the one Python package `module-name` points at. Data files inside that package
+ship with it; anything outside needs `tool.maturin.include`, and naming it there turned out not
+to be enough. The price list sat at the repository root under `data/pricing/`, was named in the
+include list with a comment saying that is what made it ship, and the built wheel held one
+top-level tree anyway, so the published image could not import its own engine. It is package
+data now, under `token_iq/pricing/data/`.
+
+A checkout notices none of this, because every directory is right there on `sys.path`.
 
 These are the cheap half. They read configuration, so they run anywhere and say nothing about
 what a real build produces. `.github/scripts/verify_wheel_contents.py` is the other half: it
@@ -24,8 +27,15 @@ import yaml
 REPO: Final = pathlib.Path(__file__).resolve().parents[2]
 VERIFIER: Final = ".github/scripts/verify_wheel_contents.py"
 
-# Every top-level directory that must reach an installed copy, and why it would not by default.
-MUST_SHIP: Final[tuple[str, ...]] = ("token_iq", "data")
+# Every directory of non-Python data an installed copy needs. Each is inside the package, which
+# is what makes a wheel carry it; the include list names them as well, and the names are what
+# these check. A path that moves out of `token_iq/` is the failure that killed the image, so
+# `test_the_tree_is_inside_the_package` is the one to read first.
+MUST_SHIP: Final[tuple[str, ...]] = (
+    "token_iq/pricing/data",
+    "token_iq/gateway/proxy/_experimental/out",
+    "token_iq/gateway/router_strategy/complexity_router/artifacts",
+)
 
 
 @pytest.fixture(scope="module")
@@ -41,6 +51,13 @@ class TestTheIncludeList:
         assert any(entry.startswith(f"{tree}/") for entry in include), (
             f"{tree}/ is not packaged, so an installed copy would not have it. include = {include}"
         )
+
+    @pytest.mark.parametrize("tree", MUST_SHIP)
+    def test_the_tree_is_inside_the_package(self, tree: str) -> None:
+        """The one that would have caught it. Naming a tree in `include` did not make a wheel
+        carry it when the tree sat outside the package; being inside does."""
+        assert pathlib.Path(tree).parts[0] == "token_iq"
+        assert (REPO / tree).is_relative_to(REPO / "token_iq")
 
     def test_the_package_maturin_builds_is_still_the_engine(self, maturin: dict[str, object]) -> None:
         """If this ever changes, which trees need naming in `include` changes with it."""

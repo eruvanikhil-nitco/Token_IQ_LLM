@@ -9,7 +9,7 @@ def test_chat_completion_no_imports():
     """Test that chat_completion endpoint has no imports in function bodies."""
     # Path to the proxy server file
     proxy_server_path = (
-        Path(__file__).parent.parent.parent / "litellm" / "proxy" / "proxy_server.py"
+        Path(__file__).parent.parent.parent / "token_iq" / "gateway" / "proxy" / "proxy_server.py"
     )
 
     with open(proxy_server_path, "r") as f:

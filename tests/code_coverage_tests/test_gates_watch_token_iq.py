@@ -1,9 +1,14 @@
-"""Every quality gate watches `token_iq/`, not only `litellm/`.
+"""Every quality gate watches the whole of `token_iq/`.
 
-Phase 3 moves Token IQ's code into a package of its own. Three gates name their target as a
-literal string, so the moment that package exists its modules leave type checking and both
-lint budgets. Nothing fails. The budgets even appear to improve, because the violations they
-were counting moved somewhere nothing is looking.
+Phase 3 moved Token IQ's code into a package of its own and phase 6 moved the engine inside it.
+Three gates name their target as a literal string, so a path can leave type checking and both
+lint budgets the moment it moves. Nothing fails. The budgets even appear to improve, because the
+violations they were counting moved somewhere nothing is looking.
+
+Two tests here used to demand the gates and the type checker also name `litellm`, which was the
+right property while the engine was a sibling package. It is `token_iq/gateway/` now, so one
+target covers both, and the pair had become a demand for the old name. What replaced them checks
+the thing that still matters: that the engine subtree is really reached.
 
 This reads configuration rather than running the gates: the failure being guarded is a path
 going unwatched, not a rule misbehaving.
@@ -46,10 +51,15 @@ class TestTypeChecking:
             f"basedpyright would not see token_iq; include = {config['include']}"
         )
 
-    def test_pyright_still_includes_the_engine(self) -> None:
-        """Adding one must not replace the other."""
+    def test_the_engine_subtree_is_reached(self) -> None:
+        """Naming the package is only coverage if the engine inside it is reached. `include` also
+        listed `litellm`, a directory phase 6 deleted, so the entry read as coverage and resolved
+        to nothing."""
         config: Final = json.loads((REPO / "pyrightconfig.json").read_text(encoding="utf-8"))
-        assert "litellm" in config["include"]
+        roots: Final = tuple(entry for entry in config["include"] if (REPO / entry).exists())
+
+        assert roots == tuple(config["include"]), "an include entry names nothing"
+        assert any((REPO / entry / "gateway").is_dir() for entry in roots), "the engine is unwatched"
 
 
 class TestLintGates:
@@ -60,8 +70,13 @@ class TestLintGates:
         assert "token_iq" in targets, f"{gate} scans {targets}, so token_iq is unwatched"
 
     @pytest.mark.parametrize("gate", GATES)
-    def test_the_gate_still_scans_the_engine(self, gate: str) -> None:
-        assert "litellm" in _targets_of((REPO / gate).read_text(encoding="utf-8"))
+    def test_every_target_the_gate_names_is_really_there(self, gate: str) -> None:
+        """A gate pointed at a path that does not exist scans nothing and says so to nobody,
+        which is how the engine would leave both budgets without a single test going red."""
+        targets: Final = _targets_of((REPO / gate).read_text(encoding="utf-8"))
+        missing: Final = tuple(target for target in targets if not (REPO / target).exists())
+
+        assert not missing, f"{gate} scans {missing}, which is not on disk"
 
 
 class TestTheMakefile:
@@ -77,6 +92,23 @@ class TestTheMakefile:
         target: Final = re.search(r"^format-check:.*?\n(?=\w|\n\w)", makefile, re.MULTILINE | re.DOTALL)
         assert target, "format-check target not found"
         assert "token_iq" in target.group(0), f"format-check does not check token_iq:\n{target.group(0)}"
+
+EXCLUDED_ON_PURPOSE: Final[dict[str, str]] = {
+    "token_iq/gateway/types/utils.py": (
+        "1,470 diagnostics across this file and the one below, almost all missing parameter and "
+        "argument types on inherited shapes. The exclusion arrived with an upstream feature commit "
+        "and no reason; keeping it is a budget decision, so it waits on the basedpyright ratchet "
+        "rather than on this test"
+    ),
+    "token_iq/gateway/proxy/_types.py": "the other half of the same measurement",
+}
+"""Files inside the package that type checking skips on purpose, each with its reason.
+
+Measured by lifting both exclusions and running basedpyright over the two files. Reading them in
+would add 1,470 diagnostics to a budget the ratchet exists to drive down, which is a decision to
+take deliberately rather than as a side effect of a test going green.
+"""
+
 
 class TestEveryTokenIqFileIsReallyChecked:
     """`include` naming the package is not the same as every file in it being checked.
@@ -100,7 +132,23 @@ class TestEveryTokenIqFileIsReallyChecked:
             for path in (REPO / "token_iq").rglob("*.py")
             if self._excluded(path.relative_to(REPO).as_posix(), config["exclude"])
         )
-        assert not excluded, f"these are inside token_iq but excluded from type checking: {excluded}"
+        unexplained: Final = tuple(path for path in excluded if path not in EXCLUDED_ON_PURPOSE)
+
+        assert not unexplained, (
+            f"these are inside token_iq but excluded from type checking: {unexplained}. "
+            "Remove the exclusion, or add it to EXCLUDED_ON_PURPOSE with a reason."
+        )
+
+    def test_every_deliberate_exclusion_is_still_excluded(self) -> None:
+        """An entry nobody needs any more keeps a file out of type checking by habit."""
+        config: Final = json.loads((REPO / "pyrightconfig.json").read_text(encoding="utf-8"))
+        stale: Final = tuple(
+            path
+            for path in EXCLUDED_ON_PURPOSE
+            if not self._excluded(path, config["exclude"]) or not (REPO / path).is_file()
+        )
+
+        assert not stale, f"these are listed as deliberate but are not excluded any more: {stale}"
 
     def test_the_package_is_not_empty(self) -> None:
         """Guards the test above, which passes trivially if token_iq holds nothing."""

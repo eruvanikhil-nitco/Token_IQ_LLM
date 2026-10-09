@@ -2446,3 +2446,49 @@ basedpyright, one LIT003 fewer, no breaches.
 
 The workflow that builds the wheel is still called "LiteLLM Rust". Renaming it changes the check name
 GitHub reports, which branch protection may require, so it waits with the other repository settings.
+
+## 8 Oct 2026, ten red tests in the gate directory
+
+`tests/code_coverage_tests` had twelve failures and three collection errors. Two of the failures
+were the packaging test this session's change broke on purpose, one was a gate my own new test
+tripped, and the rest had been red since phase 6 moved the engine. Nobody had run the directory.
+
+Three were stale paths, pointing at `litellm/proxy/proxy_server.py`, `litellm/router_strategy` and
+`./litellm/__init__.py`. Each reported a missing file rather than a stale path, and one of them
+resolved against the working directory rather than its own location, which is why it said
+`Could not find ./litellm\__init__.py` instead of naming anything useful.
+
+Three were the opposite problem, and worse. The census tests measure how much of the old name is
+left, so their fixtures have to spell it out, and a blanket rename rewrote the fixtures along with
+the code: a metric named `litellm_spend_metric` became `token_iq_spend_metric` and a file holding
+`LiteLLM` came to hold `Gateway`, so each test asked the counter to find something that was no
+longer there. A fixture for a gate on a name cannot be renamed with everything else.
+
+Two demanded the old name outright. They asserted that the lint gates and the type checker name
+`litellm` as well as `token_iq`, which was right while the engine was a sibling package and is a
+demand for a deleted directory now that it is `token_iq/gateway/`. What replaced them checks the
+property that still holds: every target a gate names is really on disk, and the include list has
+no entry that resolves to nothing. `pyrightconfig.json` did have one, `litellm`, which read as
+coverage of a directory phase 6 deleted.
+
+One was two engine modules excluded from type checking, `token_iq/gateway/types/utils.py` and
+`token_iq/gateway/proxy/_types.py`. The exclusion arrived with an upstream feature commit and no
+reason. Lifting both and running basedpyright over them measures 1,470 diagnostics, almost all
+missing parameter and argument types on inherited shapes, so keeping it is a budget decision
+rather than an oversight. They are named in the test now with that measurement as the reason, and
+any other exclusion still fails.
+
+The three errors were not tests at all. `test_aio_http_image_conversion.py` is a benchmark that
+fetches a live S3 bucket 150 times through three HTTP clients and asserts nothing; its three
+timing helpers were named `test_*` and took arguments, so pytest collected them and errored on a
+fixture called `urls` on every run. They are `measure_*` now.
+
+The one that was mine: the banner test asserts the proxy prints
+`token_iq.gateway._turn_on_debug()`, and the gate that checks dotted paths resolve read that
+literally and asked whether a module named `_turn_on_debug()` exists. It reduces a call to the
+thing it calls now, and a call naming nothing still fails.
+
+### Verified
+
+- `tests/code_coverage_tests` is 9,499 passed, nothing failed, nothing errored
+- `assert_ci_coverage.py` still passes: 2,625 test files and 10 Dockerfiles all invoked

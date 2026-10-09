@@ -158,6 +158,16 @@ def _subpackages() -> frozenset[str]:
     )
 
 
+def _called(value: str) -> str:
+    """A path written as a call, reduced to the thing it calls.
+
+    Advice in a message or a docstring says `token_iq.gateway._turn_on_debug()`, and that names
+    `token_iq.gateway._turn_on_debug`. Checking the text as written asks whether a module called
+    `_turn_on_debug()` exists, which is never the question.
+    """
+    return value[:-2] if value.endswith("()") else value
+
+
 def _is_engine_path(value: str) -> bool:
     """Whether a dotted string is an import path into `token_iq` rather than data that looks like one.
 
@@ -195,7 +205,7 @@ def _dotted_paths_outside_patches() -> tuple[tuple[str, str, int], ...]:
     could not import the enterprise package.
     """
     return tuple(
-        (path.relative_to(REPO).as_posix(), node.value, node.lineno)
+        (path.relative_to(REPO).as_posix(), _called(node.value), node.lineno)
         for path in TESTS.rglob("test_*.py")
         if "node_modules" not in path.parts
         for tree in (_parsed(path),)
@@ -210,9 +220,9 @@ def _dotted_paths_outside_patches() -> tuple[tuple[str, str, int], ...]:
         for node in ast.walk(tree)
         if isinstance(node, ast.Constant)
         and isinstance(node.value, str)
-        and _is_engine_path(node.value)
+        and _is_engine_path(_called(node.value))
         and id(node) not in patched
-        and node.value not in DELIBERATELY_ABSENT
+        and _called(node.value) not in DELIBERATELY_ABSENT
     )
 
 
@@ -294,6 +304,27 @@ class TestWhatCountsAsAnImportPath:
 
     def test_the_bare_package_does_not(self) -> None:
         assert not _is_engine_path("token_iq")
+
+
+class TestAPathWrittenAsACall:
+    """Advice a caller reads names the call, not the module, and both have to be checked.
+
+    The banner printed beside a failed provider call says
+    `token_iq.gateway._turn_on_debug()`. Read literally that is not a path, so the gate asked
+    whether a module named `_turn_on_debug()` exists and said the advice resolved to nothing,
+    while the advice was correct.
+    """
+
+    def test_the_call_is_reduced_to_what_it_calls(self) -> None:
+        assert _called("token_iq.gateway._turn_on_debug()") == "token_iq.gateway._turn_on_debug"
+        assert _called("token_iq.gateway.proxy.proxy_server.prisma_client") == (
+            "token_iq.gateway.proxy.proxy_server.prisma_client"
+        )
+
+    def test_the_reduced_call_still_has_to_resolve(self) -> None:
+        """The point of reducing it. A call naming nothing must still fail."""
+        assert _names_something(_called("token_iq.gateway._turn_on_debug()"))
+        assert not _names_something(_called("token_iq.gateway.no_such_helper()"))
         assert not _is_engine_path("token_iq.gateway")
 
     def test_the_packages_are_read_from_the_tree(self) -> None:
