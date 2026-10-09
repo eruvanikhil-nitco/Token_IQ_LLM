@@ -46,7 +46,7 @@ class Breach(NamedTuple):
 
 
 def _run(cmd: list, cwd: Path = REPO_ROOT) -> str:
-    proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+    proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if proc.returncode not in (0, 1):
         sys.stderr.write(proc.stderr)
         raise SystemExit(f"{cmd[0]} exited {proc.returncode}")

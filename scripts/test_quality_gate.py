@@ -68,7 +68,7 @@ class Breach(NamedTuple):
 
 
 def _run(cmd: Sequence[str], cwd: Path = REPO_ROOT) -> str:
-    proc: Final = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+    proc: Final = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if proc.returncode not in (0, 1):
         sys.stderr.write(proc.stderr)
         raise SystemExit(f"{cmd[0]} exited {proc.returncode}")
@@ -131,7 +131,7 @@ def base_counts(ref: str) -> Mapping[str, int]:
         # Teardown must never raise, or it masks the real error when the body failed.
         subprocess.run(
             ["git", "worktree", "remove", "--force", str(worktree)],
-            cwd=REPO_ROOT, capture_output=True, text=True,
+            cwd=REPO_ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace",
         )
         shutil.rmtree(parent, ignore_errors=True)
 

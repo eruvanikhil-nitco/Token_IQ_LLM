@@ -66,6 +66,12 @@ GATE_SLOT_LOCK := python3 scripts/gate_slot_lock.py
 LINT_DEP_INSTALL ?= install-dev
 LINT_E2E_DEP_INSTALL ?= lint-install
 LINT_DEP_BASE ?= lint-fetch-base
+
+# What the delta-based gates compare against. The long-lived branch, not main: main is the
+# stale pre-fork tip, and its tree has no token_iq/ at all, so a gate pointed there scans an
+# empty worktree and reports the whole branch as newly introduced. CI passes the pull
+# request's own merge-base instead. Override with GATE_BASE=<ref> to compare elsewhere.
+GATE_BASE ?= origin/litellm_token_iq
 LINT_JOBS := $(shell sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
 LINT_OUTPUT_SYNC := $(if $(filter output-sync,$(.FEATURES)),--output-sync=target,)
 
@@ -122,10 +128,10 @@ format: install-dev
 format-check: install-dev
 	$(UV_RUN) ruff format --check token_iq
 
-# Single fetch of the PR base so the delta-based gates below share one network round
-# trip instead of each re-fetching when chained from `lint`.
+# Single fetch of the base so the delta-based gates below share one network round trip
+# instead of each re-fetching when chained from `lint`.
 lint-fetch-base:
-	git fetch origin main
+	git fetch origin $(patsubst origin/%,%,$(GATE_BASE))
 
 # Mirror test-linting.yml's lint job environment: the proxy-dev group plus a generated
 # Prisma client, so `basedpyright tests/e2e` resolves the same modules CI does. The
@@ -142,7 +148,7 @@ lint-install:
 # recursively, so 'token_iq/gateway/*.py' covers nested modules and the top-level files that
 # CI's 'token_iq/gateway/**/*.py' skips, which makes this target a superset of the CI step.
 lint-format-check-changed: $(LINT_DEP_INSTALL) $(LINT_DEP_BASE)
-	@files=$$(git diff --name-only --diff-filter=ACMR origin/main...HEAD -- 'token_iq/gateway/*.py' || true); \
+	@files=$$(git diff --name-only --diff-filter=ACMR $(GATE_BASE)...HEAD -- 'token_iq/gateway/*.py' || true); \
 	if [ -z "$$files" ]; then \
 		echo "No changed engine Python files to format-check."; \
 	else \
@@ -159,7 +165,7 @@ lint-ruff: $(LINT_DEP_INSTALL)
 # https://github.com/astral-sh/ruff/discussions/10977
 # https://github.com/astral-sh/ruff/discussions/4049
 lint-format-changed: install-dev
-	@git diff origin/main --unified=0 --no-color -- '*.py' | \
+	@git diff $(GATE_BASE) --unified=0 --no-color -- '*.py' | \
 	perl -ne '\
 		if (/^diff --git a\/(.*) b\//) { $$file = $$1; } \
 		if (/^@@ .* \+(\d+)(?:,(\d+))? @@/) { \
@@ -176,16 +182,16 @@ lint-format-changed: install-dev
 lint-ruff-dev: install-dev
 	@tmpfile=$$(mktemp /tmp/ruff-dev.XXXXXX) && \
 	($(UV_RUN) ruff check token_iq --output-format=pylint || true) > "$$tmpfile" && \
-	$(UV_RUN) diff-quality --violations=pylint "$$tmpfile" --compare-branch=origin/main ; \
+	$(UV_RUN) diff-quality --violations=pylint "$$tmpfile" --compare-branch=$(GATE_BASE) ; \
 	rm -f "$$tmpfile"
 
 lint-ruff-FULL-dev: install-dev
-	@files=$$(git diff --name-only origin/main -- '*.py'); \
+	@files=$$(git diff --name-only $(GATE_BASE) -- '*.py'); \
 	if [ -n "$$files" ]; then echo "$$files" | xargs $(UV_RUN) ruff check; \
 	else echo "No changed .py files to check."; fi
 
 lint-basedpyright: $(LINT_DEP_INSTALL) $(LINT_DEP_BASE)
-	$(UV_RUN) python scripts/type_check_gate.py --base origin/main
+	$(UV_RUN) python scripts/type_check_gate.py --base $(GATE_BASE)
 
 lint-e2e-basedpyright: $(LINT_E2E_DEP_INSTALL)
 	$(UV_RUN) basedpyright tests/e2e
@@ -193,13 +199,13 @@ lint-e2e-basedpyright: $(LINT_E2E_DEP_INSTALL)
 # Type-discipline budget (mutable collections / casts / type guards / kwargs /
 # unexplained suppressions), the test-linting.yml step `make lint` used to omit.
 lint-type-discipline: $(LINT_DEP_INSTALL) $(LINT_DEP_BASE)
-	$(UV_RUN) python scripts/type_discipline_gate.py --base origin/main
+	$(UV_RUN) python scripts/type_discipline_gate.py --base $(GATE_BASE)
 
 # Test-quality budget (zero-assert / mock-echo tests, sys.path.insert, raw env writes,
 # litellm module-global mutation, credential-gated skips, conftest snapshot
 # inventory), counted across tests/ the same delta-vs-base way.
 lint-test-quality: $(LINT_DEP_INSTALL) $(LINT_DEP_BASE)
-	$(UV_RUN) python scripts/test_quality_gate.py --base origin/main
+	$(UV_RUN) python scripts/test_quality_gate.py --base $(GATE_BASE)
 
 # --update lowers each limit by what this branch fixed since its branch point, so
 # it needs the base ref fetched to resolve the merge-base.
@@ -214,7 +220,7 @@ lint-ruff-budget: install-dev
 # Strict gate, invoked the same way CI does in test-linting.yml so a local pass
 # means the CI check will pass too.
 lint-gate: $(LINT_DEP_INSTALL) $(LINT_DEP_BASE)
-	$(UV_RUN) python scripts/ruff_strict_gate.py --base origin/main
+	$(UV_RUN) python scripts/ruff_strict_gate.py --base $(GATE_BASE)
 
 lint-ruff-budget-update: install-dev lint-fetch-base
 	$(UV_RUN) python scripts/ruff_strict_gate.py --update
@@ -239,7 +245,7 @@ check-import-safety: $(LINT_DEP_INSTALL)
 # runs the diff-scoped ruff format check, whole-tree ruff check, the strict-rule /
 # type-discipline / basedpyright budgets as a delta vs the base, then the circular-import
 # and import-safety checks. Steps that compare against the base resolve it the same way CI
-# does (merge-base with origin/main). Setup (env sync, Prisma client,
+# does (merge-base with $(GATE_BASE)). Setup (env sync, Prisma client,
 # base fetch) runs once up front; the checks themselves are independent, so a sub-make
 # fans them out with -j and the fast ones finish under basedpyright's shadow.
 lint:

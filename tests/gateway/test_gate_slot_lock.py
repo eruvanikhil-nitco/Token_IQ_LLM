@@ -1,6 +1,6 @@
-import fcntl
 import importlib.util
 import os
+import shutil
 import signal
 import subprocess
 import sys
@@ -65,8 +65,17 @@ def _wait_until(predicate: Callable[[], bool], timeout_seconds: float) -> bool:
 
 
 def _terminate_group(process: subprocess.Popen[bytes]) -> None:
+    """Kill the holder outright, so the next contender can only pass if a dead
+    process really released its lock.
+
+    Windows has no process group to signal, and `Popen.kill` there is a hard terminate
+    rather than a signal, which is the same thing this needs.
+    """
     with suppress(ProcessLookupError, PermissionError):
-        os.killpg(process.pid, signal.SIGKILL)
+        if sys.platform == "win32":
+            process.kill()
+        else:
+            os.killpg(process.pid, signal.SIGKILL)
 
 
 def _reap(process: subprocess.Popen[bytes]) -> None:
@@ -198,6 +207,10 @@ def test_missing_command_exits_127_and_no_command_exits_2(tmp_path: Path) -> Non
     assert bare.returncode == 2
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="128 + signal is a POSIX exit-code convention; Windows has no signal to map",
+)
 def test_wrapped_command_killed_by_signal_maps_to_128_plus_signal(tmp_path: Path) -> None:
     proc = subprocess.run(
         _wrapped(["import os, signal\nos.kill(os.getpid(), signal.SIGTERM)\n"]),
@@ -251,7 +264,7 @@ def test_killed_holder_releases_its_slot_for_the_next_contender(tmp_path: Path) 
     holder = subprocess.Popen(
         _wrapped([START_THEN_WAIT_FOR, str(holder_started), str(never)]),
         env=env,
-        start_new_session=True,
+        **({} if sys.platform == "win32" else {"start_new_session": True}),
     )
     try:
         assert _wait_until(holder_started.exists, 10)
@@ -278,11 +291,9 @@ def test_acquire_slot_holds_marks_and_releases_in_process(tmp_path: Path, monkey
     assert os.environ["LITELLM_GATE_SLOT_HELD"] == "1"
     assert gate_slot_lock.acquire_slot() is None
     with (lock_dir / "slot-0.lock").open("wb") as probe:
-        with pytest.raises(BlockingIOError):
-            fcntl.flock(probe, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        assert not gate_slot_lock.try_exclusive(probe), "the slot should be held"
         handle.close()
-        fcntl.flock(probe, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        fcntl.flock(probe, fcntl.LOCK_UN)
+        assert gate_slot_lock.try_exclusive(probe), "closing the handle should free it"
 
 
 def test_held_slot_context_manager_releases_on_exit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -293,12 +304,10 @@ def test_held_slot_context_manager_releases_on_exit(tmp_path: Path, monkeypatch:
     with gate_slot_lock.held_slot():
         assert os.environ["LITELLM_GATE_SLOT_HELD"] == "1"
         with (lock_dir / "slot-0.lock").open("wb") as probe:
-            with pytest.raises(BlockingIOError):
-                fcntl.flock(probe, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            assert not gate_slot_lock.try_exclusive(probe), "the slot should be held inside the block"
     assert not os.environ.get("LITELLM_GATE_SLOT_HELD")
     with (lock_dir / "slot-0.lock").open("wb") as probe:
-        fcntl.flock(probe, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        fcntl.flock(probe, fcntl.LOCK_UN)
+        assert gate_slot_lock.try_exclusive(probe), "leaving the block should free it"
 
 
 def _make_rule(target: str) -> tuple[list[str], list[str]]:
@@ -324,6 +333,7 @@ def _make_rule(target: str) -> tuple[list[str], list[str]]:
     raise AssertionError(f"target {target} not found in make database")
 
 
+@pytest.mark.skipif(shutil.which("make") is None, reason="make is not installed here")
 def test_direct_make_lint_takes_a_slot_before_any_setup() -> None:
     lint_prerequisites, lint_recipe = _make_rule("lint")
     assert lint_prerequisites == []

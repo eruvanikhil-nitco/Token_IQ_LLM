@@ -83,6 +83,12 @@ GH_TIMEOUT_SECONDS = 10
 # every cache and artifact fingerprint, so stale counts can never be matched.
 TYPECHECK_ENV_DIR = REPO_ROOT / ".venv-typecheck"
 TYPECHECK_DEP_GROUPS = ("proxy-dev", "e2e-dev")
+
+# A venv puts its executables in Scripts/ on Windows and bin/ everywhere else. Both of the
+# paths below were spelled bin/, so a Windows run could not find the interpreter it had just
+# provisioned, nor basedpyright itself.
+VENV_BIN = "Scripts" if sys.platform == "win32" else "bin"
+VENV_PYTHON = "python.exe" if sys.platform == "win32" else "python"
 PRISMA_GENERATE_SCRIPT = REPO_ROOT / "scripts" / "prisma_generate_if_needed.py"
 PRISMA_SCHEMA = REPO_ROOT / "litellm" / "proxy" / "schema.prisma"
 
@@ -140,7 +146,7 @@ def count_basedpyright(payload: str, root: Path = REPO_ROOT) -> dict[str, int]:
 
 
 def _run(cmd: list[str], cwd: Path = REPO_ROOT) -> str:
-    proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+    proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if proc.returncode not in (0, 1):
         sys.stderr.write(proc.stderr)
         raise SystemExit(f"{cmd[0]} exited {proc.returncode}")
@@ -172,13 +178,13 @@ def typecheck_env_commands(env_dir: Path = TYPECHECK_ENV_DIR) -> tuple[tuple[str
         *(("--python", python_pin) if python_pin else ()),
         *(flag for group in TYPECHECK_DEP_GROUPS for flag in ("--group", group)),
     )
-    generate: Final = (str(env_dir / "bin" / "python"), str(PRISMA_GENERATE_SCRIPT))
+    generate: Final = (str(env_dir / VENV_BIN / VENV_PYTHON), str(PRISMA_GENERATE_SCRIPT))
     return (sync, generate)
 
 
 def _run_provision_step(cmd: tuple[str, ...], env: Mapping[str, str]) -> int:
     proc = subprocess.run(
-        list(cmd), cwd=REPO_ROOT, env=dict(env), capture_output=True, text=True
+        list(cmd), cwd=REPO_ROOT, env=dict(env), capture_output=True, text=True, encoding="utf-8", errors="replace"
     )
     if proc.returncode != 0:
         sys.stderr.write(proc.stdout)
@@ -220,17 +226,19 @@ def run_basedpyright(cwd: Path = REPO_ROOT, env_dir: Path = TYPECHECK_ENV_DIR) -
     diagnostics) whenever the repo has one. Exit 0 (clean) and 1 (errors
     found) are both output-bearing runs; anything else is a crash and fails
     loudly instead of reading as zero errors."""
-    bin_dir: Final = env_dir / "bin"
+    bin_dir: Final = env_dir / VENV_BIN
     proc = subprocess.run(
         [
             str(bin_dir / "basedpyright"),
             "--outputjson",
             "--pythonpath",
-            str(bin_dir / "python"),
+            str(bin_dir / VENV_PYTHON),
         ],
         cwd=cwd,
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         env={**os.environ, "NODE_OPTIONS": node_options_with_heap(os.environ)},
     )
     if proc.returncode not in (0, 1):
@@ -271,6 +279,8 @@ def _temp_worktree(ref: str) -> Iterator[Path]:
             cwd=REPO_ROOT,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         shutil.rmtree(parent, ignore_errors=True)
 
@@ -408,6 +418,8 @@ def origin_slug() -> str | None:
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if proc.returncode != 0:
         return None

@@ -6,14 +6,18 @@
 scripts/type_check_gate.py) each hold one of N machine-wide slots while they
 run, so however many sessions and worktrees share one machine, at most N of
 them execute a basedpyright/pytest/prettier storm at a time instead of all
-thrashing it at once. Slots are fcntl.flock files (macOS ships no flock(1)
-binary, hence python3 + stdlib only, runnable before any venv exists) under a
-per-user cache directory shared by every worktree and session:
+thrashing it at once. Slots are lock files (macOS ships no flock(1) binary,
+hence python3 + stdlib only, runnable before any venv exists) held with
+fcntl.flock, or msvcrt.locking on Windows: the import used to be plain
+`import fcntl`, so every gate on Windows died at module import and never
+reached the fail-open path below. Both forms release when the handle closes
+or the process dies. They live under a per-user cache directory shared by
+every worktree and session:
 ~/.cache/litellm/gate-slots by default, $LITELLM_GATE_SLOT_DIR to override.
 A holder's lock dies with its process, so a crash leaves nothing to clean up.
 
 $LITELLM_GATE_SLOTS sets the slot count (default 2); 0 disables locking.
-Waiting is a blocking flock on a turnstile file plus a slow poll of the slots,
+Waiting is an exclusive hold on a turnstile file plus a slow poll of the slots,
 so contenders queue roughly first-come-first-served without busy-spinning.
 A process that acquired (or deliberately skipped) a slot exports
 LITELLM_GATE_SLOT_HELD, and nested acquisitions under that marker are no-ops,
@@ -28,7 +32,7 @@ CLI: python3 scripts/gate_slot_lock.py <command> [args...]
 from __future__ import annotations
 
 import contextlib
-import fcntl
+import errno
 import os
 import subprocess
 import sys
@@ -38,6 +42,45 @@ from typing import IO, TYPE_CHECKING, Final
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
+
+if sys.platform == "win32":
+    import msvcrt
+
+    def try_exclusive(handle: IO[bytes]) -> bool:
+        """Take the lock if it is free. False when somebody else holds it."""
+        try:
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+        except OSError as error:
+            if error.errno == errno.EACCES:
+                return False
+            raise
+        return True
+
+    def wait_exclusive(handle: IO[bytes]) -> None:
+        """Wait until the lock is ours.
+
+        Polled, because Windows has no blocking form that waits indefinitely: `LK_LOCK` gives up
+        after about ten seconds and raises. Waiters can therefore reach the turnstile out of
+        order, which costs fairness at a door held for the instant it takes to claim a free slot.
+        """
+        while not try_exclusive(handle):
+            time.sleep(POLL_SECONDS)
+
+else:
+    import fcntl
+
+    def try_exclusive(handle: IO[bytes]) -> bool:
+        """Take the lock if it is free. False when somebody else holds it."""
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return False
+        return True
+
+    def wait_exclusive(handle: IO[bytes]) -> None:
+        """Wait until the lock is ours, in arrival order, without spinning."""
+        fcntl.flock(handle, fcntl.LOCK_EX)
+
 
 HELD_MARKER_ENV: Final = "LITELLM_GATE_SLOT_HELD"
 SLOT_COUNT_ENV: Final = "LITELLM_GATE_SLOTS"
@@ -69,13 +112,13 @@ def _slot_count() -> int:
 def _try_slot(directory: Path, index: int) -> IO[bytes] | None:
     handle: Final = (directory / f"slot-{index}.lock").open("wb")
     try:
-        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except BlockingIOError:
-        handle.close()
-        return None
+        taken: Final = try_exclusive(handle)
     except OSError:
         handle.close()
         raise
+    if not taken:
+        handle.close()
+        return None
     return handle
 
 
@@ -87,7 +130,7 @@ def _wait_for_slot(directory: Path, count: int) -> IO[bytes]:
         flush=True,
     )
     with (directory / "turnstile.lock").open("wb") as turnstile:
-        fcntl.flock(turnstile, fcntl.LOCK_EX)
+        wait_exclusive(turnstile)
         while True:
             for index in range(count):
                 held = _try_slot(directory, index)

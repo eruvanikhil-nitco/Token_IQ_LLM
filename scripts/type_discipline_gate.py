@@ -65,7 +65,7 @@ class Breach(NamedTuple):
 
 
 def _run(cmd: list, cwd: Path = REPO_ROOT) -> str:
-    proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+    proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if proc.returncode not in (0, 1):
         sys.stderr.write(proc.stderr)
         raise SystemExit(f"{cmd[0]} exited {proc.returncode}")
@@ -131,7 +131,7 @@ def base_counts(ref: str) -> dict:
         # the body (or the `worktree add` itself) failed. rmtree is already best-effort.
         subprocess.run(
             ["git", "worktree", "remove", "--force", str(worktree)],
-            cwd=REPO_ROOT, capture_output=True, text=True,
+            cwd=REPO_ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace",
         )
         shutil.rmtree(parent, ignore_errors=True)
 
@@ -233,7 +233,7 @@ def ratcheted_budget(budget: dict, current: dict, base: dict, seeded: frozenset 
 def _base_budget_rules(base_point: str) -> frozenset:
     proc = subprocess.run(
         ["git", "show", f"{base_point}:{BUDGET_PATH.name}"],
-        cwd=REPO_ROOT, capture_output=True, text=True,
+        cwd=REPO_ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace",
     )
     if proc.returncode != 0:
         return frozenset()

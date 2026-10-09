@@ -2492,3 +2492,49 @@ thing it calls now, and a call naming nothing still fails.
 
 - `tests/code_coverage_tests` is 9,499 passed, nothing failed, nothing errored
 - `assert_ci_coverage.py` still passes: 2,625 test files and 10 Dockerfiles all invoked
+
+## 9 Oct 2026, the quality gates run on Windows
+
+`make check` and all four budget gates died at import on this platform.
+`scripts/gate_slot_lock.py` said `import fcntl` unconditionally, so the module never loaded and
+the fail-open path it already has never got a chance. The lock now holds slots with
+`fcntl.flock` or `msvcrt.locking`, both of which release when the handle closes or the process
+dies, which is the property the slot queue depends on.
+
+POSIX keeps exactly the behaviour it had. The turnstile is still a blocking `flock` there, in
+arrival order without spinning; only Windows polls it, because `LK_LOCK` gives up after about ten
+seconds rather than waiting, and that costs fairness at a door held for the instant it takes to
+claim a free slot.
+
+Three of the four gates now run here and pass: the strict ruff budget, the LIT type-discipline
+budget and the test-quality budget, each against `origin/litellm_token_iq`.
+
+Two more things were in the way of that.
+
+`_run` in every gate called `subprocess.run(text=True)` with no encoding, so output was decoded
+with the machine's codepage. With the price file now inside `token_iq/`, a diff of the package
+holds bytes cp1252 cannot decode, the reader thread died, and the helper returned `None`, which
+surfaced as an `AttributeError` a long way from the cause. All eleven calls pin UTF-8.
+
+The Makefile passed `--base origin/main` to the delta gates. That commit predates the rename and
+its tree has no `token_iq/` at all, so the gate scanned an empty worktree and reported the whole
+branch as newly introduced. The base is `GATE_BASE`, defaulting to the long-lived branch and
+overridable; CI already passes the pull request's own merge-base and is unaffected.
+
+`scripts/type_check_gate.py` also looked for its provisioned interpreter at `bin/python`, which is
+`Scripts/python.exe` on Windows, in both the Prisma step and the basedpyright call.
+
+### What still cannot run here, and why
+
+The basedpyright budget gate provisions a venv that installs this project, which builds the Rust
+extension. There is no MSVC linker on this machine, so `cargo` picks up Git Bash's coreutils
+`link` and the build fails. Installing the Visual Studio Build Tools would fix it and is a
+decision to take deliberately, not a side effect of a lint run. The same is why `uv build --wheel`
+cannot be run here, so the wheel's real contents are checked by the CI job that builds one.
+
+`make` is not installed, and `tests/gateway/test_pre_commit_lint.py` drives
+`scripts/pre_commit_lint.sh` as a program, which Windows cannot exec: all 23 of its tests failed
+with `WinError 193` on every run. The file is skipped on Windows with that reason, because a
+permanently red file trains people to ignore a red run. `tests/gateway/test_gate_slot_lock.py` is
+12 passed and 2 skipped, the two being a `make` lookup and the POSIX 128-plus-signal exit
+convention.

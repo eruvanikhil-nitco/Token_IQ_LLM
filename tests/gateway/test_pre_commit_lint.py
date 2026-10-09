@@ -2,6 +2,7 @@ import os
 import shutil
 import signal
 import subprocess
+import sys
 import time
 from collections.abc import Callable
 from contextlib import suppress
@@ -11,6 +12,14 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts" / "pre_commit_lint.sh"
+
+# Every test here runs the shell script as a program, and Windows cannot exec a .sh: all 23
+# of them died with WinError 193 on every run. A permanently red file trains people to
+# ignore a red run, so this says what it cannot test rather than pretending to test it.
+pytestmark = pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="drives scripts/pre_commit_lint.sh, and Windows has no way to exec a shell script",
+)
 
 BARRIER_HELPER = """barrier_sync() {
     touch "$STUB_BARRIER_DIR/$1.started"
