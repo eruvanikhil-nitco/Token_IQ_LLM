@@ -23,7 +23,8 @@ export const menuLabelToPage: Record<string, Page> = {
   Guardrails: Page.Guardrails,
   "Router Settings": Page.RouterSettings,
   "Logging & Alerts": Page.LoggingAndAlerts,
-  "Admin Settings": Page.AdminPanel,
+  Settings: Page.Settings,
+  "Admin Settings": Page.AdminPanel, // Legacy label support
   "Pricing & Rates": Page.CostTracking,
   "UI Theme": Page.UiTheme,
   "Response Cache": Page.Caching,

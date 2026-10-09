@@ -42,10 +42,7 @@ export const MIGRATED_PAGES: Record<string, string> = {
   caching: "caching",
   "cost-tracking": "cost-tracking",
   "transform-request": "transform-request",
-  "ui-theme": "ui-theme",
   logs: "logs",
-  "admin-panel": "admin-panel",
-  "logging-and-alerts": "logging-and-alerts",
   "model-hub-table": "model-hub-table",
   // The modern usage dashboard; the legacy ?page=usage report routes to /old-usage.
   new_usage: "usage",
@@ -58,6 +55,11 @@ export const MIGRATED_PAGES: Record<string, string> = {
   "access-control": "access-control",
   users: "access-control",
   "access-groups": "access-control/access-groups",
+  // Administration > Settings, which merged Admin Settings, Logging & Alerts and UI Theme.
+  settings: "settings",
+  "admin-panel": "settings",
+  "logging-and-alerts": "settings/logging-and-alerts",
+  "ui-theme": "settings/ui-theme",
   // Administration > Organization, which merged Teams and Projects. The merged id comes first:
   // legacyKeyForPathname returns the first key whose segment matches, and the sidebar uses it to
   // decide which entry is highlighted.

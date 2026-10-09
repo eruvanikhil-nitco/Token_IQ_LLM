@@ -2622,3 +2622,59 @@ the re-render rather than acquiring scaffolding for a second one.
 
 One consolidation row: Admin Settings, Logging & Alerts and UI Theme into Settings. The fourth,
 seven entries into Data Sources, stays phase 5A's rebuild rather than phase 9's rename.
+
+## 9 Oct 2026, the last consolidation row, and a blueprint I read wrong
+
+Administration > Settings now holds what were the Admin Settings, Logging & Alerts and UI Theme
+pages, as three tabs. That is phase 9's label table finished.
+
+### The correction worth recording
+
+Before building this row I read the label table against
+`docs/product/2026-09-14-token-iq-product-design.md` and
+`docs/product/2026-09-15-cost-platform-reference.md`, and concluded the four consolidation rows were
+a misreading of a two-level outline: both of those files list Teams, Projects, Users and Access
+Groups as separate entries under ORGANISATION, and all four settings pages as separate entries
+under SETTINGS. On that reading the two merges already shipped were wrong, and I said so.
+
+The owner pointed at the clickable blueprint, `docs/product/token-iq-product-blueprint.html`, which
+settles it the other way:
+
+    Administration | Organization · Access Control · Cost Allocation · Pricing & Rates
+                   | Integrations · Settings
+
+Each is a page with `g:'Administration'`, and Access Control is described as "users, roles &
+permissions, service accounts, single sign-on and audit log". The two markdown outlines are from 14
+and 15 September; the mockup is the current one. The label table was right, and nothing needed
+reverting. The lesson is which file to open: the mockup is the blueprint, the markdown outlines are
+its predecessors.
+
+### What the mockup changed about this row
+
+Its Settings page is "Data retention, privacy, system health, licence and feature flags", with four
+tabs that do not exist in the product yet. So this merge is the label table's three pages and
+nothing more: no stubs for the other four, on the blueprint's own principle that an empty tab is
+worse than an absent one.
+
+Router Settings stays where it was, alone in the SETTINGS group. It appears in neither the label
+table nor the mockup, and it goes with the routing deletion whenever phase 5 runs, so inventing a
+home for it now would be a decision nobody has taken.
+
+The tab reads "Admin" rather than "Admin Settings", which inside a page called Settings would
+stutter.
+
+### Verified against the running proxy
+
+- all nine routes answer 200, across the three merged pages and Router Settings
+- all eight legacy `?page=` links still resolve, including the three new ones
+- the 53 assets the Settings page asks for all answer 200
+- 127 tests across the three merges, the sidebar and Admin Settings, no type or lint errors
+- `npm run build` exits 0 with every route prerendered, and the served bundle is rebuilt from it
+
+A sidebar test written for the first merge, "gives every sidebar page a route, so moving an entry
+never breaks its address", caught the new entry before its route was mapped.
+
+### Left
+
+Phase 9's label table is done. Nothing in phases 6 to 10 is outstanding except phase 5's deletions,
+parked on the evidence recorded above.

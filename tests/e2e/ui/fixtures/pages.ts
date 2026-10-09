@@ -13,6 +13,8 @@ export enum Page {
   // Administration > Access Control, which merged Users, Access Groups and the audit log.
   AccessControl = "access-control",
   Organizations = "organizations",
+  // Administration > Settings, which merged Admin Settings, Logging & Alerts and UI Theme.
+  Settings = "settings",
   AdminPanel = "admin-panel",
   ApiRef = "api_ref",
   LoggingAndAlerts = "logging-and-alerts",

@@ -22,7 +22,6 @@ import {
 import {
   Activity,
   BarChart3,
-  Bell,
   Blocks,
   Boxes,
   Code2,
@@ -33,7 +32,6 @@ import {
   LayoutGrid,
   LockKeyhole,
   Network,
-  Palette,
   PanelLeftClose,
   PanelLeftOpen,
   PiggyBank,
@@ -76,6 +74,7 @@ import {
   ACCESS_CONTROL_TAB_LEGACY_PAGE,
   accessControlIsVisible,
 } from "@/app/(dashboard)/access-control/accessControlTabs";
+import { SETTINGS_TABS, SETTINGS_TAB_LEGACY_PAGE, settingsIsVisible } from "@/app/(dashboard)/settings/settingsTabs";
 import BetaBadge from "./BetaBadge";
 import BrandLogo, { BRAND_NAME } from "./BrandLogo";
 import SidebarAccountMenu from "./SidebarAccountMenu/SidebarAccountMenu";
@@ -215,6 +214,15 @@ const menuGroups: MenuGroup[] = [
         icon: <BarChart3 {...ICON} />,
         roles: all_admin_roles,
       },
+      // Admin Settings, Logging & Alerts and UI Theme, which were three entries under their own
+      // group. Router Settings is in neither the label table nor the blueprint, so it stays.
+      {
+        key: "settings",
+        page: "settings",
+        label: "Settings",
+        icon: <SettingsIcon {...ICON} />,
+        roles: all_admin_roles,
+      },
     ],
   },
   {
@@ -319,27 +327,12 @@ const menuGroups: MenuGroup[] = [
     roles: all_admin_roles,
     items: [
       {
-        key: "admin-panel",
-        page: "admin-panel",
-        label: "Admin Settings",
-        icon: <SettingsIcon {...ICON} />,
-        roles: all_admin_roles,
-      },
-      {
         key: "router-settings",
         page: "router-settings",
         label: "Router Settings",
         icon: <Route {...ICON} />,
         roles: all_admin_roles,
       },
-      {
-        key: "logging-and-alerts",
-        page: "logging-and-alerts",
-        label: "Logging & Alerts",
-        icon: <Bell {...ICON} />,
-        roles: all_admin_roles,
-      },
-      { key: "ui-theme", page: "ui-theme", label: "UI Theme", icon: <Palette {...ICON} />, roles: all_admin_roles },
     ],
   },
 ];
@@ -356,6 +349,7 @@ const TAB_OWNER: Record<string, string> = Object.fromEntries([
     const legacy = ACCESS_CONTROL_TAB_LEGACY_PAGE[tab];
     return legacy ? [[legacy, "access-control"]] : [];
   }),
+  ...SETTINGS_TABS.map((tab) => [SETTINGS_TAB_LEGACY_PAGE[tab], "settings"]),
 ]);
 
 const findMenuItemKey = (page: string): string => {
@@ -434,6 +428,9 @@ const Sidebar_: React.FC<SidebarProps> = ({
         if (!hasRoleAccess) return false;
         if (!isAdmin && enabledPagesInternalUsers != null) return enabledPagesInternalUsers.includes(item.page);
         return true;
+      }
+      if (item.key === "settings") {
+        return settingsIsVisible({ userRole, adminRoles: all_admin_roles });
       }
       if (item.key === "access-control") {
         return accessControlIsVisible({

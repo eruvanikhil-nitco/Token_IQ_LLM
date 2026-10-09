@@ -1,11 +1,16 @@
 "use client";
 
-import AdminPanel from "./_components/AdminPanel";
-import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
-import useProxySettings from "@/app/(dashboard)/hooks/proxySettings/useProxySettings";
+import { useEffect } from "react";
 
+import { migratedHref } from "@/utils/migratedPages";
+
+/**
+ * Admin Settings moved into Administration > Settings as a tab. This stays so a bookmark or a link to
+ * /admin-panel still arrives somewhere, rather than hitting a route that no longer exists.
+ */
 export default function AdminPanelPage() {
-  const { accessToken } = useAuthorized();
-  const proxySettings = useProxySettings(accessToken);
-  return <AdminPanel proxySettings={proxySettings} />;
+  useEffect(() => {
+    window.location.replace(`${migratedHref("settings")}/`);
+  }, []);
+  return null;
 }

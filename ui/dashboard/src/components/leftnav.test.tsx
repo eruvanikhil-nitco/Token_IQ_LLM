@@ -174,12 +174,12 @@ describe("Sidebar (leftnav)", () => {
       ANALYTICS: ["new_usage", "ledger", "usage", "logs"],
       OPTIMIZATION: ["recommendations", "cost-optimization"],
       GOVERNANCE: ["budgets"],
-      ADMINISTRATION: ["organization", "access-control", "attribution", "cost-tracking"],
+      ADMINISTRATION: ["organization", "access-control", "attribution", "cost-tracking", "settings"],
       "DATA SOURCES": ["provider-apis", "user-tools", "llm-provider-credentials"],
       GATEWAY: ["api-keys", "providers", "models", "llm-playground", "transform-request"],
       SAFETY: ["guardrails", "guardrails-monitor", "policies"],
       BUILD: ["mcp-servers", "skills", "prompts", "tag-management", "model-hub-table", "api_ref"],
-      SETTINGS: ["admin-panel", "router-settings", "logging-and-alerts", "ui-theme"],
+      SETTINGS: ["router-settings"],
     });
   });
 
@@ -231,11 +231,8 @@ describe("Sidebar (leftnav)", () => {
       "Tag Management",
       "AI Hub",
       "API Reference",
-      "Admin Settings",
       "Router Settings",
-      "Logging & Alerts",
       "Pricing & Rates",
-      "UI Theme",
     ].forEach((label) => {
       expect(screen.getByText(label)).toBeInTheDocument();
     });
@@ -525,6 +522,23 @@ describe("Sidebar (leftnav)", () => {
     expect(container.querySelector('a[href*="cost-optimization"]')).toHaveAttribute("title", "Cost Optimization");
   });
 
+  describe("Settings entry", () => {
+    it("shows one Settings entry under Administration rather than three under their own group", () => {
+      const { container } = renderWithProviders(<Sidebar {...defaultProps} />);
+
+      expect(container.querySelector('a[href$="/settings"]')).toHaveTextContent("Settings");
+      expect(screen.queryByText("Admin Settings")).toBeNull();
+      expect(screen.queryByText("UI Theme")).toBeNull();
+    });
+
+    it("leaves Router Settings where it was, being in neither the label table nor the blueprint", () => {
+      const { container } = renderWithProviders(<Sidebar {...defaultProps} />);
+
+      expect(screen.getByText("Router Settings")).toBeInTheDocument();
+      expect(container.querySelector('a[href*="router-settings"]')).not.toBeNull();
+    });
+  });
+
   describe("Access Control entry", () => {
     const orgAdminAuth = {
       userId: "org-admin-id",
@@ -660,6 +674,8 @@ describe("getBreadcrumb", () => {
     // page id, and resolving it to a prettified title would read as a section nobody navigates.
     expect(getBreadcrumb("projects")).toEqual({ section: "Administration", title: "Organization" });
     expect(getBreadcrumb("teams")).toEqual({ section: "Administration", title: "Organization" });
+    expect(getBreadcrumb("admin-panel")).toEqual({ section: "Administration", title: "Settings" });
+    expect(getBreadcrumb("ui-theme")).toEqual({ section: "Administration", title: "Settings" });
     expect(getBreadcrumb("access-groups")).toEqual({
       section: "Administration",
       title: "Access Control",

@@ -1,9 +1,16 @@
 "use client";
 
-import Settings from "@/components/settings";
-import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
+import { useEffect } from "react";
 
+import { migratedHref } from "@/utils/migratedPages";
+
+/**
+ * Logging & Alerts moved into Administration > Settings as a tab. This stays so a bookmark or a link to
+ * /logging-and-alerts still arrives somewhere, rather than hitting a route that no longer exists.
+ */
 export default function LoggingAndAlerts() {
-  const { accessToken, userRole, userId, premiumUser } = useAuthorized();
-  return <Settings userID={userId} userRole={userRole} accessToken={accessToken} premiumUser={premiumUser} />;
+  useEffect(() => {
+    window.location.replace(`${migratedHref("settings/logging-and-alerts")}/`);
+  }, []);
+  return null;
 }
