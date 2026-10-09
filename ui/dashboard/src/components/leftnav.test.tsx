@@ -174,7 +174,7 @@ describe("Sidebar (leftnav)", () => {
       ANALYTICS: ["new_usage", "ledger", "usage", "logs"],
       OPTIMIZATION: ["recommendations", "cost-optimization"],
       GOVERNANCE: ["budgets"],
-      ADMINISTRATION: ["organization", "users", "access-groups", "attribution", "cost-tracking"],
+      ADMINISTRATION: ["organization", "access-control", "attribution", "cost-tracking"],
       "DATA SOURCES": ["provider-apis", "user-tools", "llm-provider-credentials"],
       GATEWAY: ["api-keys", "providers", "models", "llm-playground", "transform-request"],
       SAFETY: ["guardrails", "guardrails-monitor", "policies"],
@@ -213,8 +213,7 @@ describe("Sidebar (leftnav)", () => {
       "Cost Optimization",
       "Logs",
       "Organization",
-      "Users",
-      "Access Groups",
+      "Access Control",
       "Budgets & Forecasts",
       "Cost Allocation",
       "LLM Provider Credentials",
@@ -526,6 +525,49 @@ describe("Sidebar (leftnav)", () => {
     expect(container.querySelector('a[href*="cost-optimization"]')).toHaveAttribute("title", "Cost Optimization");
   });
 
+  describe("Access Control entry", () => {
+    const orgAdminAuth = {
+      userId: "org-admin-id",
+      accessToken: "test-access-token",
+      userRole: "Internal User",
+      isViewOnly: false,
+      token: "test-token",
+      userEmail: "org-admin@example.com",
+      premiumUser: false,
+      disabledPersonalKeyCreation: false,
+      showSSOBanner: false,
+    };
+
+    it("shows one Access Control entry rather than separate Users and Access Groups", () => {
+      const { container } = renderWithProviders(<Sidebar {...defaultProps} />);
+
+      expect(container.querySelector('a[href*="access-control"]')).toHaveTextContent("Access Control");
+      expect(screen.queryByText("Access Groups")).toBeNull();
+    });
+
+    it("hides it from a viewer who is neither an admin nor an organization admin", () => {
+      mockUseAuthorized.mockReturnValue(orgAdminAuth);
+      mockUseOrganizations.mockReturnValue({ data: [], isLoading: false, error: null });
+      const { container } = renderWithProviders(<Sidebar {...defaultProps} />);
+
+      expect(container.querySelector('a[href*="access-control"]')).toBeNull();
+    });
+
+    it("shows it to an organization admin, who was allowed Users and nothing else", () => {
+      // The one asymmetry the merge had to carry: Users admitted an org admin by membership,
+      // Access Groups and the audit log did not.
+      mockUseAuthorized.mockReturnValue(orgAdminAuth);
+      mockUseOrganizations.mockReturnValue({
+        data: [{ members: [{ user_id: "org-admin-id", user_role: "org_admin" }] }] as never,
+        isLoading: false,
+        error: null,
+      });
+      const { container } = renderWithProviders(<Sidebar {...defaultProps} />);
+
+      expect(container.querySelector('a[href*="access-control"]')).not.toBeNull();
+    });
+  });
+
   describe("Organization entry", () => {
     const internalAuth = {
       userId: "lead-user-id",
@@ -599,7 +641,7 @@ describe("getBreadcrumb", () => {
   it("resolves a page to its new section and title", () => {
     expect(getBreadcrumb("api-keys")).toEqual({ section: "Gateway", title: "Virtual Keys" });
     expect(getBreadcrumb("logs")).toEqual({ section: "Analytics", title: "Logs" });
-    expect(getBreadcrumb("users")).toEqual({ section: "Administration", title: "Users" });
+    expect(getBreadcrumb("users")).toEqual({ section: "Administration", title: "Access Control" });
     expect(getBreadcrumb("usage")).toEqual({ section: "Analytics", title: "Classic Usage" });
     expect(getBreadcrumb("prompts")).toEqual({ section: "Build", title: "Prompts" });
     expect(getBreadcrumb("policies")).toEqual({ section: "Safety", title: "Policies" });
@@ -618,6 +660,10 @@ describe("getBreadcrumb", () => {
     // page id, and resolving it to a prettified title would read as a section nobody navigates.
     expect(getBreadcrumb("projects")).toEqual({ section: "Administration", title: "Organization" });
     expect(getBreadcrumb("teams")).toEqual({ section: "Administration", title: "Organization" });
+    expect(getBreadcrumb("access-groups")).toEqual({
+      section: "Administration",
+      title: "Access Control",
+    });
   });
 
   it("resolves router-settings under the Settings section", () => {

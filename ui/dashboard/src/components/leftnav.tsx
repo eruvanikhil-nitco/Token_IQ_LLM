@@ -71,6 +71,11 @@ import {
   ORGANIZATION_TAB_LEGACY_PAGE,
   organizationIsVisible,
 } from "@/app/(dashboard)/organization/organizationTabs";
+import {
+  ACCESS_CONTROL_TABS,
+  ACCESS_CONTROL_TAB_LEGACY_PAGE,
+  accessControlIsVisible,
+} from "@/app/(dashboard)/access-control/accessControlTabs";
 import BetaBadge from "./BetaBadge";
 import BrandLogo, { BRAND_NAME } from "./BrandLogo";
 import SidebarAccountMenu from "./SidebarAccountMenu/SidebarAccountMenu";
@@ -187,12 +192,13 @@ const menuGroups: MenuGroup[] = [
       // Teams and Projects, which were two entries. Each tab keeps its own URL and its own
       // visibility rule; `organizationIsVisible` decides whether this entry leads anywhere.
       { key: "organization", page: "organization", label: "Organization", icon: <Users {...ICON} /> },
-      { key: "users", page: "users", label: "Users", icon: <User {...ICON} />, roles: all_admin_roles },
+      // Users, Access Groups and the audit log, which were two entries and a tab inside Admin
+      // Settings. `accessControlIsVisible` decides whether this entry leads anywhere.
       {
-        key: "access-groups",
-        page: "access-groups",
-        label: "Access Groups",
-        icon: <Boxes {...ICON} />,
+        key: "access-control",
+        page: "access-control",
+        label: "Access Control",
+        icon: <User {...ICON} />,
         roles: all_admin_roles,
       },
       {
@@ -344,9 +350,13 @@ const menuGroups: MenuGroup[] = [
  * Without this, a merged tab's own URL highlights nothing: the lookup below finds no item with
  * that page and falls through to Virtual Keys, so standing on Projects lit up the wrong entry.
  */
-const TAB_OWNER: Record<string, string> = Object.fromEntries(
-  ORGANIZATION_TABS.map((tab) => [ORGANIZATION_TAB_LEGACY_PAGE[tab], "organization"]),
-);
+const TAB_OWNER: Record<string, string> = Object.fromEntries([
+  ...ORGANIZATION_TABS.map((tab) => [ORGANIZATION_TAB_LEGACY_PAGE[tab], "organization"]),
+  ...ACCESS_CONTROL_TABS.flatMap((tab) => {
+    const legacy = ACCESS_CONTROL_TAB_LEGACY_PAGE[tab];
+    return legacy ? [[legacy, "access-control"]] : [];
+  }),
+]);
 
 const findMenuItemKey = (page: string): string => {
   const owner = TAB_OWNER[page] ?? page;
@@ -419,11 +429,19 @@ const Sidebar_: React.FC<SidebarProps> = ({
     const isAdmin = isAdminRole(userRole);
     return items.filter((item) => {
       if (item.key === "llm-playground" && isViewOnly) return false;
-      if (item.key === "organizations" || item.key === "users") {
+      if (item.key === "organizations") {
         const hasRoleAccess = !item.roles || item.roles.includes(userRole) || isOrgAdmin;
         if (!hasRoleAccess) return false;
         if (!isAdmin && enabledPagesInternalUsers != null) return enabledPagesInternalUsers.includes(item.page);
         return true;
+      }
+      if (item.key === "access-control") {
+        return accessControlIsVisible({
+          userRole,
+          isOrgAdmin,
+          enabledPagesInternalUsers,
+          adminRoles: all_admin_roles,
+        });
       }
       if (item.key === "organization") {
         return organizationIsVisible({

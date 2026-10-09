@@ -2586,3 +2586,39 @@ Phase 5's deletions stay as the evidence left them. The provider list closes the
 reasons recorded above, and the first two stand unchanged: guardrails is entangled with a security
 check in `auth_checks.py`, and most other candidates are live HTTP surfaces a customer can call.
 Section 9's own rule, keep what still imports, decides those.
+
+## 9 Oct 2026, Users, Access Groups and the audit log become one entry
+
+Phase 9's second consolidation row. Administration > Access Control has three tabs. The audit log
+moves out of Admin Settings, where it was a tab, which is why it is the one tab here with no legacy
+address: nothing ever linked to it directly.
+
+### Three rules that turned out to be two
+
+Mutation testing earned its place. One mutant survived the first version, and chasing it showed a
+branch that cannot execute: `isAdminRole` and the admin-roles list are the same predicate, so an
+admin role always skipped the per-installation page allowlist and the guard beneath it was
+unreachable. The rules collapse to two. Every tab needs an admin role, and the single asymmetry is
+that Users also admitted an organization admin by membership, who holds no admin role and so does
+face the allowlist. Six mutants over the simplified version are all killed.
+
+The sidebar test drives that through the organizations mock the file already had rather than a new
+mock of `useIsOrgAdmin`, so what the test exercises is the membership shape that really decides it.
+
+### Four tests the move touched, and one worth naming
+
+Admin Settings switched tabs by clicking Audit Log, which is no longer there. Every tab still in
+that panel needs a QueryClient the test does not provide, so it keeps the single switch that proves
+the re-render rather than acquiring scaffolding for a second one.
+
+### Verified against the running proxy
+
+- all six merged routes answer 200, and the 59 assets Access Control asks for all answer 200
+- `?page=users`, `?page=access-groups`, `?page=teams` and `?page=projects` all still resolve
+- 136 tests across both merges, the sidebar, Admin Settings and the audit log view, no type errors
+- `npm run build` exits 0 with every route prerendered, and the served bundle is rebuilt from it
+
+### Left
+
+One consolidation row: Admin Settings, Logging & Alerts and UI Theme into Settings. The fourth,
+seven entries into Data Sources, stays phase 5A's rebuild rather than phase 9's rename.

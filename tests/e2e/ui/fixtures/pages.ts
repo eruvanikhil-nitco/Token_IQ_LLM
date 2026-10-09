@@ -10,6 +10,8 @@ export enum Page {
   Teams = "teams",
   // Administration > Organization, which merged Teams and Projects into one entry.
   Organization = "organization",
+  // Administration > Access Control, which merged Users, Access Groups and the audit log.
+  AccessControl = "access-control",
   Organizations = "organizations",
   AdminPanel = "admin-panel",
   ApiRef = "api_ref",

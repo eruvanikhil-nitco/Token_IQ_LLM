@@ -1,0 +1,1 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,198134,e=>{"use strict";var t=e.i(271645),c=e.i(571353);e.s(["default",0,function(){return(0,t.useEffect)(()=>{window.location.replace(`${(0,c.migratedHref)("access-control")}/`)},[]),null}])}]);

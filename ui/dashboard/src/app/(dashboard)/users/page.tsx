@@ -1,19 +1,16 @@
 "use client";
 
-import { ViewUserDashboard } from "./_components";
-import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
-import { useTeams } from "@/app/(dashboard)/hooks/teams/useTeams";
+import { useEffect } from "react";
 
+import { migratedHref } from "@/utils/migratedPages";
+
+/**
+ * Users moved into Administration > Access Control as its first tab. This stays so a bookmark or a
+ * link to /users still arrives somewhere, rather than hitting a route that no longer exists.
+ */
 export default function UsersPage() {
-  const { accessToken, token, userRole, userId } = useAuthorized();
-  const { data: teams } = useTeams();
-  return (
-    <ViewUserDashboard
-      userID={userId}
-      userRole={userRole}
-      token={token}
-      teams={teams ?? null}
-      accessToken={accessToken}
-    />
-  );
+  useEffect(() => {
+    window.location.replace(`${migratedHref("access-control")}/`);
+  }, []);
+  return null;
 }

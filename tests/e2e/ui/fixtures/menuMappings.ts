@@ -12,7 +12,8 @@ export const menuLabelToPage: Record<string, Page> = {
   "Cost Explorer": Page.NewUsage,
   Organization: Page.Organization,
   Teams: Page.Teams, // Legacy label support
-  Users: Page.Users,
+  "Access Control": Page.AccessControl,
+  Users: Page.Users, // Legacy label support
   "Internal User": Page.Users, // Legacy label support
   Organizations: Page.Organizations,
   "API Reference": Page.ApiRef,

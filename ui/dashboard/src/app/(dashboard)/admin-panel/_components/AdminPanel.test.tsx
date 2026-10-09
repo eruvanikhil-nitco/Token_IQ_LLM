@@ -32,9 +32,6 @@ vi.mock("@/components/Settings/AdminSettings/UISettings/UISettings", () => ({
 vi.mock("@/components/Settings/AdminSettings/LoggingSettings/LoggingSettings", () => ({
   default: () => <div>Logging Settings Content</div>,
 }));
-vi.mock("@/components/Settings/AdminSettings/AuditLog/AuditLogView", () => ({
-  default: () => <div>Audit Log Content</div>,
-}));
 vi.mock("@/components/SCIM", () => ({
   default: () => <div>SCIM Config</div>,
 }));
@@ -96,7 +93,6 @@ describe("AdminPanel", () => {
         /scim/i,
         /ui settings/i,
         /logging settings/i,
-        /audit log/i,
         /hashicorp vault/i,
         /cyberark/i,
         /plugins/i,
@@ -124,8 +120,10 @@ describe("AdminPanel", () => {
 
       // Switching tabs re-renders the panel. The effect that loads SSO settings depends on the
       // loader function, so an unstable identity refetches on every single render.
+      // One switch is enough to re-render. The second used to land on Audit Log, which has moved
+      // to Administration > Access Control, and every tab still here needs a QueryClient this
+      // test does not provide.
       await user.click(screen.getByRole("tab", { name: /logging settings/i }));
-      await user.click(screen.getByRole("tab", { name: /audit log/i }));
 
       expect(mockGetSSOSettings).toHaveBeenCalledTimes(1);
     });

@@ -17,7 +17,6 @@ export const MIGRATED_PAGES: Record<string, string> = {
   "api-reference": "api-reference",
   "llm-playground": "playground",
   chat: "chat",
-  "access-groups": "access-groups",
   budgets: "budgets",
   attribution: "attribution",
   ledger: "ledger",
@@ -54,7 +53,11 @@ export const MIGRATED_PAGES: Record<string, string> = {
   "cost-optimization": "cost-optimization",
   agents: "agents",
   "router-settings": "router-settings",
-  users: "users",
+  // Administration > Access Control, which merged Users, Access Groups and the audit log. The
+  // merged id comes first, for the same reason as Organization above.
+  "access-control": "access-control",
+  users: "access-control",
+  "access-groups": "access-control/access-groups",
   // Administration > Organization, which merged Teams and Projects. The merged id comes first:
   // legacyKeyForPathname returns the first key whose segment matches, and the sidebar uses it to
   // decide which entry is highlighted.
