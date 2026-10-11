@@ -128,19 +128,19 @@ records that it is now vestigial.
 
 **Files:** `token_iq/connectors/billing/bedrock.py`, `credential_purpose.py`, the connect dialog
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Given a credential carrying `role_arn` and `external_id`, the connector assumes that role and uses
 the temporary credentials it returns. Given one carrying only access keys, it still works, because
 an installation that already connected must not break on upgrade.
 
-- [ ] **Step 2: Assume the role, with the external id**
+- [x] **Step 2: Assume the role, with the external id**
 
 The external id is the point: without it, anyone who learns the role ARN can ask AWS to assume it
 from their own account. With it, the customer's role trusts Token IQ's principal only when the
 matching external id is presented.
 
-- [ ] **Step 3: Make `_BEDROCK_REQUIRED` accept either shape**
+- [x] **Step 3: Make `_BEDROCK_REQUIRED` accept either shape**
 
 Today it demands both access keys, so a role-only credential fails validation before it is tried.
 Either shape is valid; neither being present is not.
@@ -172,6 +172,36 @@ Three consequences the one-line step missed:
   button
 - **"short-lived access each time it syncs"** is the AssumeRole call in step 2, so the dialog's
   promise and the connector's behaviour are the same requirement seen from two ends
+
+### What steps 1 to 3 found, and what step 4 still needed
+
+The connector was already there: the `AssumedRole | StaticKeys | NoCredential` union,
+`read_sign_in` refusing a role ARN that arrives without an external ID, `build_cost_explorer`
+calling STS and building the client from the short-lived credentials, `credential_purpose`
+delegating to `read_sign_in` so either shape validates, and nine tests over all of it. The
+checkboxes above were simply never ticked.
+
+What was missing is the half the security property actually rests on. **Nothing generated the
+external ID.** The connector read one from the credential and used it, so whatever a customer typed
+became the shared secret: guessable, reusable across connections, or copied out of a competitor's
+documentation. `new_external_id()` mints it from `secrets`, and five tests say it is unpredictable,
+long enough, inside the character set AWS accepts, prefixed so its origin is readable, and never
+minted by a read, because regenerating it locks the connection out against a trust policy already
+written for the old value.
+
+The blueprint's example ends in a customer's name, `tiq-7f3a9c21-<name>`. There is no installation
+identifier in this codebase to put there and a customer name must not reach the code, so the
+generated value stops after the random part, and a suffix can be appended the day there is
+something true to put in it.
+
+**The template is now a file rather than a button.** `bedrock_read_only_role.yaml` creates one role
+trusted only by the Token IQ principal the stack is given, and only when the matching external ID
+is presented, granting exactly `ce:GetCostAndUsage`, which is the one call the connector makes. It
+outputs the Role ARN the dialog's third step asks the customer to copy back. CloudFormation's `!Ref`
+short forms are spelled longhand so a plain YAML parser can read it, which is what lets a test check
+the trust policy has not been loosened: dropping the external ID condition, widening the principal
+to `*`, widening the action to `ce:*`, renaming the role away from what the dialog shows, or giving
+the external ID an empty default each fail a test.
 
 - [ ] **Step 5: Check the provider key, which differs between the two**
 

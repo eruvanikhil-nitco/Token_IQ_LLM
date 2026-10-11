@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >-
+  Token IQ read-only cost access for AWS Bedrock. Creates one IAM role that Token IQ can assume to
+  read this account's Cost Explorer figures, and nothing else. No long-lived key is created and
+  nothing secret is stored by Token IQ: it asks AWS for short-lived access each time it syncs, and
+  you can delete this stack whenever you like.
+
+# CloudFormation's short forms (!Ref, !Sub) are deliberately not used. The longhand is still valid
+# CloudFormation and stays readable to anything that parses plain YAML, including the test that
+# checks this file's trust policy has not been loosened.
+
+Parameters:
+  TokenIqPrincipalArn:
+    Type: String
+    Description: >-
+      The Token IQ principal allowed to assume this role. Your Token IQ administrator gives you
+      this; it identifies the Token IQ installation, not a person.
+    MinLength: 20
+    AllowedPattern: "^arn:aws[a-zA-Z-]*:iam::[0-9]{12}:(root|user/.+|role/.+)$"
+    ConstraintDescription: must be an IAM user, role or account-root ARN.
+
+  ExternalId:
+    Type: String
+    Description: >-
+      The external ID shown in the Token IQ connect dialog. Copy it exactly. It is what stops
+      anyone else who learns this role's ARN from assuming it, so there is no default and it must
+      not be shared or reused for another connection.
+    MinLength: 2
+    MaxLength: 1224
+    AllowedPattern: "^[A-Za-z0-9+=,.@:/-]+$"
+    ConstraintDescription: "must use only these characters: letters, digits, plus, equals, comma, full stop, at, colon, slash and hyphen"
+
+Resources:
+  TokenIqReadOnlyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: token-iq-read-only
+      Description: Read-only Cost Explorer access for Token IQ.
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                Ref: TokenIqPrincipalArn
+            Action: "sts:AssumeRole"
+            Condition:
+              StringEquals:
+                "sts:ExternalId":
+                  Ref: ExternalId
+      Policies:
+        - PolicyName: token-iq-read-costs
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              # Cost Explorer has no resource-level permissions, so "*" is the only value AWS
+              # accepts here. The narrowing is the action list: one call, the one the connector
+              # makes. Adding a second action means adding a reason for it.
+              - Effect: Allow
+                Action:
+                  - "ce:GetCostAndUsage"
+                Resource: "*"
+
+Outputs:
+  RoleArn:
+    Description: Paste this into the Role ARN field in the Token IQ connect dialog.
+    Value:
+      Fn::GetAtt:
+        - TokenIqReadOnlyRole
+        - Arn

@@ -203,6 +203,64 @@ ROLE_CREDENTIAL = {
 }
 
 
+class TestTheExternalIdIsGeneratedHere:
+    """The external ID has to come from Token IQ, not from whoever fills in the form.
+
+    It is the whole security property: the customer's role trusts Token IQ's principal only when
+    the matching external ID is presented, so anyone who learns the role ARN still cannot assume it
+    from their own account. A value a customer types can be guessed, reused across connections, or
+    copied from a competitor's documentation, and any of those gives the guarantee away.
+
+    The blueprint's example is `tiq-7f3a9c21-<name>`, whose last part is a customer's name. There is
+    no installation identifier in this codebase to put there and a customer name must never reach
+    the code, so the generated value stops after the random part.
+    """
+
+    def test_it_is_unpredictable(self) -> None:
+        """Generated from `secrets`, so a hundred of them never collide and none can be guessed from
+        another. A counter or a timestamp would satisfy "unique" and give the property away."""
+        from token_iq.connectors.billing.bedrock import new_external_id
+
+        minted = {new_external_id() for _ in range(100)}
+
+        assert len(minted) == 100
+
+    def test_it_says_who_minted_it(self) -> None:
+        from token_iq.connectors.billing.bedrock import new_external_id
+
+        assert new_external_id().startswith("tiq-")
+
+    def test_it_carries_enough_randomness_to_be_worth_having(self) -> None:
+        """Short enough to read out over a call is not the requirement here; unguessable is."""
+        from token_iq.connectors.billing.bedrock import new_external_id
+
+        random_part = new_external_id().removeprefix("tiq-")
+
+        assert len(random_part) >= 24
+
+    def test_aws_would_accept_it(self) -> None:
+        """AWS allows 2 to 1224 characters from alphanumerics and `+=,.@:/-`. A value outside that
+        is rejected at AssumeRole time, long after the role has been created against it."""
+        import re
+
+        from token_iq.connectors.billing.bedrock import new_external_id
+
+        minted = new_external_id()
+
+        assert 2 <= len(minted) <= 1224
+        assert re.fullmatch(r"[A-Za-z0-9+=,.@:/-]+", minted)
+
+    def test_reading_a_credential_never_mints_one(self) -> None:
+        """A regenerated id locks the connection out, because the role's trust policy is written
+        against the exact value. So reading is reading: the stored value is used as it stands."""
+        from token_iq.connectors.billing.bedrock import AssumedRole, read_sign_in
+
+        sign_in = read_sign_in(ROLE_CREDENTIAL)
+
+        assert isinstance(sign_in, AssumedRole)
+        assert sign_in.external_id == ROLE_CREDENTIAL["external_id"]
+
+
 class TestAnAssumedRoleIsAccepted:
     """A long-lived access key in a customer's account is the thing to get rid of.
 

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import dataclasses
+import secrets
 from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime
 from typing import Any, Final
@@ -103,6 +104,28 @@ def _facts_from(
             if (amount := decimal_or_none(raw)) is not None
         )
     return tuple(facts)
+
+
+EXTERNAL_ID_PREFIX: Final = "tiq-"
+EXTERNAL_ID_BYTES: Final = 16
+
+
+def new_external_id() -> str:
+    """A fresh external ID for one Bedrock connection.
+
+    This is the security property, so it is minted here rather than typed into a form: the
+    customer's role trusts Token IQ's principal only when the matching external ID is presented,
+    which is what stops anyone who learns the role ARN assuming it from their own account. A value
+    a customer chooses can be guessed or reused across connections, and either gives that away.
+
+    Mint it once per connection and store it. Regenerating locks the connection out, because the
+    role's trust policy in the customer's account is written against the exact value.
+
+    The blueprint's example ends in a customer's name. There is no installation identifier in this
+    codebase to put there and a customer name must not reach the code, so this stops at the random
+    part; a suffix can be appended the day there is something true to put in it.
+    """
+    return f"{EXTERNAL_ID_PREFIX}{secrets.token_hex(EXTERNAL_ID_BYTES)}"
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
