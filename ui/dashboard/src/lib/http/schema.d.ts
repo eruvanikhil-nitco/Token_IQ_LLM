@@ -3983,6 +3983,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/data-quality": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Data Quality
+         * @description What is wrong with the incoming data, and where each one is fixed.
+         */
+        get: operations["data_quality_data_quality_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/debug/asyncio-tasks": {
         parameters: {
             query?: never;
@@ -12339,7 +12359,7 @@ export interface paths {
          * @description Public endpoint to get the Token IQ model cost map.
          *     Returns pricing information for all supported models.
          */
-        get: operations["get_litellm_model_cost_map_public_litellm_model_cost_map_get"];
+        get: operations["get_gateway_model_cost_map_public_litellm_model_cost_map_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -27016,6 +27036,17 @@ export interface components {
              */
             total_tokens: number;
         };
+        /** DataQualityResponse */
+        DataQualityResponse: {
+            /** Issues */
+            issues: (components["schemas"]["MeasuredIssue"] | components["schemas"]["UnmeasurableIssue"])[];
+            /** Issues To Fix */
+            issues_to_fix: number;
+            /** Period End */
+            period_end: string;
+            /** Period Start */
+            period_start: string;
+        };
         /** DecisionBody */
         DecisionBody: {
             /** Note */
@@ -27206,7 +27237,7 @@ export interface components {
         /** Deployment */
         Deployment: {
             litellm_params: components["schemas"]["LiteLLM_Params"];
-            model_info: components["schemas"]["litellm__types__router__ModelInfo"];
+            model_info: components["schemas"]["token_iq__gateway__types__router__ModelInfo"];
             /** Model Name */
             model_name: string;
         } & {
@@ -27702,6 +27733,32 @@ export interface components {
          * @enum {string}
          */
         GUARDRAIL_DEFINITION_LOCATION: "db" | "config";
+        /** GatewayFineTuningJobCreate */
+        GatewayFineTuningJobCreate: {
+            /** Custom Llm Provider */
+            custom_llm_provider?: ("openai" | "azure" | "vertex_ai") | null;
+            hyperparameters?: components["schemas"]["Hyperparameters"] | null;
+            /** Integrations */
+            integrations?: string[] | null;
+            /** Model */
+            model: string;
+            /** Seed */
+            seed?: number | null;
+            /** Suffix */
+            suffix?: string | null;
+            /** Training File */
+            training_file: string;
+            /** Validation File */
+            validation_file?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        /**
+         * GatewayKeyType
+         * @description Enum for key types that determine what routes a key can access
+         * @enum {string}
+         */
+        GatewayKeyType: "llm_api" | "management" | "read_only" | "default";
         /**
          * GatewayRequestActivityResponse
          * @description Response for GET /gateway/daily/activity.
@@ -27760,6 +27817,27 @@ export interface components {
              */
             successful_requests: number;
         };
+        /**
+         * GatewayUserRoles
+         * @description Admin Roles:
+         *     PROXY_ADMIN: admin over the platform
+         *     PROXY_ADMIN_VIEW_ONLY: can login, view all own keys, view all spend
+         *     ORG_ADMIN: admin over a specific organization, can create teams, users only within their organization
+         *
+         *     Internal User Roles:
+         *     INTERNAL_USER: can login, view/create/delete their own keys, view their spend
+         *     INTERNAL_USER_VIEW_ONLY: can login, view their own keys, view their own spend
+         *
+         *
+         *     Team Roles:
+         *     TEAM: used for JWT auth
+         *
+         *
+         *     Customer Roles:
+         *     CUSTOMER: External users -> these are customers
+         * @enum {string}
+         */
+        GatewayUserRoles: "proxy_admin" | "proxy_admin_viewer" | "org_admin" | "internal_user" | "internal_user_viewer" | "team" | "customer";
         /** GenerateKeyRequest */
         GenerateKeyRequest: {
             /** Access Group Ids */
@@ -27836,7 +27914,7 @@ export interface components {
              * @description Type of key that determines default allowed routes.
              * @default default
              */
-            key_type: components["schemas"]["LiteLLMKeyType"] | null;
+            key_type: components["schemas"]["GatewayKeyType"] | null;
             /** Max Budget */
             max_budget?: number | null;
             /** Max Parallel Requests */
@@ -28849,32 +28927,6 @@ export interface components {
             /** Next Page */
             next_page?: string | null;
         };
-        /** LiteLLMFineTuningJobCreate */
-        LiteLLMFineTuningJobCreate: {
-            /** Custom Llm Provider */
-            custom_llm_provider?: ("openai" | "azure" | "vertex_ai") | null;
-            hyperparameters?: components["schemas"]["Hyperparameters"] | null;
-            /** Integrations */
-            integrations?: string[] | null;
-            /** Model */
-            model: string;
-            /** Seed */
-            seed?: number | null;
-            /** Suffix */
-            suffix?: string | null;
-            /** Training File */
-            training_file: string;
-            /** Validation File */
-            validation_file?: string | null;
-        } & {
-            [key: string]: unknown;
-        };
-        /**
-         * LiteLLMKeyType
-         * @description Enum for key types that determine what routes a key can access
-         * @enum {string}
-         */
-        LiteLLMKeyType: "llm_api" | "management" | "read_only" | "default";
         /**
          * LiteLLM_BudgetTable
          * @description Represents user-controllable params for a LiteLLM_BudgetTable record.
@@ -31519,27 +31571,6 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
-        /**
-         * LitellmUserRoles
-         * @description Admin Roles:
-         *     PROXY_ADMIN: admin over the platform
-         *     PROXY_ADMIN_VIEW_ONLY: can login, view all own keys, view all spend
-         *     ORG_ADMIN: admin over a specific organization, can create teams, users only within their organization
-         *
-         *     Internal User Roles:
-         *     INTERNAL_USER: can login, view/create/delete their own keys, view their spend
-         *     INTERNAL_USER_VIEW_ONLY: can login, view their own keys, view their own spend
-         *
-         *
-         *     Team Roles:
-         *     TEAM: used for JWT auth
-         *
-         *
-         *     Customer Roles:
-         *     CUSTOMER: External users -> these are customers
-         * @enum {string}
-         */
-        LitellmUserRoles: "proxy_admin" | "proxy_admin_viewer" | "org_admin" | "internal_user" | "internal_user_viewer" | "team" | "customer";
         /** LoggingCallbackStatus */
         LoggingCallbackStatus: {
             /** Callbacks */
@@ -31963,6 +31994,23 @@ export interface components {
             /** Mcp Server Ids */
             mcp_server_ids: string[];
         };
+        /** MeasuredIssue */
+        MeasuredIssue: {
+            /** Count */
+            count: number;
+            /** Fix On */
+            fix_on: string;
+            /** Key */
+            key: string;
+            /**
+             * Kind
+             * @default measured
+             * @constant
+             */
+            kind: "measured";
+            /** Title */
+            title: string;
+        };
         /** Member */
         Member: {
             /**
@@ -32272,7 +32320,7 @@ export interface components {
             litellm_params: {
                 [key: string]: unknown;
             };
-            model_info: components["schemas"]["litellm__proxy___types__ModelInfo"];
+            model_info: components["schemas"]["token_iq__gateway__proxy___types__ModelInfo"];
             /** Model Name */
             model_name: string;
         };
@@ -33282,7 +33330,7 @@ export interface components {
             max_budget_in_organization?: number | null;
             /** Organization Id */
             organization_id: string;
-            role?: components["schemas"]["LitellmUserRoles"] | null;
+            role?: components["schemas"]["GatewayUserRoles"] | null;
             /** User Email */
             user_email?: string | null;
             /** User Id */
@@ -35338,7 +35386,7 @@ export interface components {
              * @description Type of key that determines default allowed routes.
              * @default default
              */
-            key_type: components["schemas"]["LiteLLMKeyType"] | null;
+            key_type: components["schemas"]["GatewayKeyType"] | null;
             /** Max Budget */
             max_budget?: number | null;
             /** Max Parallel Requests */
@@ -35927,7 +35975,7 @@ export interface components {
          */
         RoleMappings: {
             /** @description Default role to assign if user's groups don't match any role mappings. Must be a valid LitellmUserRoles value (e.g., 'proxy_admin', 'internal_user', 'proxy_admin_viewer') */
-            default_role?: components["schemas"]["LitellmUserRoles"] | null;
+            default_role?: components["schemas"]["GatewayUserRoles"] | null;
             /**
              * Group Claim
              * @description The field name in the SSO token that contains the groups array (e.g., 'groups', 'roles')
@@ -38500,6 +38548,23 @@ export interface components {
              */
             blocked_users: string[];
         };
+        /** UnmeasurableIssue */
+        UnmeasurableIssue: {
+            /** Fix On */
+            fix_on: string;
+            /** Key */
+            key: string;
+            /**
+             * Kind
+             * @default unmeasurable
+             * @constant
+             */
+            kind: "unmeasurable";
+            /** Reason */
+            reason: string;
+            /** Title */
+            title: string;
+        };
         /**
          * UpdateCustomerRequest
          * @description Update a Customer, use this to update customer budgets etc
@@ -39796,7 +39861,7 @@ export interface components {
             user_model_max_budget?: {
                 [key: string]: unknown;
             } | null;
-            user_role?: components["schemas"]["LitellmUserRoles"] | null;
+            user_role?: components["schemas"]["GatewayUserRoles"] | null;
             /** User Rpm Limit */
             user_rpm_limit?: number | null;
             /** User Spend */
@@ -40238,8 +40303,36 @@ export interface components {
             /** Status */
             status?: ("pending" | "running" | "paused" | "completed" | "failed") | null;
         };
+        /** ReconciliationResponse */
+        token_iq__api__types__ledger__ReconciliationResponse: {
+            /** Currency */
+            currency: string | null;
+            /** Explained */
+            explained: components["schemas"]["AdjustmentBody"][];
+            /** Explained Total */
+            explained_total: string;
+            /** Invoice Total */
+            invoice_total: string | null;
+            /** Ledger Total */
+            ledger_total: string | null;
+            /** Note */
+            note: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "balanced" | "unexplained_difference" | "currency_mismatch" | "no_invoice";
+            /** Period End */
+            period_end: string;
+            /** Period Start */
+            period_start: string;
+            /** Provider */
+            provider: string;
+            /** Unexplained */
+            unexplained: string;
+        };
         /** ModelInfo */
-        litellm__proxy___types__ModelInfo: {
+        token_iq__gateway__proxy___types__ModelInfo: {
             /** Base Model */
             base_model: ("gpt-4-1106-preview" | "gpt-4-32k" | "gpt-4" | "gpt-3.5-turbo-16k" | "gpt-3.5-turbo" | "text-embedding-ada-002") | null;
             /** Id */
@@ -40268,7 +40361,7 @@ export interface components {
          * ReconciliationResponse
          * @description What we recorded against what the provider charged, over a window
          */
-        litellm__types__proxy__management_endpoints__team_endpoints__ReconciliationResponse: {
+        token_iq__gateway__types__proxy__management_endpoints__team_endpoints__ReconciliationResponse: {
             /** Delta */
             delta: string;
             /** Our Total */
@@ -40283,7 +40376,7 @@ export interface components {
             unmatched_our_rows: number;
         };
         /** ModelInfo */
-        litellm__types__router__ModelInfo: {
+        token_iq__gateway__types__router__ModelInfo: {
             /** Allow Fail Open */
             allow_fail_open?: boolean | null;
             /** Base Model */
@@ -40342,45 +40435,17 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
-        /** ReconciliationResponse */
-        token_iq__api__types__ledger__ReconciliationResponse: {
-            /** Currency */
-            currency: string | null;
-            /** Explained */
-            explained: components["schemas"]["AdjustmentBody"][];
-            /** Explained Total */
-            explained_total: string;
-            /** Invoice Total */
-            invoice_total: string | null;
-            /** Ledger Total */
-            ledger_total: string | null;
-            /** Note */
-            note: string;
-            /**
-             * Outcome
-             * @enum {string}
-             */
-            outcome: "balanced" | "unexplained_difference" | "currency_mismatch" | "no_invoice";
-            /** Period End */
-            period_end: string;
-            /** Period Start */
-            period_start: string;
-            /** Provider */
-            provider: string;
-            /** Unexplained */
-            unexplained: string;
-        };
         /** updateDeployment */
         updateDeployment: {
             /** Blocked */
             blocked?: boolean | null;
-            litellm_params?: components["schemas"]["updateLiteLLMParams"] | null;
-            model_info?: components["schemas"]["litellm__types__router__ModelInfo"] | null;
+            litellm_params?: components["schemas"]["updateGatewayParams"] | null;
+            model_info?: components["schemas"]["token_iq__gateway__types__router__ModelInfo"] | null;
             /** Model Name */
             model_name?: string | null;
         };
-        /** updateLiteLLMParams */
-        updateLiteLLMParams: {
+        /** updateGatewayParams */
+        updateGatewayParams: {
             /** Adaptive Router Config */
             adaptive_router_config?: {
                 [key: string]: unknown;
@@ -46499,6 +46564,37 @@ export interface operations {
             };
         };
     };
+    data_quality_data_quality_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DataQualityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_active_tasks_stats_debug_asyncio_tasks_get: {
         parameters: {
             query?: never;
@@ -47824,7 +47920,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LiteLLMFineTuningJobCreate"];
+                "application/json": components["schemas"]["GatewayFineTuningJobCreate"];
             };
         };
         responses: {
@@ -56576,7 +56672,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["litellm__types__proxy__management_endpoints__team_endpoints__ReconciliationResponse"];
+                    "application/json": components["schemas"]["token_iq__gateway__types__proxy__management_endpoints__team_endpoints__ReconciliationResponse"];
                 };
             };
             /** @description Validation Error */
@@ -56826,7 +56922,7 @@ export interface operations {
             };
         };
     };
-    get_litellm_model_cost_map_public_litellm_model_cost_map_get: {
+    get_gateway_model_cost_map_public_litellm_model_cost_map_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -59286,6 +59382,7 @@ export interface operations {
             };
             header?: {
                 "x-token-iq-cli-poll-secret"?: string | null;
+                "x-litellm-cli-poll-secret"?: string | null;
             };
             path: {
                 key_id: string;
@@ -64360,7 +64457,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LiteLLMFineTuningJobCreate"];
+                "application/json": components["schemas"]["GatewayFineTuningJobCreate"];
             };
         };
         responses: {

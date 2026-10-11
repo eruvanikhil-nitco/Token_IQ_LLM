@@ -7,7 +7,7 @@
  * the spec is read straight off the app object, so this runs in CI without a
  * database or proxy boot.
  *
- * The Python interpreter must have litellm installed. Override which one via
+ * The Python interpreter must have token_iq installed. Override which one via
  * LITELLM_PYTHON (CI passes "uv run --no-sync python"); defaults to python3.
  */
 import { execFileSync } from "node:child_process";
@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 const dashboardDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const repoRoot = resolve(dashboardDir, "..", "..");
 const outPath = join(dashboardDir, "src", "lib", "http", "schema.d.ts");
-const specDir = mkdtempSync(join(tmpdir(), "litellm-openapi-"));
+const specDir = mkdtempSync(join(tmpdir(), "token-iq-openapi-"));
 const specPath = join(specDir, "openapi.json");
 
 const python = (process.env.LITELLM_PYTHON ?? "python3").split(" ");
@@ -33,7 +33,7 @@ const python = (process.env.LITELLM_PYTHON ?? "python3").split(" ");
 // canonical form regardless of interpreter, so the generated file is stable.
 const dumpSpec = [
   "import inspect, json, sys",
-  "from litellm.proxy.proxy_server import app",
+  "from token_iq.gateway.proxy.proxy_server import app",
   "from fastapi.routing import APIRoute",
   "for route in app.routes:",
   "    if isinstance(route, APIRoute):",
