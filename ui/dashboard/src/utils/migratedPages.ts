@@ -23,8 +23,6 @@ export const MIGRATED_PAGES: Record<string, string> = {
   recommendations: "recommendations",
   "llm-provider-credentials": "llm-provider-credentials",
   overview: "overview",
-  "provider-apis": "provider-apis",
-  "user-tools": "user-tools",
   workflows: "workflows",
   "guardrails-monitor": "guardrails-monitor",
   "mcp-servers": "mcp-servers",
@@ -56,6 +54,11 @@ export const MIGRATED_PAGES: Record<string, string> = {
   users: "access-control",
   "access-groups": "access-control/access-groups",
   // Administration > Settings, which merged Admin Settings, Logging & Alerts and UI Theme.
+  // Data > Data Sources. Both legacy ids point at the Accounts sub-route rather than the page,
+  // so they keep landing on the tab they were when the Overview tab arrives and becomes first.
+  "data-sources": "data-sources",
+  "provider-apis": "data-sources/accounts",
+  "user-tools": "data-sources/accounts",
   settings: "settings",
   "admin-panel": "settings",
   "logging-and-alerts": "settings/logging-and-alerts",

@@ -2722,3 +2722,53 @@ proved by its unit tests and by the SQL above, not by a live fetch. Finishing th
 Task 2's connect dialog, deferred with its reasons recorded in the plan: there is no connect surface
 to put it in and nothing mints an external ID per connection, and that flow is build step 1, which
 the blueprint marks designed rather than built.
+
+## 11 Oct 2026, the Data Sources page exists, with its Accounts tab
+
+Blueprint build step 1, task 1. `Data › Data Sources` has its tab shell and the Accounts tab, which
+is the one tab whose backend was already complete.
+
+### Why the counting rule survived one table over both kinds
+
+Accounts is the first screen to list provider accounts and tool accounts together, and that is
+exactly where a provider figure gets added to a gateway figure by accident. It is safe here for a
+reason worth stating rather than assuming: neither endpoint returns money. An account carries its
+health, when it last synced, and how many raw records are stored. So the one total on the tab counts
+records, it is called `recordsHeld`, the column header says Records, and the summary line says what
+records are. A test says why adding across the two kinds is allowed for that number and would not be
+for cost.
+
+### Four things found on the way
+
+**LLM Provider Credentials nearly got merged and should not be.** The label table lists it among the
+seven entries folding into Data Sources. Those are forwarding credentials, which the blueprint puts
+on the Gateway tab under "upstream endpoints", and separating them from billing credentials was the
+whole of build step 2's first task. Merging them back into one account list would have undone it, so
+it stays until task 5 and a test records why. This merge is two entries, not three.
+
+**The endpoints disagree about the record count.** A provider account calls it `facts_stored`, a tool
+account `rows_stored`. The row names it `records_stored` and the adapter normalises both, so neither
+spelling reaches the table.
+
+**The no-account row earned itself against the live proxy.** Six providers and three tools come back
+`not_connected` with no accounts on this installation. Without a row for a supported-but-unconnected
+source the tab would be empty and silent; with it, it is nine rows saying where cost is missing,
+which is the question the tab exists to answer.
+
+**Two connection states in my fixtures did not exist.** `failing` and `not_configured` are not in
+the set. A fixture built on impossible values tests a shape that does not exist.
+
+### Verified against the running proxy
+
+- `/ui/data-sources/`, `/ui/data-sources/accounts/` and the three pages it replaces or leaves alone
+  all answer 200, as do the `?page=` ids for all three
+- the 39 assets the page asks for all answer 200
+- `/provider/connections` and `/tool/connections` both answer 200 and return the shape the tab reads
+- 115 tests across the new modules, the sidebar and the redirected pages, with no type or lint errors
+- 11 mutants killed over the access rule and the row builder
+
+### Left in build step 1
+
+The raw-records link from each row, then the Overview tab's issues list, which is the one genuinely
+missing backend; the connect dialog, where build step 2's deferred AWS method lands; Uploads; and the
+Gateway tab, which needs the owner's answer because it moves Virtual Keys and Logs.

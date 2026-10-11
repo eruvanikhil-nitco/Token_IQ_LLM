@@ -19,7 +19,14 @@ export interface AccountLike {
   detail: string | null;
   last_sync_at: string | null;
   last_outcome: string | null;
-  rows_stored: number;
+  /**
+   * How many raw records this account has stored.
+   *
+   * Named for what it means rather than after either endpoint's field: a provider account
+   * calls it `facts_stored` and a tool account calls it `rows_stored`. Normalising at the
+   * boundary is what lets one table cover both without either name leaking into the rows.
+   */
+  records_stored: number;
 }
 
 /** What `/provider/connections` and `/tool/connections` have in common, with the key renamed. */
@@ -75,7 +82,7 @@ function rowsFor(connection: ConnectionLike, kind: AccountKind): readonly Accoun
     detail: account.detail,
     lastSyncAt: account.last_sync_at,
     lastOutcome: account.last_outcome,
-    recordsStored: account.rows_stored,
+    recordsStored: account.records_stored,
   }));
 }
 

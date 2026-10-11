@@ -15,7 +15,7 @@ const provider = (over: Partial<ConnectionLike> = {}): ConnectionLike => ({
   display_name: "OpenAI",
   state: "healthy",
   accounts: [
-    { credential_name: "acme-live", state: "healthy", detail: null, last_sync_at: "2026-10-10T09:00:00Z", last_outcome: "fetched", rows_stored: 120 },
+    { credential_name: "acme-live", state: "healthy", detail: null, last_sync_at: "2026-10-10T09:00:00Z", last_outcome: "fetched", records_stored: 120 },
   ],
   ...over,
 });
@@ -25,7 +25,7 @@ const tool = (over: Partial<ConnectionLike> = {}): ConnectionLike => ({
   display_name: "Claude Code",
   state: "healthy",
   accounts: [
-    { credential_name: "acme-cc", state: "healthy", detail: null, last_sync_at: "2026-10-10T08:00:00Z", last_outcome: "fetched", rows_stored: 30 },
+    { credential_name: "acme-cc", state: "healthy", detail: null, last_sync_at: "2026-10-10T08:00:00Z", last_outcome: "fetched", records_stored: 30 },
   ],
   ...over,
 });
@@ -55,8 +55,8 @@ describe("one table over both kinds of account", () => {
   it("lists a connection with several accounts once per account", () => {
     const two = provider({
       accounts: [
-        { credential_name: "acme-live", state: "healthy", detail: null, last_sync_at: null, last_outcome: null, rows_stored: 1 },
-        { credential_name: "acme-sandbox", state: "failing", detail: "401", last_sync_at: null, last_outcome: null, rows_stored: 0 },
+        { credential_name: "acme-live", state: "healthy", detail: null, last_sync_at: null, last_outcome: null, records_stored: 1 },
+        { credential_name: "acme-sandbox", state: "needs_attention", detail: "401", last_sync_at: null, last_outcome: null, records_stored: 0 },
       ],
     });
 
@@ -80,17 +80,17 @@ describe("one table over both kinds of account", () => {
     const mixed = provider({
       state: "healthy",
       accounts: [
-        { credential_name: "a", state: "failing", detail: "401", last_sync_at: null, last_outcome: null, rows_stored: 0 },
+        { credential_name: "a", state: "needs_attention", detail: "401", last_sync_at: null, last_outcome: null, records_stored: 0 },
       ],
     });
 
-    expect(accountRows({ providers: [mixed], tools: [] })[0].state).toBe("failing");
+    expect(accountRows({ providers: [mixed], tools: [] })[0].state).toBe("needs_attention");
   });
 
   it("falls back to the connection's state for a row that has no account", () => {
-    const rows = accountRows({ providers: [provider({ state: "not_configured", accounts: [] })], tools: [] });
+    const rows = accountRows({ providers: [provider({ state: "not_connected", accounts: [] })], tools: [] });
 
-    expect(rows[0].state).toBe("not_configured");
+    expect(rows[0].state).toBe("not_connected");
   });
 
   it("puts providers before tools, so the two kinds do not interleave", () => {

@@ -50,7 +50,6 @@ import {
   Waypoints,
   BookOpen,
   Lightbulb,
-  Wrench,
   LayoutDashboard,
 } from "lucide-react";
 import Link from "next/link";
@@ -75,6 +74,7 @@ import {
   accessControlIsVisible,
 } from "@/app/(dashboard)/access-control/accessControlTabs";
 import { SETTINGS_TABS, SETTINGS_TAB_LEGACY_PAGE, settingsIsVisible } from "@/app/(dashboard)/settings/settingsTabs";
+import { dataSourcesIsVisible } from "@/app/(dashboard)/(token-iq)/data-sources/dataSourcesTabs";
 import BetaBadge from "./BetaBadge";
 import BrandLogo, { BRAND_NAME } from "./BrandLogo";
 import SidebarAccountMenu from "./SidebarAccountMenu/SidebarAccountMenu";
@@ -228,18 +228,14 @@ const menuGroups: MenuGroup[] = [
   {
     groupLabel: "DATA SOURCES",
     items: [
+      // Provider APIs and User Tools, which were two entries, as the Accounts tab of one page.
+      // LLM Provider Credentials stays for now: those are forwarding credentials, which the
+      // blueprint puts on the Gateway tab, and that tab moves Virtual Keys and Logs too.
       {
-        key: "provider-apis",
-        page: "provider-apis",
-        label: "Provider APIs",
+        key: "data-sources",
+        page: "data-sources",
+        label: "Data Sources",
         icon: <Plug {...ICON} />,
-        roles: all_admin_roles,
-      },
-      {
-        key: "user-tools",
-        page: "user-tools",
-        label: "User Tools",
-        icon: <Wrench {...ICON} />,
         roles: all_admin_roles,
       },
       {
@@ -350,6 +346,9 @@ const TAB_OWNER: Record<string, string> = Object.fromEntries([
     return legacy ? [[legacy, "access-control"]] : [];
   }),
   ...SETTINGS_TABS.map((tab) => [SETTINGS_TAB_LEGACY_PAGE[tab], "settings"]),
+  // Both of these landed on what is now the Accounts tab.
+  ["provider-apis", "data-sources"],
+  ["user-tools", "data-sources"],
 ]);
 
 const findMenuItemKey = (page: string): string => {
@@ -428,6 +427,9 @@ const Sidebar_: React.FC<SidebarProps> = ({
         if (!hasRoleAccess) return false;
         if (!isAdmin && enabledPagesInternalUsers != null) return enabledPagesInternalUsers.includes(item.page);
         return true;
+      }
+      if (item.key === "data-sources") {
+        return dataSourcesIsVisible({ userRole, adminRoles: all_admin_roles });
       }
       if (item.key === "settings") {
         return settingsIsVisible({ userRole, adminRoles: all_admin_roles });

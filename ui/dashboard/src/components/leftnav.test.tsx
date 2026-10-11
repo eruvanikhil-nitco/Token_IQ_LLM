@@ -175,7 +175,7 @@ describe("Sidebar (leftnav)", () => {
       OPTIMIZATION: ["recommendations", "cost-optimization"],
       GOVERNANCE: ["budgets"],
       ADMINISTRATION: ["organization", "access-control", "attribution", "cost-tracking", "settings"],
-      "DATA SOURCES": ["provider-apis", "user-tools", "llm-provider-credentials"],
+      "DATA SOURCES": ["data-sources", "llm-provider-credentials"],
       GATEWAY: ["api-keys", "providers", "models", "llm-playground", "transform-request"],
       SAFETY: ["guardrails", "guardrails-monitor", "policies"],
       BUILD: ["mcp-servers", "skills", "prompts", "tag-management", "model-hub-table", "api_ref"],
@@ -522,6 +522,32 @@ describe("Sidebar (leftnav)", () => {
     expect(container.querySelector('a[href*="cost-optimization"]')).toHaveAttribute("title", "Cost Optimization");
   });
 
+  describe("Data Sources entry", () => {
+    it("shows one Data Sources entry rather than separate Provider APIs and User Tools", () => {
+      const { container } = renderWithProviders(<Sidebar {...defaultProps} />);
+
+      expect(container.querySelector('a[href*="data-sources"]')).toHaveTextContent("Data Sources");
+      expect(screen.queryByText("Provider APIs")).toBeNull();
+      expect(screen.queryByText("User Tools")).toBeNull();
+    });
+
+    it("leaves LLM Provider Credentials alone, because it belongs to the Gateway tab", () => {
+      // Forwarding credentials, not a connected account. That tab also moves Virtual Keys and
+      // Logs, so it waits for the owner's answer rather than being folded in here.
+      renderWithProviders(<Sidebar {...defaultProps} />);
+
+      expect(screen.getByText("LLM Provider Credentials")).toBeInTheDocument();
+    });
+
+    it("highlights it when standing on a page it absorbed", () => {
+      const { container } = renderWithProviders(
+        <Sidebar {...defaultProps} defaultSelectedKey="provider-apis" />,
+      );
+
+      expect(container.querySelector('a[href*="data-sources"]')).toHaveAttribute("data-active", "true");
+    });
+  });
+
   describe("Settings entry", () => {
     it("shows one Settings entry under Administration rather than three under their own group", () => {
       const { container } = renderWithProviders(<Sidebar {...defaultProps} />);
@@ -675,6 +701,7 @@ describe("getBreadcrumb", () => {
     expect(getBreadcrumb("projects")).toEqual({ section: "Administration", title: "Organization" });
     expect(getBreadcrumb("teams")).toEqual({ section: "Administration", title: "Organization" });
     expect(getBreadcrumb("admin-panel")).toEqual({ section: "Administration", title: "Settings" });
+    expect(getBreadcrumb("provider-apis")).toEqual({ section: "Data Sources", title: "Data Sources" });
     expect(getBreadcrumb("ui-theme")).toEqual({ section: "Administration", title: "Settings" });
     expect(getBreadcrumb("access-groups")).toEqual({
       section: "Administration",

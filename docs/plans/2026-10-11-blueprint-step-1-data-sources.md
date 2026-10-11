@@ -80,26 +80,53 @@ change most likely to be felt as a regression, so it goes last and alone.
 
 ## Task 1: The page, its four tabs, and the Accounts table
 
-- [ ] **Step 1: Write the failing test for the tab visibility rule**
+- [x] **Step 1: Write the failing test for the tab visibility rule**
 
 Manage for Org Admin, view for Finance Admin, hidden for every other role, which is the first of
 these pages whose access differs by role rather than being admin-only. A view-only role must see the
 tabs and none of the actions.
 
-- [ ] **Step 2: The tab shell and the Accounts tab**
+- [x] **Step 2: The tab shell and the Accounts tab**
 
 Accounts first, because it is the one tab whose backend is complete. One table over
 `/provider/connections` and `/tool/connections`, each row opening the raw records that
 `/provider/usage/raw` already returns.
 
-- [ ] **Step 3: Keep every address alive**
+- [x] **Step 3: Keep every address alive**
 
 `provider-apis`, `user-tools` and `llm-provider-credentials` become tabs. Their `?page=` ids and
 their paths redirect, and a test covers each.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
+
+### What task 1 found
+
+**LLM Provider Credentials is not an account, and nearly got merged as one.** The label table
+lists it among the seven entries folding into Data Sources, so the obvious reading is that it
+belongs on Accounts. It does not: those are *forwarding* credentials, and the blueprint puts them
+on the Gateway tab under "upstream endpoints". Separating billing from forwarding credentials
+was the whole of build step 2's first task, so folding them back into one list would have undone
+it. It stays where it is until task 5, and a sidebar test records why.
+
+So this merge is two entries, not three. Both legacy ids point at `data-sources/accounts` rather
+than the page root, so they keep landing on the tab they were on once the Overview tab arrives and
+takes first position.
+
+**The two endpoints disagree about the record count.** A provider account calls it `facts_stored`
+and a tool account `rows_stored`. The row names it `records_stored`, for what it means, and the
+adapter normalises both at the boundary so neither endpoint's spelling reaches the table.
+
+**The no-account row earned itself on the live proxy.** `/provider/connections` returns six
+providers and `/tool/connections` three tools, every one `not_connected` with no accounts. Without
+a row for a supported-but-unconnected source the Accounts tab would be empty on this installation
+and say nothing; with it, it is nine rows saying where cost is missing, which is the question the
+tab exists to answer.
+
+**Two connection states in my fixtures did not exist.** `failing` and `not_configured` are not in
+the set, which is `not_connected`, `waiting_for_first_data`, `healthy`, `needs_attention`. A
+fixture built on values that cannot occur tests a shape that does not exist.
 
 ## Task 2: The Overview tab and the issues list
 

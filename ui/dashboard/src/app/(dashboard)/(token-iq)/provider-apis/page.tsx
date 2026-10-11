@@ -1,19 +1,16 @@
 "use client";
 
-import { Plug } from "lucide-react";
+import { useEffect } from "react";
 
-import { PageHeader } from "@/components/shared/PageHeader";
-import ProviderApisPanel from "./_components/ProviderApisPanel";
+import { migratedHref } from "@/utils/migratedPages";
 
-export default function ProviderApisPage() {
-  return (
-    <main className="flex h-full flex-col gap-6 p-8">
-      <PageHeader
-        icon={<Plug />}
-        title="Provider APIs"
-        subtitle="What each provider reports that your accounts cost, and whether we can still read it."
-      />
-      <ProviderApisPanel />
-    </main>
-  );
+/**
+ * This page is the Accounts tab of Data Sources now. The route stays so a bookmark or a link to
+ * /provider-apis still arrives somewhere, rather than hitting a route that no longer exists.
+ */
+export default function ProviderApisRedirect() {
+  useEffect(() => {
+    window.location.replace(`${migratedHref("data-sources/accounts")}/`);
+  }, []);
+  return null;
 }
