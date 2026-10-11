@@ -66,6 +66,26 @@ def split_line_item(line_item: str) -> tuple[str | None, str | None]:
     return (None, text) if " " in text else (text, None)
 
 
+def awaits_reingestion(*, model: str | None, meter: str | None) -> bool:
+    """Whether this stored row still holds an unsplit line item in `model`.
+
+    `meter IS NULL` means two things and a screen has to tell them apart. The migration adds the
+    column empty and rewrites no rows, because a Prisma migration runs at proxy boot and must only
+    change schema, so a row stored before the split keeps the whole line item in `model` with a
+    null meter. A row for a bare model has a null meter too, because OpenAI never stated one.
+
+    Group the two together and one model appears twice, once as `gpt-4.1-2026-04-14` and once as
+    `gpt-4.1-2026-04-14, input`, which reads as two models with half the cost each.
+
+    They are distinguishable without touching the data: an unsplit value still carries the
+    separator, and a model id never does. In SQL that is
+    `meter IS NULL AND model LIKE '%, %'`, which is the rows a re-sync still has to replace.
+    """
+    if meter is not None or model is None:
+        return False
+    return MODEL_AND_METER in model
+
+
 def _facts_from(buckets: Sequence[object], credential_name: str) -> tuple[ProviderUsageFact, ...]:
     facts: list[ProviderUsageFact] = []  # mutable-ok: accumulated across buckets
     for bucket in buckets:

@@ -311,3 +311,85 @@ class TestTheFactCarriesBothHalves:
     def test_the_money_is_untouched_by_the_split(self) -> None:
         for line_item in ("gpt-4.1-2026-04-14, input", "web search tool calls", "gpt-4o"):
             assert self._one(line_item).billed_cost == Decimal("2.50"), line_item
+
+class TestTellingAnOldRowFromAMeterlessOne:
+    """`meter IS NULL` means two different things, and a screen has to be able to tell them apart.
+
+    The migration adds the column empty and rewrites nothing, because a Prisma migration at proxy
+    boot must not touch rows. So a row stored before the split keeps the combined string in `model`
+    with a null `meter`, while a row for a bare model like "gpt-4o" has a null `meter` because
+    OpenAI never stated one. Group by model across both and the same model appears twice, once
+    under its real id and once under "gpt-4.1-2026-04-14, input".
+
+    The two are distinguishable without a data migration: an un-split row's `model` still contains
+    the separator, and a real model id never does.
+    """
+
+    @pytest.mark.parametrize(
+        "model",
+        [
+            "gpt-4.1-2026-04-14, input",
+            "gpt-4.1-2026-04-14, output",
+            "o3-mini, cached input",
+        ],
+    )
+    def test_a_row_stored_before_the_split_is_recognised(self, model: str) -> None:
+        from token_iq.connectors.billing.openai import awaits_reingestion
+
+        assert awaits_reingestion(model=model, meter=None)
+
+    @pytest.mark.parametrize("model", ["gpt-4o", "text-embedding-3-small", "o3-mini"])
+    def test_a_model_whose_meter_openai_never_stated_is_not(self, model: str) -> None:
+        """These are correct as they stand and re-ingesting them changes nothing."""
+        from token_iq.connectors.billing.openai import awaits_reingestion
+
+        assert not awaits_reingestion(model=model, meter=None)
+
+    def test_a_row_that_already_has_a_meter_is_not(self) -> None:
+        from token_iq.connectors.billing.openai import awaits_reingestion
+
+        assert not awaits_reingestion(model="gpt-4.1-2026-04-14", meter="input")
+
+    def test_a_meter_settles_it_whatever_the_model_looks_like(self) -> None:
+        """A stored meter means the row has been through the split, so the model is not re-read.
+        Without this the meter check can be dropped and every test above still passes, because none
+        of the others has a meter and a separator at the same time."""
+        from token_iq.connectors.billing.openai import awaits_reingestion
+
+        assert not awaits_reingestion(model="gpt-4.1-2026-04-14, input", meter="input")
+
+    def test_a_comma_without_a_space_is_not_the_separator(self) -> None:
+        """The splitter partitions on ", " exactly, so the predicate has to as well. Keying on a
+        bare comma would flag a model that merely contains one and send a re-sync after rows that
+        are already correct."""
+        from token_iq.connectors.billing.openai import awaits_reingestion, split_line_item
+
+        assert split_line_item("gpt-4,1") == ("gpt-4,1", None)
+        assert not awaits_reingestion(model="gpt-4,1", meter=None)
+
+    def test_a_tool_call_row_is_not(self) -> None:
+        """A meter against no model is already in its final shape."""
+        from token_iq.connectors.billing.openai import awaits_reingestion
+
+        assert not awaits_reingestion(model=None, meter="web search tool calls")
+
+    def test_a_row_with_neither_is_not_claimed_to_need_anything(self) -> None:
+        from token_iq.connectors.billing.openai import awaits_reingestion
+
+        assert not awaits_reingestion(model=None, meter=None)
+
+    def test_it_agrees_with_the_splitter_on_every_shape_the_splitter_knows(self) -> None:
+        """The two have to stay consistent: anything the splitter would turn into a model and a
+        meter is exactly what an un-split row holds in `model`."""
+        from token_iq.connectors.billing.openai import awaits_reingestion, split_line_item
+
+        for line_item in (
+            "gpt-4.1-2026-04-14, input",
+            "o3-mini, cached input",
+            "web search tool calls",
+            "gpt-4o",
+        ):
+            model, meter = split_line_item(line_item)
+            would_split = model is not None and meter is not None
+
+            assert awaits_reingestion(model=line_item, meter=None) == would_split, line_item

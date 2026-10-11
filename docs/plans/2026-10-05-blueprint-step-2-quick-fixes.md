@@ -237,7 +237,7 @@ exactly that silently, and a test kills that mutation.
 **Files:** `token_iq/types/provider_billing.py`, three `schema.prisma`, a migration,
 `token_iq/connectors/billing/openai.py`, `provider_usage_fact_repository.py`
 
-- [ ] **Step 1: Write the failing test for the split itself**
+- [x] **Step 1: Write the failing test for the split itself**
 
 "gpt-4.1-2026-04-14, input" becomes model `gpt-4.1-2026-04-14` and meter `input`. "web search tool
 calls" has no model, so model is `None` and meter is the whole string: a tool call is a meter
@@ -246,30 +246,56 @@ against no model, and putting it in `model` is what makes the model list unreada
 Table-driven, from the line-item shapes OpenAI actually returns, including one that is only a model
 with no meter part and one that is neither.
 
-- [ ] **Step 2: Add the field and the column**
+- [x] **Step 2: Add the field and the column**
 
 `meter: str | None` on `ProviderUsageFact`, a nullable `meter` column on
 `LiteLLM_ProviderUsageFact`, and the same change byte-identically in all three `schema.prisma`
 copies. Schema only: the column arrives empty and no row is touched.
 
-- [ ] **Step 3: Keep `fact_key` on the raw line item**
+- [x] **Step 3: Keep `fact_key` on the raw line item**
 
 It is what makes re-ingestion replace a row rather than add one beside it. A test asserts the key
 for a given day and line item is unchanged by this task, because that is the hinge the whole
 migration path hangs on.
 
-- [ ] **Step 4: Prove the money did not move**
+- [x] **Step 4: Prove the money did not move**
 
 The same fixture through the old and new code: identical `billed_cost` per row, identical total,
 and the set of `(model, meter)` pairs accounting for exactly the rows the old `model` values did.
 
-- [ ] **Step 5: Write down how a deployment finishes the change**
+- [x] **Step 5: Write down how a deployment finishes the change**
 
 Re-ingest the periods that matter rather than migrating data. The plan states how far back, and how
 to tell a row that has not been re-ingested from a line item that genuinely has no meter. Without
 that second part, `meter IS NULL` means two different things and no screen can group safely.
 
-- [ ] **Step 6: Commit**
+### How a deployment finishes the change
+
+**Nothing is backfilled.** The column arrives empty and the migration rewrites no rows, because a
+Prisma migration runs at proxy boot and must only change schema. Rows stored before the change keep
+the whole line item in `model` with a null `meter`, and the connector corrects them by re-fetching:
+it is idempotent on `fact_key`, and `fact_key` still carries the raw unsplit line item, so a re-sync
+replaces the row rather than inserting one beside it.
+
+**How far back.** As far back as any screen re-prices or groups by model. The Savings Simulator and
+the ledger re-price closed periods, so the honest answer is every period still shown, which for a
+new installation is nothing and for an established one is the retention window. There is no harm in
+re-ingesting further than needed: the same `fact_key` is rewritten with the same `billed_cost`.
+
+**Telling a stale row from a finished one**, which is the part that made `meter IS NULL` ambiguous.
+A row awaiting re-ingestion still holds the separator in `model`; a row for a bare model, whose
+meter OpenAI never stated, does not. `awaits_reingestion()` is that rule, and in SQL it is:
+
+```sql
+SELECT count(*) FROM "LiteLLM_ProviderUsageFact"
+ WHERE provider = 'openai' AND meter IS NULL AND model LIKE '%, %';
+```
+
+Zero means every row has been through the split. Anything else is the number of rows a re-sync still
+has to replace, and until it reaches zero a screen grouping by model will show the same model twice,
+once under its id and once under "<id>, input".
+
+- [x] **Step 6: Commit**
 
 ---
 
