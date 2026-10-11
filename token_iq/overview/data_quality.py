@@ -22,7 +22,6 @@ from typing import Final, TypeAlias
 FAILING_CONNECTION_STATE: Final = "needs_attention"
 
 
-
 @dataclasses.dataclass(frozen=True, slots=True)
 class Measured:
     """How many of this issue there are. Zero means looked at and none found."""
@@ -106,6 +105,42 @@ def data_quality_issues(
             state=Measured(keys_without_project),
             fix_on="api-keys",
         ),
+    )
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class InvoicesCovered:
+    """How many of the providers that billed in the period have an invoice covering it."""
+
+    providers_billed: int
+    providers_invoiced: int
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class NothingBilled:
+    """No provider billed anything in the period, so there is nothing an invoice could cover.
+
+    Its own state rather than a zero over zero, for the same reason `Unmeasurable` exists. "0 of 0
+    invoiced" is read either as perfect coverage or as total failure depending on how a screen
+    renders it, and neither is what happened.
+    """
+
+
+InvoiceCoverage: TypeAlias = InvoicesCovered | NothingBilled
+
+
+def invoice_coverage(*, providers_billed: int, providers_missing_invoice: int) -> InvoiceCoverage:
+    """Invoice coverage for the period, as the blueprint's headline figure reads it.
+
+    The missing count is a subset of the billed count by construction: both come from the providers
+    with usage facts inside the period, and the missing one additionally requires no invoice
+    spanning the day. So the covered figure is the difference, with nothing to clamp.
+    """
+    if providers_billed == 0:
+        return NothingBilled()
+    return InvoicesCovered(
+        providers_billed=providers_billed,
+        providers_invoiced=providers_billed - providers_missing_invoice,
     )
 
 

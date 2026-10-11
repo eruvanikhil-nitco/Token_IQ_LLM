@@ -2849,3 +2849,75 @@ proxy admin, which is the case the auth layer lets through.
 
 The probe key was deleted afterwards and the count is back to 77, so the measurement did not move
 the thing it measures.
+
+## 11 Oct 2026, the Overview tab
+
+Data Sources > Overview is built, which finishes task 2 of build step 1. It opens the page now, as
+the blueprint's order puts it first, and the two legacy ids already pointed at `data-sources/accounts`
+for exactly that reason.
+
+### Two figures from the blueprint's mockup are deliberately missing
+
+There is no data quality score. The mockup shows "92 / 100", and a single number over four checks,
+one of which nobody can measure, is a figure nobody can trace back to anything: it would read 92
+whether or not the unmeasurable quarter was ever built, on the one tab whose question is whether the
+data can be trusted. What the card shows instead is how many checks need action, how many came back
+clear, and how many nobody can answer yet, as three separate numbers.
+
+And there is no money anywhere on the tab, because it summarises provider sources and gateway sources
+in one table, which is where somebody would eventually add a total. The records column says records.
+
+### Three statuses, not two
+
+A check is one of needs action, clear, or not known. Collapsing clear and not known into "nothing
+shown here" would leave the tab looking identical whether a check ran and found nothing or nobody
+ever built it. Only a check that needs action carries a Fix link: a clear one has nothing to go and
+fix, and an unmeasurable one cannot be fixed yet by definition.
+
+That last rule was a defect the integration test found. The first version passed the backend's
+`fix_on` page through for an unmeasurable check, so the unmatched-people row offered a Fix link to
+Access Control, where directory sync does not exist. It is the same dead end the raw records action
+avoids on a row with no records, and I had written that rule two commits earlier.
+
+Links go through `migratedHrefIfRouted`, which returns null for a page id this build does not route.
+The page id comes from the backend, so guessing a URL from an unknown one would put a link on screen
+that lands on nothing.
+
+### Invoice coverage reads as a fraction
+
+"0 of 1" rather than "1 missing", because a bare defect count does not say whether that is one of two
+or one of fifty. It needed a denominator, so `providers_billing` counts the providers that billed in
+the period, from the same population as the missing count. A period nobody billed in gets a sentence
+rather than a fraction.
+
+### Verified against the running proxy
+
+- `/data-quality` reports coverage `{kind: covered, providers_billed: 1, providers_invoiced: 0}` over
+  30 days, and `{kind: nothing_billed}` over one day, so both arms of the union are exercised by real
+  data rather than only by fixtures
+- the four issues come back as one failing connection, one uninvoiced period, 77 keys with no project
+  and unmatched people unmeasurable, each naming the page that fixes it
+- 93 UI tests across five files, 48 Python tests across three, 18 of 19 UI mutants and 8 of 8 Python
+  mutants killed
+
+The surviving mutant drops the null filter in `lastDataAt` and is equivalent rather than a hole: a
+null timestamp coerces to epoch rather than to NaN, so it loses to any real date, and when every row
+is null the value carried through is itself null. The filter narrows the type and cannot change the
+answer. It would only differ for a sync timestamped before 1970.
+
+### Two things found on the way in
+
+The generated API types had been frozen since the phase 6 rename, because the generator still imported
+`litellm.proxy.proxy_server`. Every run failed with ModuleNotFoundError instead of regenerating, and
+nothing in the dashboard referenced the renamed schema members, so it kept compiling. The gate that
+would have caught it only fires on a pull request and only for diffs under `token_iq/gateway/proxy/`
+or `token_iq/gateway/types/`, which excludes every Token IQ route in `token_iq/api/`. Both fixed.
+
+The repository's count reading was also rebuilt. It duck-typed each row through `Mapping` or
+`getattr` and returned zero when it could not read one, which is the failure that looks most like
+success here. It validates into a Pydantic row now and raises instead, and every query goes through
+one method, which took the file from 15 basedpyright errors to 6.
+
+`ui/dashboard/src/utils/migratedPages.test.ts` had five stale assertions from the tab consolidation,
+failing at HEAD before this work. They asserted the pre-merge identity mapping; they now assert that
+each legacy id lands on the tab that absorbed it.

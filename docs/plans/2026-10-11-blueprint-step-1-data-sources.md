@@ -134,17 +134,35 @@ fixture built on values that cannot occur tests a shape that does not exist.
 
 ## Task 2: The Overview tab and the issues list
 
-- [ ] **Step 1: Write the failing test for each issue the blueprint names**
+- [x] **Step 1: Write the failing test for each issue the blueprint names**
 
 Failing connections, missing invoices, unmatched people, keys without projects. Each is a count with
 a link to where it is fixed, and each needs its own test, because an issues list that silently
 returns nothing looks identical to a healthy installation.
 
-- [ ] **Step 2: Compute them in one place, not four screens**
+Done, and the plan was wrong about one of the four. Unmatched people cannot be counted at all: it
+needs directory sync, which section 12 lists as its own Must and which nothing here implements. So
+an issue's state is a tagged union, `Measured | Unmeasurable`, rather than an integer. A zero means
+looked at and found none, and a question nobody has looked at must not borrow that number, because
+on the tab asking whether the data can be trusted a zero reads as reassurance.
 
-- [ ] **Step 3: Invoice coverage, which already has its data**
+- [x] **Step 2: Compute them in one place, not four screens**
 
-- [ ] **Step 4: Commit**
+`token_iq/overview/data_quality.py` holds the rule and takes the facts rather than fetching them, so
+it is tested without a database. `/data-quality` composes one period, gathering the connection states
+itself through the same builder and run window as the connections endpoint rather than letting the
+browser supply them.
+
+- [x] **Step 3: Invoice coverage, which already has its data**
+
+As a fraction, which needed a denominator the repository did not have: `providers_billing` counts the
+providers that billed inside the period, starting from the same population as the missing count so
+the two are a fraction of each other. Coverage is its own tagged union too, because "0 of 0" reads as
+perfect coverage or as total failure depending on the card, and a period nobody billed in is neither.
+
+- [x] **Step 4: Commit**
+
+Both coverage states and all four issue states are proved against the live proxy, not only in tests.
 
 ---
 

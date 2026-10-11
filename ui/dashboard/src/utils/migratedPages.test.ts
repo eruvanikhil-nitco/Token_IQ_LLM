@@ -64,12 +64,14 @@ describe("migratedHref / legacyPageHref", () => {
     expect(migratedHref(MIGRATED_PAGES.models)).toBe("/ui/models-and-endpoints");
   });
 
-  it("maps the projects and access-groups sidebar ids to their routes", async () => {
+  it("lands the projects and access-groups ids on the tab that absorbed each one", async () => {
+    // Both pages were merged into a tabbed page, so the id has to keep pointing at the sub-route
+    // rather than at the page, or an old bookmark lands on whichever tab happens to be first.
     vi.doMock("@/components/networking", () => ({ serverRootPath: "/" }));
     const { MIGRATED_PAGES } = await import("./migratedPages");
 
-    expect(MIGRATED_PAGES.projects).toBe("projects");
-    expect(MIGRATED_PAGES["access-groups"]).toBe("access-groups");
+    expect(MIGRATED_PAGES.projects).toBe("organization/projects");
+    expect(MIGRATED_PAGES["access-groups"]).toBe("access-control/access-groups");
   });
 
   it("maps the budgets, workflows, and guardrails-monitor sidebar ids to their routes", async () => {
@@ -112,7 +114,7 @@ describe("migratedHref / legacyPageHref", () => {
     expect(MIGRATED_PAGES.caching).toBe("caching");
     expect(MIGRATED_PAGES["cost-tracking"]).toBe("cost-tracking");
     expect(MIGRATED_PAGES["transform-request"]).toBe("transform-request");
-    expect(MIGRATED_PAGES["ui-theme"]).toBe("ui-theme");
+    expect(MIGRATED_PAGES["ui-theme"]).toBe("settings/ui-theme");
     expect(MIGRATED_PAGES.logs).toBe("logs");
   });
 
@@ -120,8 +122,9 @@ describe("migratedHref / legacyPageHref", () => {
     vi.doMock("@/components/networking", () => ({ serverRootPath: "/" }));
     const { MIGRATED_PAGES } = await import("./migratedPages");
 
-    expect(MIGRATED_PAGES["admin-panel"]).toBe("admin-panel");
-    expect(MIGRATED_PAGES["logging-and-alerts"]).toBe("logging-and-alerts");
+    // Admin Settings became the Settings page itself; Logging & Alerts became one of its tabs.
+    expect(MIGRATED_PAGES["admin-panel"]).toBe("settings");
+    expect(MIGRATED_PAGES["logging-and-alerts"]).toBe("settings/logging-and-alerts");
     expect(MIGRATED_PAGES["model-hub-table"]).toBe("model-hub-table");
     // new_usage routes to /usage; the legacy ?page=usage report routes to /old-usage (asserted below).
     expect(MIGRATED_PAGES.new_usage).toBe("usage");
@@ -143,18 +146,18 @@ describe("migratedHref / legacyPageHref", () => {
     expect(MIGRATED_PAGES["router-settings"]).toBe("router-settings");
   });
 
-  it("maps the users id to its route", async () => {
+  it("lands the users id on Access Control, which absorbed it", async () => {
     vi.doMock("@/components/networking", () => ({ serverRootPath: "/" }));
     const { MIGRATED_PAGES } = await import("./migratedPages");
 
-    expect(MIGRATED_PAGES.users).toBe("users");
+    expect(MIGRATED_PAGES.users).toBe("access-control");
   });
 
-  it("maps the teams id to its route", async () => {
+  it("lands the teams id on Organization, which absorbed it", async () => {
     vi.doMock("@/components/networking", () => ({ serverRootPath: "/" }));
     const { MIGRATED_PAGES } = await import("./migratedPages");
 
-    expect(MIGRATED_PAGES.teams).toBe("teams");
+    expect(MIGRATED_PAGES.teams).toBe("organization");
   });
 
   it("maps the organizations id to its route", async () => {
@@ -235,5 +238,41 @@ describe("legacyKeyForPathname", () => {
 
     expect(legacyKeyForPathname("/team-x/ui/api-reference")).toBe("api_ref");
     expect(legacyKeyForPathname("/ui/api-reference")).toBeNull();
+  });
+});
+
+describe("migratedHrefIfRouted", () => {
+  // Same reset as the block above. Without it the module registry carries the previous test's
+  // mocked serverRootPath, so these would assert against whichever root ran last.
+  beforeEach(() => {
+    vi.resetModules();
+    vi.stubEnv("NODE_ENV", "test");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("gives the href for a page this build routes", async () => {
+    vi.doMock("@/components/networking", () => ({ serverRootPath: "/" }));
+    const { migratedHrefIfRouted } = await import("./migratedPages");
+
+    expect(migratedHrefIfRouted("ledger")).toBe("/ui/ledger");
+  });
+
+  it("follows the id to the merged route rather than assuming the id is the segment", async () => {
+    vi.doMock("@/components/networking", () => ({ serverRootPath: "/" }));
+    const { migratedHrefIfRouted } = await import("./migratedPages");
+
+    expect(migratedHrefIfRouted("provider-apis")).toBe("/ui/data-sources/accounts");
+  });
+
+  it("returns null for a page nothing routes, instead of a link to a missing page", async () => {
+    // For links built from a page id the backend sent. Guessing a URL from an unknown id would put
+    // a Fix link on screen that lands on nothing.
+    vi.doMock("@/components/networking", () => ({ serverRootPath: "/" }));
+    const { migratedHrefIfRouted } = await import("./migratedPages");
+
+    expect(migratedHrefIfRouted("a-page-that-does-not-exist")).toBeNull();
   });
 });

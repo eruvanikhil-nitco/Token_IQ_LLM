@@ -157,3 +157,42 @@ class TestWhatNeedsAttentionOverall:
         issues = data_quality_issues(connection_states=(), missing_invoices=0, keys_without_project=0)
 
         assert issues_to_fix(issues) == 0
+
+
+class TestInvoiceCoverage:
+    """The blueprint's headline figure reads "September invoices: 5 of 6", so this is a fraction
+    rather than a defect count. A bare "1 missing" does not say whether that is one of two or one
+    of fifty."""
+
+    def test_covered_is_the_billed_providers_that_have_an_invoice(self) -> None:
+        from token_iq.overview.data_quality import InvoicesCovered, invoice_coverage
+
+        coverage = invoice_coverage(providers_billed=6, providers_missing_invoice=1)
+
+        assert coverage == InvoicesCovered(providers_billed=6, providers_invoiced=5)
+
+    def test_every_billed_provider_invoiced_is_full_coverage(self) -> None:
+        from token_iq.overview.data_quality import InvoicesCovered, invoice_coverage
+
+        assert invoice_coverage(providers_billed=3, providers_missing_invoice=0) == InvoicesCovered(
+            providers_billed=3, providers_invoiced=3
+        )
+
+    def test_none_of_them_invoiced_is_zero_of_the_billed_count(self) -> None:
+        """The state this installation is actually in: one provider billing and no invoices at all.
+        It has to read as nothing covered rather than as nothing to cover."""
+        from token_iq.overview.data_quality import InvoicesCovered, invoice_coverage
+
+        assert invoice_coverage(providers_billed=1, providers_missing_invoice=1) == InvoicesCovered(
+            providers_billed=1, providers_invoiced=0
+        )
+
+    def test_nobody_billing_is_its_own_state_rather_than_zero_of_zero(self) -> None:
+        """"0 of 0 invoiced" renders as perfect coverage or as total failure depending on the
+        screen, and a period in which nobody billed is neither. Same reason `Unmeasurable` exists."""
+        from token_iq.overview.data_quality import InvoicesCovered, NothingBilled, invoice_coverage
+
+        coverage = invoice_coverage(providers_billed=0, providers_missing_invoice=0)
+
+        assert coverage == NothingBilled()
+        assert not isinstance(coverage, InvoicesCovered)

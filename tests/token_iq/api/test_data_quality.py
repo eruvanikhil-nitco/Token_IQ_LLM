@@ -70,6 +70,40 @@ class TestEveryStateIsHandled:
         class Invented:
             pass
 
-        with pytest.raises(Exception):  # noqa: B017, PT011  # the point is that it does not return None
+        with pytest.raises(Exception):  # noqa: B017  # the point is that it does not return None
             result = to_wire(_issue(Invented()))
             assert result is not None, "an unknown state returned None instead of raising"
+
+
+class TestInvoiceCoverageOnTheWire:
+    def test_a_covered_period_carries_both_halves_of_the_fraction(self) -> None:
+        from token_iq.api.data_quality import coverage_to_wire
+        from token_iq.api.types.data_quality import CoveredInvoices
+        from token_iq.overview.data_quality import InvoicesCovered
+
+        wire = coverage_to_wire(InvoicesCovered(providers_billed=6, providers_invoiced=5))
+
+        assert isinstance(wire, CoveredInvoices)
+        assert (wire.providers_billed, wire.providers_invoiced) == (6, 5)
+        assert wire.kind == "covered"
+
+    def test_nobody_billing_arrives_as_its_own_shape_with_no_fraction(self) -> None:
+        from token_iq.api.data_quality import coverage_to_wire
+        from token_iq.api.types.data_quality import CoveredInvoices, NothingBilledYet
+        from token_iq.overview.data_quality import NothingBilled
+
+        wire = coverage_to_wire(NothingBilled())
+
+        assert isinstance(wire, NothingBilledYet)
+        assert not isinstance(wire, CoveredInvoices)
+        assert not hasattr(wire, "providers_billed")
+
+    def test_a_coverage_outside_the_union_is_not_quietly_dropped(self) -> None:
+        from token_iq.api.data_quality import coverage_to_wire
+
+        class Invented:
+            pass
+
+        with pytest.raises(Exception):  # noqa: B017  # the point is that it does not return None
+            result = coverage_to_wire(Invented())
+            assert result is not None, "an unknown coverage returned None instead of raising"

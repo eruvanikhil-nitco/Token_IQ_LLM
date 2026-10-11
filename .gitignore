@@ -128,3 +128,4 @@ crash.*.log
 
 ui/dashboard/out/
 litellm.log
+ui-dev.log

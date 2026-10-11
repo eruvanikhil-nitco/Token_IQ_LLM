@@ -102,3 +102,15 @@ export function legacyKeyForPathname(pathname: string): string | null {
   }
   return null;
 }
+
+/**
+ * Href for a page id, or null when this build routes nowhere for it.
+ *
+ * For links built from data the backend supplies, where the page id is a string in a response
+ * rather than something written at the call site. A link to a page that does not exist is worse
+ * than no link, so the caller can decide to state the problem without offering a dead end.
+ */
+export function migratedHrefIfRouted(pageKey: string): string | null {
+  const segment = MIGRATED_PAGES[pageKey];
+  return segment === undefined ? null : migratedHref(segment);
+}

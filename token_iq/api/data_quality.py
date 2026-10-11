@@ -16,9 +16,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from token_iq.api.provider_connections import build_provider_connections
 from token_iq.api.types.data_quality import (
+    CoveredInvoices,
     DataQualityResponse,
+    InvoiceCoverageResponse,
     IssueResponse,
     MeasuredIssue,
+    NothingBilledYet,
     UnmeasurableIssue,
 )
 from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
@@ -27,9 +30,13 @@ from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, U
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.overview.data_quality import (
     DataQualityIssue,
+    InvoiceCoverage,
+    InvoicesCovered,
     Measured,
+    NothingBilled,
     Unmeasurable,
     data_quality_issues,
+    invoice_coverage,
     issues_to_fix,
 )
 from token_iq.repositories.data_quality_repository import DataQualityRepository
@@ -75,6 +82,15 @@ def to_wire(issue: DataQualityIssue) -> IssueResponse:
             return UnmeasurableIssue(key=issue.key, title=issue.title, fix_on=issue.fix_on, reason=reason)
 
 
+def coverage_to_wire(coverage: InvoiceCoverage) -> InvoiceCoverageResponse:
+    """Invoice coverage in the shape a client reads, exhaustive for the same reason `to_wire` is."""
+    match coverage:
+        case InvoicesCovered(providers_billed=billed, providers_invoiced=invoiced):
+            return CoveredInvoices(providers_billed=billed, providers_invoiced=invoiced)
+        case NothingBilled():
+            return NothingBilledYet()
+
+
 @router.get("/data-quality", response_model=DataQualityResponse)
 async def data_quality(
     # `Annotated` rather than a `Depends()` default: the call then sits inside the annotation
@@ -111,17 +127,23 @@ async def data_quality(
         fact_counts_for=lambda provider: counts[provider],
     )
 
+    missing_invoices: Final = await repository.providers_missing_invoice(start, end)
     issues: Final = data_quality_issues(
         connection_states=tuple(
             account.state for connection in connections.providers for account in connection.accounts
         ),
-        missing_invoices=await repository.providers_missing_invoice(start, end),
+        missing_invoices=missing_invoices,
         keys_without_project=await repository.keys_without_project(),
+    )
+    coverage: Final = invoice_coverage(
+        providers_billed=await repository.providers_billing(start, end),
+        providers_missing_invoice=missing_invoices,
     )
 
     return DataQualityResponse(
         period_start=start.isoformat(),
         period_end=end.isoformat(),
+        invoice_coverage=coverage_to_wire(coverage),
         issues=tuple(to_wire(issue) for issue in issues),
         issues_to_fix=issues_to_fix(issues),
     )

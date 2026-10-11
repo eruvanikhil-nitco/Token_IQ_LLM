@@ -70,6 +70,13 @@ describe("the tabs themselves", () => {
 
     expect(built.every((tab) => DATA_SOURCES_TABS[tab].built)).toBe(true);
     expect(built).toContain("accounts");
+    expect(built).toContain("overview");
+  });
+
+  it("opens on Overview, because that is the tab the blueprint puts first", () => {
+    // Which tab the page lands on, since the first visible one is the base route. The legacy
+    // provider-apis and user-tools ids point at data-sources/accounts for exactly this reason.
+    expect(visibleDataSourcesTabs(viewer("proxy_admin"))[0]).toBe("overview");
   });
 
   it("keeps the built tabs in the blueprint's order rather than the order they were written", () => {

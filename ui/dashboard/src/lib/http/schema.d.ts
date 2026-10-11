@@ -26775,6 +26775,19 @@ export interface components {
             /** Provider */
             provider?: string | null;
         };
+        /** CoveredInvoices */
+        CoveredInvoices: {
+            /**
+             * Kind
+             * @default covered
+             * @constant
+             */
+            kind: "covered";
+            /** Providers Billed */
+            providers_billed: number;
+            /** Providers Invoiced */
+            providers_invoiced: number;
+        };
         /** CreateCredentialItem */
         CreateCredentialItem: {
             /** Credential Info */
@@ -27038,6 +27051,8 @@ export interface components {
         };
         /** DataQualityResponse */
         DataQualityResponse: {
+            /** Invoice Coverage */
+            invoice_coverage: components["schemas"]["CoveredInvoices"] | components["schemas"]["NothingBilledYet"];
             /** Issues */
             issues: (components["schemas"]["MeasuredIssue"] | components["schemas"]["UnmeasurableIssue"])[];
             /** Issues To Fix */
@@ -33225,6 +33240,15 @@ export interface components {
             user_id?: string | null;
             /** User Role */
             user_role?: ("proxy_admin" | "proxy_admin_viewer" | "internal_user" | "internal_user_viewer") | null;
+        };
+        /** NothingBilledYet */
+        NothingBilledYet: {
+            /**
+             * Kind
+             * @default nothing_billed
+             * @constant
+             */
+            kind: "nothing_billed";
         };
         /**
          * OAuth2SecurityScheme

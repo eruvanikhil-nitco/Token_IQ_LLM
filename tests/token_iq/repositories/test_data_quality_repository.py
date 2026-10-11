@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 import pytest
+from pydantic import ValidationError
 
 from token_iq.repositories.data_quality_repository import DataQualityRepository
 
@@ -125,3 +126,68 @@ class TestProvidersWithNoInvoice:
         asked = client.db.queries[0].lower()
         assert "providerusagefact" in asked
         assert "providerinvoice" in asked
+
+
+class TestProvidersThatBilled:
+    """The denominator of invoice coverage, which has to start from the same population as the
+    missing count or the fraction is two unrelated numbers side by side."""
+
+    @pytest.mark.asyncio
+    async def test_reads_the_count(self) -> None:
+        repo, _ = _repo([{"count": 6}])
+
+        assert await repo.providers_billing(START, END) == 6
+
+    @pytest.mark.asyncio
+    async def test_no_rows_is_zero(self) -> None:
+        repo, _ = _repo([])
+
+        assert await repo.providers_billing(START, END) == 0
+
+    @pytest.mark.asyncio
+    async def test_it_passes_the_period_it_was_given(self) -> None:
+        repo, client = _repo([{"count": 0}])
+        await repo.providers_billing(START, END)
+
+        assert client.db.args[0] == (START.isoformat(), END.isoformat())
+
+    @pytest.mark.asyncio
+    async def test_it_counts_each_provider_once_however_many_facts_it_has(self) -> None:
+        """Without the distinct this returns a fact count, and coverage reads "0 of 50" for one
+        provider that happens to have sent fifty rows."""
+        repo, client = _repo([{"count": 0}])
+        await repo.providers_billing(START, END)
+
+        asked = client.db.queries[0].lower()
+        assert "count(distinct f.provider)" in asked
+        assert "providerusagefact" in asked
+
+    @pytest.mark.asyncio
+    async def test_it_asks_about_the_period_rather_than_all_of_history(self) -> None:
+        repo, client = _repo([{"count": 0}])
+        await repo.providers_billing(START, END)
+
+        asked = client.db.queries[0].lower()
+        assert "bucket_start >=" in asked
+        assert "bucket_start <" in asked
+
+
+class TestWhenTheCountCannotBeRead:
+    @pytest.mark.asyncio
+    async def test_a_row_with_no_count_raises_rather_than_reporting_zero(self) -> None:
+        """The failure that looks most like success on this tab.
+
+        A query whose result cannot be read has not counted zero of anything, and "0 issues" on the
+        tab asking whether the data can be trusted is read as a clean bill of health.
+        """
+        repo, _ = _repo([{"total": 3}])
+
+        with pytest.raises(ValidationError):
+            await repo.keys_without_project()
+
+    @pytest.mark.asyncio
+    async def test_a_count_that_is_not_a_number_raises(self) -> None:
+        repo, _ = _repo([{"count": "not a number"}])
+
+        with pytest.raises(ValidationError):
+            await repo.providers_billing(START, END)

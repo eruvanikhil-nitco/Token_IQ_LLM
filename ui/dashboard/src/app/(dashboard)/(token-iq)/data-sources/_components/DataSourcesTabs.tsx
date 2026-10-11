@@ -15,6 +15,7 @@ import {
   type DataSourcesTab,
 } from "../dataSourcesTabs";
 import AccountsTab from "./AccountsTab";
+import OverviewTab from "./OverviewTab";
 
 const routes = createTabRoutes("data-sources", DATA_SOURCES_TAB_ORDER);
 
@@ -43,7 +44,16 @@ export default function DataSourcesTabs() {
     return null;
   }
 
-  const panel = (tab: DataSourcesTab) => (tab === "accounts" ? <AccountsTab /> : null);
+  const panel = (tab: DataSourcesTab) => {
+    switch (tab) {
+      case "overview":
+        return <OverviewTab />;
+      case "accounts":
+        return <AccountsTab />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <Tabs value={activeKey} onValueChange={onTabChange}>

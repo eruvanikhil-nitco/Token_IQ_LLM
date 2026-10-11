@@ -31,7 +31,7 @@ export const DATA_SOURCES_TABS: Readonly<Record<DataSourcesTab, TabSpec>> = {
     label: "Overview",
     description:
       "Can the data be trusted? Health and freshness of every source, invoice coverage, and data quality issues to fix.",
-    built: false,
+    built: true,
   },
   accounts: {
     label: "Accounts",

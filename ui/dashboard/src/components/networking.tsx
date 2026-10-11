@@ -2779,6 +2779,26 @@ export const providerConnectionsCall = async (accessToken: string): Promise<Prov
   }
 };
 
+/**
+ * Data Sources > Overview, read straight from the generated spec.
+ *
+ * Restating these by hand is what lets a tagged union quietly lose an arm: the `kind` discriminator
+ * and the fields that go with it come from the response models, so a new issue state is a type
+ * error in the tab rather than a row that renders blank.
+ */
+export type DataQualityResponse = components["schemas"]["DataQualityResponse"];
+export type DataQualityIssue = DataQualityResponse["issues"][number];
+export type InvoiceCoverage = DataQualityResponse["invoice_coverage"];
+
+export const dataQualityCall = async (accessToken: string): Promise<DataQualityResponse> => {
+  try {
+    return await apiClient.get<DataQualityResponse>(`/data-quality`, { accessToken });
+  } catch (error) {
+    console.error("Failed to read data quality:", error);
+    throw error;
+  }
+};
+
 export type MatchStatus = "matched" | "gateway_saw_less" | "gateway_saw_more" | "not_seen_by_gateway";
 
 export interface ProviderStanding {

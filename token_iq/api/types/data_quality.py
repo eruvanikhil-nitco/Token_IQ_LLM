@@ -33,9 +33,28 @@ class UnmeasurableIssue(BaseModel):
 IssueResponse: TypeAlias = MeasuredIssue | UnmeasurableIssue
 
 
+class CoveredInvoices(BaseModel):
+    kind: Literal["covered"] = "covered"
+    providers_billed: int
+    providers_invoiced: int
+
+
+class NothingBilledYet(BaseModel):
+    kind: Literal["nothing_billed"] = "nothing_billed"
+
+
+InvoiceCoverageResponse: TypeAlias = CoveredInvoices | NothingBilledYet
+"""Kept apart for the same reason the issue states are.
+
+"0 of 0 invoiced" is a fraction a screen can render as either perfect coverage or total failure, and
+a period in which nobody billed is neither.
+"""
+
+
 class DataQualityResponse(BaseModel):
     period_start: str
     period_end: str
+    invoice_coverage: InvoiceCoverageResponse
     issues: tuple[IssueResponse, ...]
     issues_to_fix: int
     """How many issues have something to act on. Unmeasurable ones are outside this number, neither

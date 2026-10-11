@@ -6,14 +6,27 @@ without a database. This only fetches the two numbers that rule cannot work out 
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
 from datetime import datetime
 from typing import Any, Final
+
+from pydantic import BaseModel, TypeAdapter
 
 _KEYS_WITHOUT_PROJECT_SQL: Final = """
     SELECT COUNT(*)::int AS count
       FROM "LiteLLM_VerificationToken"
      WHERE project_id IS NULL
+"""
+
+_PROVIDERS_BILLING_SQL: Final = """
+    SELECT COUNT(DISTINCT f.provider)::int AS count
+      FROM "LiteLLM_ProviderUsageFact" f
+     WHERE f.bucket_start >= $1::timestamp
+       AND f.bucket_start < $2::timestamp
+"""
+"""Providers that billed anything in the period: the denominator of invoice coverage.
+
+The same population the missing-invoice query starts from, so the two figures are a fraction of
+each other rather than two numbers that happen to sit beside one another.
 """
 
 _PROVIDERS_MISSING_INVOICE_SQL: Final = """
@@ -40,20 +53,19 @@ connections side.
 """
 
 
-def _read(row: object, key: str) -> object:
-    return row.get(key) if isinstance(row, Mapping) else getattr(row, key, None)
+class _CountRow(BaseModel):
+    """One row of a `SELECT COUNT(...) AS count` result.
 
-
-def _count(rows: Sequence[object]) -> int:
-    """The first row's count, or zero when the query matched nothing.
-
-    `query_raw` hands back mappings in some paths and attribute-bearing rows in others, so this
-    reads both rather than assuming one and returning a silent zero for the other.
+    `query_raw` hands back mappings on some paths and attribute-bearing rows on others, so the
+    validation accepts both rather than assuming one and reading nothing from the other. A row that
+    is neither raises: a count query whose result cannot be read is not a count of zero, and on this
+    tab a silent zero is the failure that looks most like success.
     """
-    if not rows:
-        return 0
-    value: Final = _read(rows[0], "count")
-    return int(value) if isinstance(value, (int, float)) else 0
+
+    count: int
+
+
+_COUNT_ROWS: Final = TypeAdapter(tuple[_CountRow, ...])
 
 
 class DataQualityRepository:
@@ -64,12 +76,21 @@ class DataQualityRepository:
     def _db(self) -> Any:  # any-ok: PrismaClient is an untyped runtime wrapper
         return self._prisma_client.db  # pyright: ignore[reportAttributeAccessIssue]  # object has no .db attr
 
+    async def _count(self, sql: str, *args: str) -> int:
+        """The first row's count, or zero when the query matched nothing.
+
+        The one place that touches the untyped client. Every query goes through it, so the result is
+        validated into a typed row once rather than each caller reading an untyped mapping and
+        falling back to zero when it cannot.
+        """
+        rows: Final = _COUNT_ROWS.validate_python(await self._db.query_raw(sql, *args), from_attributes=True)
+        return rows[0].count if rows else 0
+
     async def keys_without_project(self) -> int:
-        rows: Final[Sequence[object]] = await self._db.query_raw(_KEYS_WITHOUT_PROJECT_SQL)
-        return _count(rows)
+        return await self._count(_KEYS_WITHOUT_PROJECT_SQL)
+
+    async def providers_billing(self, start: datetime, end: datetime) -> int:
+        return await self._count(_PROVIDERS_BILLING_SQL, start.isoformat(), end.isoformat())
 
     async def providers_missing_invoice(self, start: datetime, end: datetime) -> int:
-        rows: Final[Sequence[object]] = await self._db.query_raw(
-            _PROVIDERS_MISSING_INVOICE_SQL, start.isoformat(), end.isoformat()
-        )
-        return _count(rows)
+        return await self._count(_PROVIDERS_MISSING_INVOICE_SQL, start.isoformat(), end.isoformat())
