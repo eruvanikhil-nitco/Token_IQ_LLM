@@ -90,7 +90,7 @@ TYPECHECK_DEP_GROUPS = ("proxy-dev", "e2e-dev")
 VENV_BIN = "Scripts" if sys.platform == "win32" else "bin"
 VENV_PYTHON = "python.exe" if sys.platform == "win32" else "python"
 PRISMA_GENERATE_SCRIPT = REPO_ROOT / "scripts" / "prisma_generate_if_needed.py"
-PRISMA_SCHEMA = REPO_ROOT / "litellm" / "proxy" / "schema.prisma"
+PRISMA_SCHEMA = REPO_ROOT / "token_iq" / "gateway" / "proxy" / "schema.prisma"
 
 # basedpyright's node process needs more than the ~4 GB default heap on this
 # repo; appended last so it wins node's last-flag-wins resolution over any

@@ -27,7 +27,7 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-SCHEMA = REPO_ROOT / "litellm" / "proxy" / "schema.prisma"
+SCHEMA = REPO_ROOT / "token_iq" / "gateway" / "proxy" / "schema.prisma"
 STAMP = Path(sys.prefix) / "litellm-prisma-schema.stamp"
 
 
