@@ -19,6 +19,37 @@ BILLING_PROVIDERS: Final[frozenset[str]] = frozenset(
     {"openai", "anthropic", "openrouter", "bedrock", "azure", "vertex_ai"}
 )
 
+VENDOR_BILLING_PROVIDER: Final[Mapping[str, str]] = MappingProxyType(
+    {
+        "claudeall": "anthropic",
+        "openaiall": "openai",
+        "openrouter": "openrouter",
+        "azure": "azure",
+        "aws": "bedrock",
+        "vertex": "vertex_ai",
+    }
+)
+"""The connect catalogue's vendor key, to the provider whose bill that account carries.
+
+The blueprint's catalogue groups by the account a customer signs into, so it says `aws`,
+`vertex` and `claudeall`. What gets stored is the provider whose bill is being read: `bedrock`,
+`vertex_ai`, `anthropic`. Two of the six differ and one differs only in suffix, which is what
+says this is two vocabularies rather than a mistake in either document.
+
+`bedrock` is the name in the database, the connector registry and the migrations, so it stays
+and the catalogue's key is translated here. One place, so the next screen that needs it does not
+invent a second mapping.
+
+Seat and agent vendors are deliberately absent: their spend arrives through the tool connectors
+and is on no provider bill, so giving one of them a provider would feed tool spend into a
+provider figure."""
+
+
+def billing_provider_for_vendor(vendor: str) -> str | None:
+    """The provider whose bill this vendor's account carries, or None when it bills nothing here."""
+    return VENDOR_BILLING_PROVIDER.get(vendor)
+
+
 _ADMIN_KEY_PREFIXES: Final = MappingProxyType({"openai": "sk-admin-", "anthropic": "sk-ant-admin"})
 """Cost reports answer only to an organisation admin key. An ordinary key saves fine and then
 fails every sync with a 401, so the kind of key is checked before it is stored."""

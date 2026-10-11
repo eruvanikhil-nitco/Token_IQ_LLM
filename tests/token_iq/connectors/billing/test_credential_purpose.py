@@ -248,3 +248,60 @@ class TestABedrockCredentialMayUseEitherSignIn:
             {"purpose": "billing_ingestion", "provider": "bedrock"}, {}, require_keys=True
         )
         assert problem is not None
+
+class TestTheConnectDialogNamesVendorsNotProviders:
+    """The blueprint's connect catalogue and `BILLING_PROVIDERS` use two different vocabularies.
+
+    The catalogue groups by the account a customer signs into: `aws`, `azure`, `vertex`. The stored
+    provider names whose bill is being read: `bedrock`, `azure`, `vertex_ai`. Two of the three
+    differ, which is what says this is a vocabulary difference rather than a typo in one of them,
+    so neither document is wrong and renaming either would be the mistake. `bedrock` is the one in
+    the database, the connector registry and the migrations, so it stays, and the catalogue's key is
+    translated once, here, instead of in whichever screen needs it next.
+    """
+
+    def test_the_cloud_vendors_map_to_the_providers_whose_bills_they_are(self) -> None:
+        from token_iq.connectors.billing.credential_purpose import billing_provider_for_vendor
+
+        assert billing_provider_for_vendor("aws") == "bedrock"
+        assert billing_provider_for_vendor("vertex") == "vertex_ai"
+        assert billing_provider_for_vendor("azure") == "azure"
+
+    def test_the_model_makers_map_too(self) -> None:
+        from token_iq.connectors.billing.credential_purpose import billing_provider_for_vendor
+
+        assert billing_provider_for_vendor("claudeall") == "anthropic"
+        assert billing_provider_for_vendor("openaiall") == "openai"
+        assert billing_provider_for_vendor("openrouter") == "openrouter"
+
+    def test_every_provider_is_reachable_from_the_dialog(self) -> None:
+        """A provider no catalogue entry reaches can never be connected, and nothing else would say
+        so: the connector would simply sit there waiting for a credential."""
+        from token_iq.connectors.billing.credential_purpose import (
+            BILLING_PROVIDERS,
+            VENDOR_BILLING_PROVIDER,
+        )
+
+        assert set(VENDOR_BILLING_PROVIDER.values()) == set(BILLING_PROVIDERS)
+
+    def test_every_mapped_provider_is_a_real_one(self) -> None:
+        from token_iq.connectors.billing.credential_purpose import (
+            BILLING_PROVIDERS,
+            VENDOR_BILLING_PROVIDER,
+        )
+
+        assert not set(VENDOR_BILLING_PROVIDER.values()) - set(BILLING_PROVIDERS)
+
+    def test_a_vendor_that_bills_nothing_maps_to_nothing(self) -> None:
+        """The catalogue also lists seat and agent vendors, whose spend arrives through the tool
+        connectors and is on no provider bill. Returning a provider for one of those would put tool
+        spend into a provider figure, which is the one addition the counting rule forbids."""
+        from token_iq.connectors.billing.credential_purpose import billing_provider_for_vendor
+
+        for vendor in ("m365", "github", "cursor", "crewai"):
+            assert billing_provider_for_vendor(vendor) is None
+
+    def test_an_unknown_vendor_is_not_guessed_at(self) -> None:
+        from token_iq.connectors.billing.credential_purpose import billing_provider_for_vendor
+
+        assert billing_provider_for_vendor("not-a-vendor") is None

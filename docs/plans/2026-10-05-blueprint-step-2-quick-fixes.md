@@ -203,11 +203,30 @@ the trust policy has not been loosened: dropping the external ID condition, wide
 to `*`, widening the action to `ce:*`, renaming the role away from what the dialog shows, or giving
 the external ID an empty default each fail a test.
 
-- [ ] **Step 5: Check the provider key, which differs between the two**
+- [x] **Step 5: Check the provider key, which differs between the two**
 
 The blueprint keys this variant `aws`; `BILLING_PROVIDERS` calls the provider `bedrock`. Whichever
 wins, one of the two documents is wrong and this is where it gets reconciled rather than papered
 over with a mapping nobody can find later.
+
+**Neither document is wrong: they are two vocabularies.** The blueprint's connect catalogue groups
+by the account a customer signs into, so it lists `aws`, `azure`, `vertex`, `claudeall` and
+`openaiall`. `BILLING_PROVIDERS` names the provider whose bill is read: `bedrock`, `azure`,
+`vertex_ai`, `anthropic`, `openai`. Four of the six differ, and `vertex` differs from `vertex_ai`
+only by a suffix, which is what rules out a typo in either.
+
+`bedrock` wins, because it is the name in the database, the connector registry and the migrations,
+and renaming it would be a data migration for a cosmetic gain. `VENDOR_BILLING_PROVIDER` in
+`credential_purpose.py` translates the catalogue's key once, beside the provider list it maps onto,
+which is the "not a mapping nobody can find later" part. Two tests keep it honest in both
+directions: every provider stays reachable from some catalogue entry, and every mapped value is a
+real provider.
+
+The seat and agent vendors in the catalogue, `m365`, `github`, `cursor` and `crewai`, map to
+nothing on purpose. Their spend arrives through the tool connectors and is on no provider bill, so
+giving one of them a provider would feed tool spend into a provider figure, which is the one
+addition the counting rule forbids. A lookup that fell back to the vendor's own name would do
+exactly that silently, and a test kills that mutation.
 
 - [ ] **Step 6: Commit**
 
