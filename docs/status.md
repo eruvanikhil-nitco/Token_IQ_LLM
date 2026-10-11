@@ -2678,3 +2678,47 @@ never breaks its address", caught the new entry before its route was mapped.
 
 Phase 9's label table is done. Nothing in phases 6 to 10 is outstanding except phase 5's deletions,
 parked on the evidence recorded above.
+
+## 11 Oct 2026, blueprint build step 2 proved against a running proxy
+
+Build step 2 is the blueprint's "small, do first" row: split billing and forwarding credentials,
+Bedrock IAM role, split the OpenAI line item. Tasks 1 to 3 are done, bar one deferral, and this is
+the proof against the proxy on localhost rather than a test run.
+
+### What the commands showed
+
+Storing a Bedrock billing credential that signs in with a role succeeded, and the same credential
+with the external ID left off was refused with "A billing credential for bedrock carries a role ARN
+with no external ID." A role without one is worse than an access key rather than better, because
+anyone who learns the ARN could assume it from their own account, so it is refused rather than
+stored and tried.
+
+An access-key credential still stored, which is the upgrade path: an installation that already
+connected keeps working.
+
+The model-credential list returned three credentials and neither Bedrock billing credential was
+among them, while `credentials/by_name` still returned one, with `credential_values` empty. That is
+both halves of task 1 at once: the connect flow can still read a connection's state, and a billing
+admin key is not offered on a page where somebody might attach it to a deployment, and no stored
+value is ever shown back.
+
+The `meter` column is in the live database, nullable, applied by the migration at proxy boot.
+
+Two probe rows showed the ambiguity resolved on real data, which is the part that needed showing.
+Both had a null `meter`: one holding "gpt-4.1-2026-04-14, input", a row stored before the split, and
+one holding "gpt-4o", a model whose meter OpenAI never stated. The query flagged exactly the first.
+Both probes were deleted afterwards and the table is back to its 50 rows.
+
+### What could not be proved here, and what it needs
+
+**No OpenAI sync.** The Costs API answers only to an organisation admin key and `.env` holds an
+ordinary `OPENAI_API_KEY`, which the connector refuses by prefix before storing. So the split is
+proved by its unit tests and by the SQL above, not by a live fetch. Finishing that needs an
+`sk-admin-` key for the organisation; with one in `.env` the remaining step is one sync and a
+`SELECT model, meter, billed_cost` over the rows it wrote.
+
+### Left in build step 2
+
+Task 2's connect dialog, deferred with its reasons recorded in the plan: there is no connect surface
+to put it in and nothing mints an external ID per connection, and that flow is build step 1, which
+the blueprint marks designed rather than built.

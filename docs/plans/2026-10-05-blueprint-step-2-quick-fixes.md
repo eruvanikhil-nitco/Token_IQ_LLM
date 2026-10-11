@@ -228,7 +228,7 @@ giving one of them a provider would feed tool spend into a provider figure, whic
 addition the counting rule forbids. A lookup that fell back to the vendor's own name would do
 exactly that silently, and a test kills that mutation.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ---
 
@@ -303,17 +303,25 @@ once under its id and once under "<id>, input".
 
 **Files:** `docs/status.md`
 
-- [ ] **Step 1: Curl the real thing**
+- [x] **Step 1: Curl the real thing**
 
 A live proxy on localhost, a real OpenAI admin key from `.env`, one real sync, and the stored rows
 shown with model and meter separated. Commands and output, not a test run, because the proof is
 what the customer would see.
 
-- [ ] **Step 2: Record what changed, and what a deployment must do**
+- [x] **Step 2: Record what changed, and what a deployment must do**
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ---
+
+### What the proof could not cover
+
+The OpenAI sync itself. The Costs API answers only to an organisation admin key and `.env` holds an
+ordinary `OPENAI_API_KEY`, which `_ADMIN_KEY_PREFIXES` refuses before storing, so the split is
+proved by its unit tests and by the SQL on real rows rather than by a live fetch. With an
+`sk-admin-` key in `.env` the remaining step is one sync and a `SELECT model, meter, billed_cost`
+over the rows it writes.
 
 ## Self-Review
 
