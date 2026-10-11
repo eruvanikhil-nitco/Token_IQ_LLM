@@ -2750,10 +2750,13 @@ it stays until task 5 and a test records why. This merge is two entries, not thr
 account `rows_stored`. The row names it `records_stored` and the adapter normalises both, so neither
 spelling reaches the table.
 
-**The no-account row earned itself against the live proxy.** Six providers and three tools come back
-`not_connected` with no accounts on this installation. Without a row for a supported-but-unconnected
-source the tab would be empty and silent; with it, it is nine rows saying where cost is missing,
-which is the question the tab exists to answer.
+**The no-account row earned itself against the live proxy.** Five of six providers and all three
+tools come back with no accounts; openrouter has one holding 50 facts. Without a row for a
+supported-but-unconnected source the tab would show that one openrouter row alone, which reads as
+a healthy single source rather than five providers reporting nothing.
+
+I had written that every provider was unconnected, from a print truncated to the first four. It is
+not, and the openrouter row is what proves the raw-records half of the tab end to end.
 
 **Two connection states in my fixtures did not exist.** `failing` and `not_configured` are not in
 the set. A fixture built on impossible values tests a shape that does not exist.
@@ -2772,3 +2775,42 @@ the set. A fixture built on impossible values tests a shape that does not exist.
 The raw-records link from each row, then the Overview tab's issues list, which is the one genuinely
 missing backend; the connect dialog, where build step 2's deferred AWS method lands; Uploads; and the
 Gateway tab, which needs the owner's answer because it moves Virtual Keys and Logs.
+
+## 11 Oct 2026, raw records open from an account row
+
+The blueprint's tip for this page: "Each account row has 'Raw records' and 'Sync history': the data
+exactly as received, before Token IQ priced or allocated it." The first half is built.
+
+### Only where it leads somewhere
+
+`/provider/usage/raw` exists; there is no tool equivalent. So the action appears on provider rows and
+not on tool rows, which is the rule the unbuilt tabs follow: an action that opens an empty drawer is
+worse than an absent one. It is also hidden on a connected account that has stored nothing, where
+there is nothing behind the link and the row's state already says it is waiting for first data.
+
+### The figures are the provider's own
+
+The panel renders `billed_cost` as the string the provider sent, in the currency it named. Real rows
+from this installation read `0.00001365`, `0.000012`, `0.0000325` USD, and any currency formatter
+turns all three into $0.00. On a view whose stated purpose is "exactly as received", that would be a
+reformatting that disagrees with the bill it came from. Paging follows the endpoint's keyset cursor
+rather than a page number, because rows land continuously and an offset skips or repeats them.
+
+### Two things found
+
+A mutant survived the first sweep: dropping the `account !== null` guard changed nothing, because a
+no-account row always carries zero records so the records check already covered it. The guard is
+correct, so rather than delete it the test now asserts against an `AccountRow` directly: the
+function's contract is over any row, and leaning on the builder's invariant would let the guard be
+removed without a failure.
+
+And the toggle was wrong: it compared `row.id` and set `row.sourceKey`, so a second click would
+never have closed the panel. It keys on the source now, with a note that the records belong to the
+provider rather than one of its accounts, because the endpoint is provider-scoped.
+
+### Verified against the running proxy
+
+- both Data Sources routes answer 200 and `/provider/usage/raw` answers 200 with real rows
+- openrouter has one account holding 50 facts, so its row carries a working link; the other five
+  providers and all three tools have none, and their rows are the ones saying cost is missing
+- 28 tests on the two modules, 4 of 4 mutants killed, no type or lint errors

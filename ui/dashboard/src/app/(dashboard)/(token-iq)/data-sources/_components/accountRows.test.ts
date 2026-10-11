@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { accountRows, recordsHeld, type ConnectionLike } from "./accountRows";
+import {
+  accountRows,
+  opensRawRecords,
+  recordsHeld,
+  type AccountRow,
+  type ConnectionLike,
+} from "./accountRows";
 
 /**
  * The Accounts tab is the first screen to list provider accounts and tool accounts together, which
@@ -117,5 +123,71 @@ describe("the only total on the tab", () => {
 
   it("is zero when there is nothing to count", () => {
     expect(recordsHeld([])).toBe(0);
+  });
+});
+
+describe("which rows can open their raw records", () => {
+  /**
+   * The blueprint says every account row opens its raw records. Only provider rows can today:
+   * `/provider/usage/raw` exists and there is no tool equivalent, so offering the action on a tool
+   * row would open an empty drawer. An action that goes nowhere is worse than an absent one, which
+   * is the same rule the unbuilt tabs follow.
+   */
+
+  it("offers it on a provider row that has stored something", () => {
+    const [row] = accountRows({ providers: [provider()], tools: [] });
+
+    expect(opensRawRecords(row)).toBe(true);
+  });
+
+  it("does not offer it on a tool row, because there is no endpoint behind it", () => {
+    const [row] = accountRows({ providers: [], tools: [tool()] });
+
+    expect(opensRawRecords(row)).toBe(false);
+  });
+
+  it("does not offer it on a source with no account yet", () => {
+    // Nothing has arrived, so there is nothing to show.
+    const [row] = accountRows({ providers: [provider({ accounts: [] })], tools: [] });
+
+    expect(opensRawRecords(row)).toBe(false);
+  });
+
+  it("does not offer it on a row with records but no account, however that arises", () => {
+    // Unreachable through accountRows, which gives a no-account row zero records, so it is asserted
+    // against the shape directly: the function's contract is over any AccountRow, and relying on
+    // the builder's invariant would make the guard deletable without a failure.
+    const orphan: AccountRow = {
+      id: "AI provider:openai",
+      kind: "AI provider",
+      source: "OpenAI",
+      sourceKey: "openai",
+      account: null,
+      state: "healthy",
+      detail: null,
+      lastSyncAt: null,
+      lastOutcome: null,
+      recordsStored: 7,
+    };
+
+    expect(opensRawRecords(orphan)).toBe(false);
+  });
+
+  it("does not offer it on a connected account that has stored nothing yet", () => {
+    const empty = provider({
+      accounts: [
+        {
+          credential_name: "acme-live",
+          state: "waiting_for_first_data",
+          detail: null,
+          last_sync_at: null,
+          last_outcome: null,
+          records_stored: 0,
+        },
+      ],
+    });
+    const [row] = accountRows({ providers: [empty], tools: [] });
+
+    expect(opensRawRecords(row)).toBe(false);
   });
 });

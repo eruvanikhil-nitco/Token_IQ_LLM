@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useProviderConnections } from "@/app/(dashboard)/hooks/providerApis/useProviderConnections";
 import { useToolConnections } from "@/app/(dashboard)/hooks/userTools/useToolConnections";
@@ -10,7 +13,8 @@ import {
   type ConnectionState,
 } from "@/app/(dashboard)/(token-iq)/provider-apis/_components/connectionState";
 
-import { accountRows, recordsHeld, type ConnectionLike } from "./accountRows";
+import { accountRows, opensRawRecords, recordsHeld, type ConnectionLike } from "./accountRows";
+import RawRecordsPanel from "./RawRecordsPanel";
 
 /** When a sync last brought anything back, in the reader's own timezone. */
 function lastSync(value: string | null): string {
@@ -24,6 +28,7 @@ function lastSync(value: string | null): string {
 export default function AccountsTab() {
   const providers = useProviderConnections();
   const tools = useToolConnections();
+  const [openFor, setOpenFor] = useState<string | null>(null);
 
   if (providers.isLoading || tools.isLoading) {
     return <p className="text-sm">Loading accounts...</p>;
@@ -77,6 +82,7 @@ export default function AccountsTab() {
             {/* Records, not cost. This table lists provider accounts and tool accounts together,
                 and a cost column here would be the one addition the counting rule forbids. */}
             <TableHead className="text-right">Records</TableHead>
+            <TableHead />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -93,10 +99,26 @@ export default function AccountsTab() {
               </TableCell>
               <TableCell>{lastSync(row.lastSyncAt)}</TableCell>
               <TableCell className="text-right">{row.recordsStored.toLocaleString()}</TableCell>
+              <TableCell>
+                {opensRawRecords(row) ? (
+                  <Button
+                    variant="link"
+                    size="sm"
+                    // Keyed on the source, not the row: `/provider/usage/raw` is scoped to a
+                    // provider, so the records belong to it rather than to one of its accounts.
+                    onClick={() => setOpenFor(openFor === row.sourceKey ? null : row.sourceKey)}
+                    aria-expanded={openFor === row.sourceKey}
+                  >
+                    {openFor === row.sourceKey ? "Hide raw records" : "Raw records"}
+                  </Button>
+                ) : null}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
+      {openFor ? <RawRecordsPanel provider={openFor} onClose={() => setOpenFor(null)} /> : null}
 
       <p className="text-sm text-muted-foreground">
         {rows.length.toLocaleString()} account{rows.length === 1 ? "" : "s"}, holding{" "}

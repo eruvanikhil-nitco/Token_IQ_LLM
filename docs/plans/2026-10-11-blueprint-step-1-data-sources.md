@@ -118,11 +118,15 @@ takes first position.
 and a tool account `rows_stored`. The row names it `records_stored`, for what it means, and the
 adapter normalises both at the boundary so neither endpoint's spelling reaches the table.
 
-**The no-account row earned itself on the live proxy.** `/provider/connections` returns six
-providers and `/tool/connections` three tools, every one `not_connected` with no accounts. Without
-a row for a supported-but-unconnected source the Accounts tab would be empty on this installation
-and say nothing; with it, it is nine rows saying where cost is missing, which is the question the
-tab exists to answer.
+**The no-account row earned itself on the live proxy.** Five of the six providers and all three
+tools come back with no accounts; openrouter has one, `needs_attention`, holding 50 facts. Without
+a row for a supported-but-unconnected source the tab would show that single openrouter row and
+nothing else, which reads as "one source, looks fine" rather than "five providers are telling you
+nothing". With it, the tab is nine rows and the five silent ones are the answer.
+
+I first read this off a truncated print of the first four providers and wrote that every provider
+was unconnected. It is not: openrouter is connected and its row carries a working raw-records
+link, which is also what proves that half of the tab end to end.
 
 **Two connection states in my fixtures did not exist.** `failing` and `not_configured` are not in
 the set, which is `not_connected`, `waiting_for_first_data`, `healthy`, `needs_attention`. A

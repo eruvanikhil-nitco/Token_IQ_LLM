@@ -97,6 +97,22 @@ export function accountRows(sources: {
 }
 
 /**
+ * Whether this row can open the records it holds.
+ *
+ * The blueprint says every account row opens its raw records. Only a provider row can today:
+ * `/provider/usage/raw` exists and there is no tool equivalent, so offering the action on a tool
+ * row would open an empty drawer. An action that goes nowhere is worse than an absent one, which
+ * is the rule the unbuilt tabs follow too.
+ *
+ * A connected account that has stored nothing is excluded for the same reason: there is nothing
+ * behind the link yet, and its state already says it is waiting for first data.
+ */
+export function opensRawRecords(row: AccountRow): boolean {
+  return row.kind === "AI provider" && row.account !== null && row.recordsStored > 0;
+}
+
+
+/**
  * How many raw records are held across these rows.
  *
  * Records, deliberately, and the column and any summary built on it must say "records". A total
