@@ -2799,6 +2799,47 @@ export const dataQualityCall = async (accessToken: string): Promise<DataQualityR
   }
 };
 
+/**
+ * The connect dialog, read straight from the generated spec for the same reason the data
+ * quality types are: both responses are tagged unions, and restating them by hand is what lets
+ * an arm go missing. A test failure that reports as connected is the one that matters here.
+ */
+export type ExternalIdResponse =
+  | components["schemas"]["ExternalIdMinted"]
+  | components["schemas"]["ExternalIdAlreadyIssued"];
+export type ConnectAccountResponse =
+  | components["schemas"]["AccountConnected"]
+  | components["schemas"]["ConnectionTestFailed"];
+export type ConnectAccountRequest = components["schemas"]["ConnectRequest"];
+
+export const connectionExternalIdCall = async (
+  accessToken: string,
+  vendor: string,
+  credentialName: string,
+): Promise<ExternalIdResponse> => {
+  return await apiClient.post<ExternalIdResponse>(`/provider/connections/external-id`, {
+    accessToken,
+    body: { vendor, credential_name: credentialName },
+  });
+};
+
+export const connectAccountCall = async (
+  accessToken: string,
+  request: ConnectAccountRequest,
+): Promise<ConnectAccountResponse> => {
+  return await apiClient.post<ConnectAccountResponse>(`/provider/connections`, {
+    accessToken,
+    body: request,
+  });
+};
+
+export type RoleTemplate = components["schemas"]["RoleTemplateResponse"];
+
+/** The CloudFormation template the role method's first step asks the customer to launch. */
+export const bedrockRoleTemplateCall = async (accessToken: string): Promise<RoleTemplate> => {
+  return await apiClient.get<RoleTemplate>(`/provider/connections/bedrock-role-template`, { accessToken });
+};
+
 export type MatchStatus = "matched" | "gateway_saw_less" | "gateway_saw_more" | "not_seen_by_gateway";
 
 export interface ProviderStanding {

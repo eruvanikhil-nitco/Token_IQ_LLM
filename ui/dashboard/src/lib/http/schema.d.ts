@@ -12069,7 +12069,51 @@ export interface paths {
          */
         get: operations["provider_connections_provider_connections_get"];
         put?: never;
+        /**
+         * Connect Provider Account
+         * @description Test the connection being offered, and store it only if the test passed.
+         */
+        post: operations["connect_provider_account_provider_connections_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/provider/connections/bedrock-role-template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Bedrock Role Template
+         * @description The CloudFormation template that creates the read-only role, exactly as it ships.
+         */
+        get: operations["bedrock_role_template_provider_connections_bedrock_role_template_get"];
+        put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/provider/connections/external-id": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Provider Connection External Id
+         * @description The external ID this connection presents, minting one the first time it is asked for.
+         */
+        post: operations["provider_connection_external_id_provider_connections_external_id_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -23027,6 +23071,21 @@ export interface components {
             /** Description */
             description?: string | null;
         };
+        /** AccountConnected */
+        AccountConnected: {
+            /** Credential Name */
+            credential_name: string;
+            /** Facts Found */
+            facts_found: number;
+            /**
+             * Kind
+             * @default connected
+             * @constant
+             */
+            kind: "connected";
+            /** Provider */
+            provider: string;
+        };
         /**
          * ActiveUsersAnalyticsResponse
          * @description Response for active users analytics
@@ -26446,6 +26505,40 @@ export interface components {
             /** Api Base */
             api_base: string;
         };
+        /** ConnectRequest */
+        ConnectRequest: {
+            /** Credential Name */
+            credential_name: string;
+            /**
+             * Values
+             * @description The method's own fields. Anything outside this provider's allowlist is dropped.
+             */
+            values?: {
+                [key: string]: string;
+            };
+            /**
+             * Vendor
+             * @description The connect catalogue's vendor key, for example aws
+             */
+            vendor: string;
+        };
+        /** ConnectionTestFailed */
+        ConnectionTestFailed: {
+            /** Credential Name */
+            credential_name: string;
+            /** Detail */
+            detail: string | null;
+            /**
+             * Kind
+             * @default test_failed
+             * @constant
+             */
+            kind: "test_failed";
+            /** Outcome */
+            outcome: string;
+            /** Provider */
+            provider: string;
+        };
         /**
          * ContentFilterAction
          * @description Action to take when content filter detects a match
@@ -27580,6 +27673,44 @@ export interface components {
             outside_gateway: string;
             /** Through Gateway */
             through_gateway: string;
+        };
+        /** ExternalIdAlreadyIssued */
+        ExternalIdAlreadyIssued: {
+            /** External Id */
+            external_id: string;
+            /** Issued At */
+            issued_at: string | null;
+            /**
+             * Kind
+             * @default already_issued
+             * @constant
+             */
+            kind: "already_issued";
+            /** Provider */
+            provider: string;
+        };
+        /** ExternalIdMinted */
+        ExternalIdMinted: {
+            /** External Id */
+            external_id: string;
+            /**
+             * Kind
+             * @default minted
+             * @constant
+             */
+            kind: "minted";
+            /** Provider */
+            provider: string;
+        };
+        /** ExternalIdRequest */
+        ExternalIdRequest: {
+            /** Credential Name */
+            credential_name: string;
+            /**
+             * Vendor
+             * @description The connect catalogue's vendor key, for example aws
+             */
+            vendor: string;
         };
         /**
          * FacetListResponse
@@ -36017,6 +36148,19 @@ export interface components {
             roles?: {
                 [key: string]: string[];
             };
+        };
+        /**
+         * RoleTemplateResponse
+         * @description The CloudFormation template the role method asks the customer to launch.
+         *
+         *     Carried as text rather than served as a file so the dashboard's one HTTP client, which
+         *     parses every response as JSON, can read it. The browser turns it back into a download.
+         */
+        RoleTemplateResponse: {
+            /** Filename */
+            filename: string;
+            /** Template */
+            template: string;
         };
         /** RouterFieldsResponse */
         RouterFieldsResponse: {
@@ -56591,6 +56735,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProviderConnectionsResponse"];
+                };
+            };
+        };
+    };
+    connect_provider_account_provider_connections_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountConnected"] | components["schemas"]["ConnectionTestFailed"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bedrock_role_template_provider_connections_bedrock_role_template_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleTemplateResponse"];
+                };
+            };
+        };
+    };
+    provider_connection_external_id_provider_connections_external_id_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExternalIdRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExternalIdMinted"] | components["schemas"]["ExternalIdAlreadyIssued"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

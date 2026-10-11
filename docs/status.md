@@ -2921,3 +2921,96 @@ one method, which took the file from 15 basedpyright errors to 6.
 `ui/dashboard/src/utils/migratedPages.test.ts` had five stale assertions from the tab consolidation,
 failing at HEAD before this work. They asserted the pre-merge identity mapping; they now assert that
 each legacy id lands on the tab that absorbed it.
+
+## 11 Oct 2026, later: the connect dialog
+
+Task 3 of build step 1. The blueprint's `+ Connect account`, with the backend that makes its one
+promise true.
+
+### Nothing is saved until the connection test passes
+
+Enforced on the server, not in the dialog. `POST /provider/connections` tests the credential being
+offered and writes it only when that fetch came back `fetched`, so the promise holds for any client
+rather than only for this one. A failure returns the provider's own words and stores nothing.
+
+The existing probe could not be reused as it stood: `run_billing_probe` looks up the credential
+already stored for a provider, so a connect flow that called it would test the previous connection
+and report a brand new key as working. It takes its credentials through an injected lookup, so the
+candidate is handed to it directly.
+
+A fetch that found nothing is a pass. An account connected today has no spend in the window, and
+requiring a figure would make a quiet account impossible to connect.
+
+### The external ID is minted once per connection and never again
+
+`POST /provider/connections/external-id` returns the same value every time after the first, because
+the new table's primary key is the connection itself. The plan asked for mint and store; what a
+browser actually does is open the dialog, leave for AWS, come back, and sometimes reload on the way,
+and a second value for a connection whose role already trusts the first is an AccessDenied that
+names nothing. A write that collides reads the winner rather than minting again, and a collision
+that then reads back nothing raises, because treating it as an empty store is the one path that
+issues a second value.
+
+The account name is half that key, so the dialog fixes it once an ID has been issued and says why.
+Renaming would start a different connection and leave the role the customer created pointing at
+nothing.
+
+### Two departures from the mockup, both about not promising what this build cannot do
+
+A category with no connector keeps its place and shows no tiles. Dropping it leaves "where do I
+connect Copilot?" unanswered; giving it a tile leads to a form whose save cannot succeed.
+
+A method the blueprint recommends but this build has not got, which is every provider sign-in, is
+shown as a tab marked "Not built yet" with the reason. Hidden, the dialog silently recommends the
+least safe option left. The integration test caught the first version of this, where the tab was
+labelled like any other and read as a working option.
+
+### Credential values are an allowlist, server side
+
+The dialog posts a field map. Without an allowlist a caller could put `api_base` on a billing
+credential and point a connector somewhere other than the provider. `external_id` is deliberately
+absent from bedrock's set, so a value a caller sends is dropped rather than honoured: it is the
+whole security property of the role method and it comes from the store or not at all.
+
+### Verified against the running proxy
+
+- a deliberately wrong OpenRouter key: `test_failed`, the real API's refusal carried back, and the
+  credentials table still has no row for it
+- the same flow with the key already stored for that account: `connected`, 3 records found, the
+  credential written with its `billing_ingestion` marker, and the Accounts tab showing the new
+  account as `waiting_for_first_data`
+- the external ID minted once, returned as `already_issued` on the second ask, a different value for
+  a second account on the same provider, and the proof rows removed afterwards
+- a seat vendor, a provider with no role sign-in, an account name carrying characters that need
+  escaping, and a duplicate account name each refused with a reason
+- 25 of 25 UI mutants and 19 of 19 Python mutants killed
+
+### A read-only view is not a database row, and twice it reached one
+
+`MappingProxyType` is the house default for a fixed mapping and it is not JSON serialisable, so both
+places a mapping left this module turned into a 500.
+
+Every refusal first: FastAPI runs an `HTTPException` detail through `json.dumps`, so each 400 arrived
+as "Internal server error" with the reason gone. `token_iq/api/data_quality.py` had the same bug from
+two commits earlier, unnoticed because its refusal paths had never been curled. Then the credential
+row: prisma serialises it the same way, so the first connection whose live test actually passed came
+back as a 500 with nothing stored.
+
+Asserting a status code catches neither, because nothing in a unit test serialises the payload. Both
+now go through `json.dumps` in a test.
+
+### Three stale paths from the phase 6 rename
+
+`scripts/prisma_generate_if_needed.py` and `scripts/type_check_gate.py` both pointed at
+`litellm/proxy/schema.prisma`, which has not existed since phase 6. The first would crash on
+`read_bytes`; the second guards its read with `if path.exists()`, so it had quietly stopped
+fingerprinting the schema and a schema change no longer invalidated the typecheck venv cache. Both
+repointed. `npm run gen:api` also needs `LITELLM_PYTHON` set on this box, because it defaults to
+`python3`.
+
+### What is left
+
+The template's other CloudFormation parameter, the AWS principal this installation runs as, is not
+discoverable here: nothing configures it. The dialog says where it comes from, and reading it from
+`sts:GetCallerIdentity` is the obvious follow-up. Task 4 is the Uploads tab; task 5 still needs the
+owner's decision on whether Virtual Keys and Logs really move behind a tab on a data page.

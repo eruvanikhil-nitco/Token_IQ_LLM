@@ -168,21 +168,97 @@ Both coverage states and all four issue states are proved against the live proxy
 
 ## Task 3: The connect dialog
 
-- [ ] **Step 1: An endpoint that mints and stores an external ID per connection**
+- [x] **Step 1: An endpoint that mints and stores an external ID per connection**
 
 What task 2 of build step 2 was missing. `new_external_id()` exists and nothing calls it.
 
-- [ ] **Step 2: The dialog, from `TIQ_MODALS.connect` rather than from my own design**
+Done. `POST /provider/connections/external-id` mints once per connection and returns the same
+value every time afterwards, because the primary key of the new table is the connection itself.
+
+- [x] **Step 2: The dialog, from `TIQ_MODALS.connect` rather than from my own design**
 
 Five categories, four method kinds, and the two-tab Setup guide / Configure shape. The `role` kind
 is specified field by field in build step 2's plan and is the one to build first, because its
 backend is already done and tested.
 
-- [ ] **Step 3: Nothing is saved until the connection test passes**
+- [x] **Step 3: Nothing is saved until the connection test passes**
 
 The blueprint's own words. `POST /provider/billing/probe` is that test and it already exists.
 
-- [ ] **Step 4: Commit**
+Enforced on the server rather than in the dialog. `POST /provider/connections` tests the
+credential being offered and writes it only when the probe came back `fetched`, so the promise
+holds for any client instead of only for this one.
+
+- [x] **Step 4: Commit**
+
+---
+
+### What task 3 found
+
+**The external ID had to become idempotent, not just stored.** The plan said mint and store. What
+a browser actually does is open the dialog, leave for AWS, come back, and sometimes reload on the
+way. Minting on each read would hand out a second value for a connection whose role already
+trusts the first, and AWS answers that with an AccessDenied that names nothing. So the table's
+primary key is the pair (provider, account name), the mint reads before it writes, and a write
+that collides reads the winner rather than minting again. A collision that then reads back
+nothing raises, because treating it as an empty store is the one path that issues a second value.
+
+**The account name has to be fixed once an ID has been issued.** It is half the key, so renaming
+afterwards silently starts a different connection and leaves the role the customer already
+created pointing at nothing. The dialog locks the field and says why.
+
+**The probe could not be reused as it stood.** `run_billing_probe` looks up the stored credential
+for a provider, so a connect flow that called it would test the previous connection and report a
+brand new key as working. It already takes its credentials through an injected lookup, so the
+candidate is handed to it directly, and a test says the candidate's own values reach the
+connector.
+
+**A fetch that found nothing is a pass.** The probe answers `fetched` with zero rows for an
+account that simply has no spend in the window, which is the normal state of an account connected
+today. Requiring a figure would make a quiet account impossible to connect.
+
+**Credential values needed a server-side allowlist.** The dialog posts a field map, and without
+one a caller could put `api_base` on a billing credential and point a connector somewhere other
+than the provider. `BILLING_CREDENTIAL_FIELDS` names what each provider's credential may carry,
+and `external_id` is deliberately absent from bedrock's set so a value sent by a caller is
+dropped rather than honoured.
+
+**Two departures from the mockup, both about not promising what this build cannot do.** A category
+with no connector keeps its place and shows no tiles, because dropping it leaves "where do I
+connect Copilot?" unanswered while a tile leads to a form whose save cannot succeed. And a method
+the blueprint recommends but this build has not got, which is every sign-in, is shown as a tab
+marked "Not built yet" with the reason, rather than hidden: hidden, the dialog silently
+recommends the least safe option left.
+
+**The template became a download.** The mockup's step one is "Launch template in AWS", which
+needs the template hosted at a URL this product does not have. `GET
+/provider/connections/bedrock-role-template` serves the file that ships, so step one can be
+followed, and a test asserts it is that file byte for byte rather than a copy the trust-policy
+test is no longer guarding. The template's other parameter, the AWS principal this installation
+runs as, is not discoverable here: nothing configures it. The dialog says where it comes from, and
+reading it from `sts:GetCallerIdentity` is the obvious follow-up.
+
+**A read-only view is not a database row, and twice it reached one.** `MappingProxyType` is the
+house default for a fixed mapping and it is not JSON serialisable, so both places a mapping left
+this module turned into a 500. First every refusal: FastAPI runs an `HTTPException` detail
+through `json.dumps`, so each 400 arrived as "Internal server error" with the reason gone, which
+is the worst possible answer to a form field being wrong. `data_quality.py` had the same bug from
+two commits earlier, unnoticed because its refusal paths had never been curled. Then the credential
+row: prisma serialises it the same way, so the first connection whose live test actually passed
+came back as a 500 with nothing stored. Asserting a status code never catches either, because
+nothing in a unit test serialises the payload, so both now go through `json.dumps` in a test.
+
+**A stale `--reload` worker cost half an hour.** Two live checks reported empty credential values
+while the same code passed in process. The worker was serving an older module. Same family as the
+`--reload` watches config, not code finding from the Overview tab: when a live result contradicts
+an in-process one, suspect the process before the code.
+
+**Three stale paths from the phase 6 rename, found on the way in.** `scripts/prisma_generate_if_needed.py`
+and `scripts/type_check_gate.py` both pointed at `litellm/proxy/schema.prisma`, which has not
+existed since phase 6. The first would crash on `read_bytes`; the second guards its read with
+`if path.exists()`, so it had quietly stopped fingerprinting the schema and a schema change no
+longer invalidated the typecheck cache. `npm run gen:api` also needs `LITELLM_PYTHON` set on this
+box, because it defaults to `python3`.
 
 ---
 

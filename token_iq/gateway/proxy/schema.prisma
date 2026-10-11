@@ -118,6 +118,21 @@ model ProviderSyncRun {
   @@map("LiteLLM_ProviderSyncRun")
 }
 
+// The external ID one Bedrock connection presents when Token IQ assumes a role in the
+// customer's account. Minted once per connection and never regenerated: the role's trust policy
+// is written against this exact value in the customer's own account, so handing out a second
+// value locks that connection out with an AccessDenied nobody can explain from this side.
+// The primary key is the connection itself, which is what makes minting idempotent.
+model ProviderConnectionExternalId {
+    provider        String
+    credential_name String
+    external_id     String
+    issued_at       DateTime @default(now())
+
+    @@id([provider, credential_name])
+  @@map("LiteLLM_ProviderConnectionExternalId")
+}
+
 // One rule mapping a provider account to the team, project or user
 // that owns the spend it produced. Read by the unallocated gap calculation.
 // One provider bill for one period, entered by an admin because almost no provider publishes
