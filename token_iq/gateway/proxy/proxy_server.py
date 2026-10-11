@@ -203,6 +203,7 @@ from token_iq.api.audit_logs import (
     router as audit_log_endpoints_router,
 )
 from token_iq.api.combined_usage import router as combined_usage_router
+from token_iq.api.data_quality import router as data_quality_router
 from token_iq.api.ledger import router as ledger_router
 from token_iq.api.overview import (
     router as overview_router,
@@ -18145,6 +18146,7 @@ app.include_router(team_router)
 app.include_router(project_router)
 app.include_router(provider_reconciliation_router)
 app.include_router(provider_connections_router)
+app.include_router(data_quality_router)
 app.include_router(tool_connections_router)
 app.include_router(overview_router)
 app.include_router(provider_usage_router)

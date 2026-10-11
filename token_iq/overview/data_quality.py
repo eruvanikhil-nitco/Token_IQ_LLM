@@ -21,10 +21,6 @@ from typing import Final, TypeAlias
 # and simply new; counting either would put every unused provider on the list on day one.
 FAILING_CONNECTION_STATE: Final = "needs_attention"
 
-# The reconciliation outcome that means nobody has entered a bill for a period. The others,
-# `unexplained_difference` and `currency_mismatch`, are real problems that belong to Invoice
-# Reconciliation: they are about a bill that disagrees, not about data that never arrived.
-MISSING_INVOICE_OUTCOME: Final = "no_invoice"
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -69,7 +65,7 @@ ISSUE_KEYS: Final[tuple[str, ...]] = (
 def data_quality_issues(
     *,
     connection_states: Sequence[str],
-    reconciliation_outcomes: Sequence[str],
+    missing_invoices: int,
     keys_without_project: int,
 ) -> tuple[DataQualityIssue, ...]:
     """The four issues, each either counted or declared unmeasurable.
@@ -87,7 +83,12 @@ def data_quality_issues(
         DataQualityIssue(
             key="missing_invoices",
             title="Periods with no invoice",
-            state=Measured(sum(1 for outcome in reconciliation_outcomes if outcome == MISSING_INVOICE_OUTCOME)),
+            # Counted by the repository, which asks for providers that billed in the period and
+            # have no invoice covering it. That is the ledger's `no_invoice` outcome and only
+            # that one: `unexplained_difference` and `currency_mismatch` are real problems about
+            # a bill that disagrees rather than data that never arrived, and they belong to
+            # Invoice Reconciliation, so sending somebody here to fix one would be the wrong page.
+            state=Measured(missing_invoices),
             fix_on="ledger",
         ),
         DataQualityIssue(

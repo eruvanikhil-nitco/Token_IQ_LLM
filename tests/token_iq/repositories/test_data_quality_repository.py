@@ -100,6 +100,22 @@ class TestProvidersWithNoInvoice:
         assert client.db.args[0] == (START.isoformat(), END.isoformat())
 
     @pytest.mark.asyncio
+    async def test_the_invoice_has_to_cover_the_day_that_was_billed(self) -> None:
+        """Any invoice for the provider is not enough; it has to span the day in question.
+
+        This is where the rule lives now. An invoice for March does not make September's missing
+        one appear, and a query matching on provider alone would report a clean period for a month
+        nobody has billed for.
+        """
+        repo, client = _repo([{"count": 0}])
+        await repo.providers_missing_invoice(START, END)
+
+        asked = client.db.queries[0].lower()
+        assert "period_start <=" in asked
+        assert "period_end >" in asked
+        assert "not exists" in asked
+
+    @pytest.mark.asyncio
     async def test_it_only_counts_providers_that_actually_billed_something(self) -> None:
         """A provider nobody uses has no invoice and needs none. Counting it would put every
         unused provider on the issues list, which is the same trap `not_connected` is."""
