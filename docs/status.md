@@ -2814,3 +2814,38 @@ provider rather than one of its accounts, because the endpoint is provider-scope
 - openrouter has one account holding 50 facts, so its row carries a working link; the other five
   providers and all three tools have none, and their rows are the ones saying cost is missing
 - 28 tests on the two modules, 4 of 4 mutants killed, no type or lint errors
+
+## 11 Oct 2026, the data-quality endpoint verified against the running proxy
+
+The proxy had been stopped by the machine reclaiming memory, so the endpoint shipped with its live
+proof outstanding. It is up again and the proof is in.
+
+`GET /data-quality` with the admin key reports one failing connection, one period with no invoice,
+77 virtual keys with no project, and unmatched people as unmeasurable with the reason attached,
+giving three issues to fix. Every one of those numbers was then checked against a source that does
+not go through this endpoint.
+
+### Each number has a second witness
+
+`/provider/connections` reports openrouter in `needs_attention` holding 50 facts and the other five
+providers with no accounts at all, which is the same single failing connection. That is also the
+check the unit tests could not make: a mutant dropping the gathered states would read zero here, and
+it reads one, agreeing with the endpoint that owns the Accounts tab.
+
+The database holds 50 openrouter facts dated 15 and 16 September and no invoice rows whatsoever, so
+one provider billed inside the window and nothing covers it. Direct SQL counts 77 keys with a null
+project out of 77 keys in total.
+
+Narrowing the window to a day moves the invoice count to zero and leaves the other two alone, which
+is what should happen when the only facts on file are three weeks older than the window: the period
+is doing real work rather than being passed through and ignored.
+
+### Where the admin check actually happens
+
+An unauthenticated call is refused with 401, and a freshly minted non-admin key is refused by
+`user_api_key_auth` before the handler runs, naming the route. So the handler's own role check never
+fires for a plain key; it stays as the guard for a caller who authenticates as something other than
+proxy admin, which is the case the auth layer lets through.
+
+The probe key was deleted afterwards and the count is back to 77, so the measurement did not move
+the thing it measures.
