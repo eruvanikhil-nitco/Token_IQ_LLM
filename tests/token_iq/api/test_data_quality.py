@@ -107,3 +107,15 @@ class TestInvoiceCoverageOnTheWire:
         with pytest.raises(Exception):  # noqa: B017  # the point is that it does not return None
             result = coverage_to_wire(Invented())
             assert result is not None, "an unknown coverage returned None instead of raising"
+
+
+class TestARefusalReachesTheCaller:
+    """The same failure the connect endpoint had: a detail FastAPI cannot serialise turns every
+    refusal into a generic 500. Asserting the status code alone never notices."""
+
+    def test_a_refusal_survives_the_json_encoder(self) -> None:
+        import json
+
+        from token_iq.api.data_quality import _proxy_error
+
+        assert json.loads(json.dumps(_proxy_error(403, "not allowed").detail)) == {"error": "not allowed"}

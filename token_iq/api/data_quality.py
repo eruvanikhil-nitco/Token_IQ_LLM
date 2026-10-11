@@ -58,9 +58,15 @@ connection."""
 
 
 def _proxy_error(status_code: int, message: str) -> HTTPException:
+    """A refusal a client can read.
+
+    A plain dict because FastAPI runs the detail through `json.dumps`, and a `MappingProxyType`
+    is not serialisable: the refusal then reaches the caller as a generic 500 with the reason
+    gone. Asserting the status code alone never notices, because nothing serialises the detail.
+    """
     return HTTPException(
         status_code=status_code,
-        detail=MappingProxyType({"error": message}),
+        detail={"error": message},  # mutable-ok: fixed one-key error envelope, and json.dumps needs a dict
     )
 
 
