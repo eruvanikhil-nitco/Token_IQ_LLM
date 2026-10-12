@@ -168,3 +168,145 @@ class TestWhatPricesAMillionTokens:
         assert wire.kind == "conflict"
         assert {rate.rate_id for rate in wire.rates} == {"u1", "u2"}
         assert not hasattr(wire, "cost_per_million")
+
+
+class TestRecordingABookedRate:
+    """The boundary for currency. The rule is tested in `tests/token_iq/pricing/test_currency.py`;
+    what matters here is that a rate nobody should be able to record is refused with a reason, and
+    that every answer about converting reaches the client as itself."""
+
+    def test_a_rate_keeps_its_digits(self) -> None:
+        from token_iq.api.pricing import currency_rate_from_body
+        from token_iq.api.types.pricing import CurrencyRateBody
+
+        rate: Final = currency_rate_from_body(
+            CurrencyRateBody(
+                source_currency="eur",
+                target_currency="usd",
+                rate="1.0823",
+                effective_from="2026-09-01",
+                source="the month's booked rate",
+            )
+        )
+
+        assert rate.rate == Decimal("1.0823")
+
+    def test_currencies_are_stored_upper_case_so_a_pair_matches_itself(self) -> None:
+        # Entered as "eur" and read back as "EUR", a pair would silently never match and every
+        # figure would stay unconverted with nothing to say why.
+        from token_iq.api.pricing import currency_rate_from_body
+        from token_iq.api.types.pricing import CurrencyRateBody
+
+        rate: Final = currency_rate_from_body(
+            CurrencyRateBody(
+                source_currency="eur",
+                target_currency="usd",
+                rate="1.08",
+                effective_from="2026-09-01",
+                source="x",
+            )
+        )
+
+        assert (rate.source_currency, rate.target_currency) == ("EUR", "USD")
+
+    def test_a_rate_of_zero_is_refused(self) -> None:
+        """Zero would report every euro of spend as nothing."""
+        from token_iq.api.pricing import currency_rate_from_body
+        from token_iq.api.types.pricing import CurrencyRateBody
+
+        with pytest.raises(HTTPException) as refused:
+            currency_rate_from_body(
+                CurrencyRateBody(
+                    source_currency="EUR",
+                    target_currency="USD",
+                    rate="0",
+                    effective_from="2026-09-01",
+                    source="x",
+                )
+            )
+
+        assert refused.value.status_code == 400
+
+    def test_a_currency_converting_to_itself_is_refused(self) -> None:
+        from token_iq.api.pricing import currency_rate_from_body
+        from token_iq.api.types.pricing import CurrencyRateBody
+
+        with pytest.raises(HTTPException):
+            currency_rate_from_body(
+                CurrencyRateBody(
+                    source_currency="USD",
+                    target_currency="USD",
+                    rate="1",
+                    effective_from="2026-09-01",
+                    source="x",
+                )
+            )
+
+    def test_a_period_that_ends_before_it_starts_is_refused(self) -> None:
+        from token_iq.api.pricing import currency_rate_from_body
+        from token_iq.api.types.pricing import CurrencyRateBody
+
+        with pytest.raises(HTTPException):
+            currency_rate_from_body(
+                CurrencyRateBody(
+                    source_currency="EUR",
+                    target_currency="USD",
+                    rate="1.08",
+                    effective_from="2026-09-01",
+                    effective_to="2026-08-01",
+                    source="x",
+                )
+            )
+
+
+class TestWhatTheScreenIsToldAboutConverting:
+    def _rate(self, value: str = "1.08", *, rate_id: str = "c1"):
+        from token_iq.pricing.currency import CurrencyRate
+
+        return CurrencyRate(
+            rate_id=rate_id,
+            source_currency="EUR",
+            target_currency="USD",
+            rate=Decimal(value),
+            effective_from=date(2026, 9, 1),
+            effective_to=None,
+            source="booked",
+        )
+
+    def test_a_recorded_rate_reaches_the_client(self) -> None:
+        from token_iq.api.pricing import conversion_to_wire
+        from token_iq.pricing.currency import UseRate
+
+        wire: Final = conversion_to_wire(UseRate(rate=self._rate("1.08")))
+
+        assert wire.kind == "available"
+        assert wire.rate.rate == "1.08"
+
+    def test_the_same_currency_is_its_own_answer(self) -> None:
+        from token_iq.api.pricing import conversion_to_wire
+        from token_iq.pricing.currency import SameCurrency
+
+        assert conversion_to_wire(SameCurrency()).kind == "not_needed"
+
+    def test_a_missing_pair_says_which_direction_to_record(self) -> None:
+        """A reader who is told only "cannot convert" has nothing to do about it. Told the
+        direction, it is a minute's work."""
+        from token_iq.api.pricing import conversion_to_wire
+        from token_iq.pricing.currency import NoConversionRate
+
+        wire: Final = conversion_to_wire(NoConversionRate(source="INR", target="USD"))
+
+        assert wire.kind == "unavailable"
+        assert "INR to USD" in wire.reason
+        assert "inverted" in wire.reason
+
+    def test_a_conflict_names_both_rates_and_converts_nothing(self) -> None:
+        from token_iq.api.pricing import conversion_to_wire
+        from token_iq.pricing.currency import RateConflict
+
+        wire: Final = conversion_to_wire(
+            RateConflict(rates=(self._rate("1.08", rate_id="c1"), self._rate("1.10", rate_id="c2")))
+        )
+
+        assert wire.kind == "conflict"
+        assert {rate.rate for rate in wire.rates} == {"1.08", "1.10"}

@@ -16,6 +16,14 @@ import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from token_iq.api.types.pricing import (
+    ConversionAvailable,
+    ConversionConflict,
+    ConversionNotNeeded,
+    ConversionResponse,
+    ConversionUnavailable,
+    CurrencyRateBody,
+    CurrencyRateListResponse,
+    CurrencyRateResponse,
     EffectiveRateResponse,
     ListPriceApplies,
     PriceUnknown,
@@ -29,6 +37,15 @@ from token_iq.api.types.pricing import (
 from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
 from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.pricing.currency import (
+    Conversion,
+    CurrencyRate,
+    NoConversionRate,
+    RateConflict,
+    SameCurrency,
+    UseRate,
+    conversion,
+)
 from token_iq.pricing.history import price_as_of
 from token_iq.pricing.rates import (
     PER_MILLION,
@@ -43,6 +60,7 @@ from token_iq.pricing.rates import (
     effective_rate,
     rate_problem,
 )
+from token_iq.repositories.currency_rate_repository import CurrencyRateRepository
 from token_iq.repositories.provider_rate_repository import DISCOUNT, UNIT_PRICE, ProviderRateRepository
 
 router: Final = APIRouter(
@@ -257,3 +275,136 @@ async def read_effective_rate(
     rules: Final = await ProviderRateRepository(prisma_client).all()
     answer: Final = effective_rate(rules, provider=provider, model=model, field=field, when=when)
     return effective_rate_to_wire(answer, price_as_of(model, field, when))
+
+
+def currency_rate_from_body(body: CurrencyRateBody) -> CurrencyRate:
+    """The rate as it will be stored, with its digits read exactly."""
+    rate: Final = _amount_or_400(body.rate, "rate")
+    if rate <= 0:
+        raise _proxy_error(status.HTTP_400_BAD_REQUEST, "A conversion rate has to be greater than zero.")
+    if body.source_currency == body.target_currency:
+        raise _proxy_error(
+            status.HTTP_400_BAD_REQUEST,
+            "A currency converts to itself at one, so there is no rate to record.",
+        )
+    effective_from: Final = _day_or_400(body.effective_from, "effective_from")
+    effective_to: Final = None if body.effective_to is None else _day_or_400(body.effective_to, "effective_to")
+    if effective_to is not None and effective_to < effective_from:
+        raise _proxy_error(status.HTTP_400_BAD_REQUEST, "The period ends before it starts.")
+    return CurrencyRate(
+        rate_id="",
+        source_currency=body.source_currency.upper(),
+        target_currency=body.target_currency.upper(),
+        rate=rate,
+        effective_from=effective_from,
+        effective_to=effective_to,
+        source=body.source,
+    )
+
+
+def currency_rate_to_wire(rate: CurrencyRate) -> CurrencyRateResponse:
+    return CurrencyRateResponse(
+        rate_id=rate.rate_id,
+        source_currency=rate.source_currency,
+        target_currency=rate.target_currency,
+        rate=format(rate.rate, "f"),
+        effective_from=rate.effective_from.isoformat(),
+        effective_to=None if rate.effective_to is None else rate.effective_to.isoformat(),
+        source=rate.source,
+    )
+
+
+def conversion_to_wire(answer: Conversion) -> ConversionResponse:
+    """Exhaustive over every answer, including the two that are refusals."""
+    match answer:
+        case SameCurrency():
+            return ConversionNotNeeded()
+        case UseRate(rate=rate):
+            return ConversionAvailable(rate=currency_rate_to_wire(rate))
+        case NoConversionRate(source=source, target=target):
+            return ConversionUnavailable(
+                source_currency=source,
+                target_currency=target,
+                reason=(
+                    f"No rate is recorded for {source} to {target} on that day. A rate recorded the "
+                    "other way round is not inverted, because one divided by a rate is a figure "
+                    "nobody entered: record this direction to report in it."
+                ),
+            )
+        case RateConflict(rates=rates):
+            return ConversionConflict(rates=tuple(currency_rate_to_wire(rate) for rate in rates))
+
+
+@router.get("/pricing/currency-rates", response_model=CurrencyRateListResponse)
+async def list_currency_rates(
+    user_api_key_dict: Annotated[UserAPIKeyAuth, Depends(user_api_key_auth)],
+) -> CurrencyRateListResponse:
+    """Every conversion rate an administrator has recorded, newest period first within a pair."""
+    from token_iq.gateway.proxy.proxy_server import prisma_client
+
+    _admin_or_403(user_api_key_dict)
+    if prisma_client is None:
+        raise _proxy_error(status.HTTP_500_INTERNAL_SERVER_ERROR, CommonProxyErrors.db_not_connected_error.value)
+
+    rates: Final = await CurrencyRateRepository(prisma_client).all()
+    return CurrencyRateListResponse(rates=tuple(currency_rate_to_wire(rate) for rate in rates))
+
+
+@router.post("/pricing/currency-rates", response_model=CurrencyRateResponse)
+async def add_currency_rate(
+    body: CurrencyRateBody,
+    user_api_key_dict: Annotated[UserAPIKeyAuth, Depends(user_api_key_auth)],
+) -> CurrencyRateResponse:
+    """Record the rate a period was booked at, in the direction being reported in."""
+    from token_iq.gateway.proxy.proxy_server import prisma_client
+
+    _admin_or_403(user_api_key_dict)
+    rate: Final = currency_rate_from_body(body)
+    if prisma_client is None:
+        raise _proxy_error(status.HTTP_500_INTERNAL_SERVER_ERROR, CommonProxyErrors.db_not_connected_error.value)
+
+    stored: Final = await CurrencyRateRepository(prisma_client).add(rate)
+    if stored is None:
+        raise _proxy_error(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            "The rate was written but could not be read back in a shape this server understands.",
+        )
+    return currency_rate_to_wire(stored)
+
+
+@router.delete("/pricing/currency-rates/{rate_id}", response_model=RateDeletedResponse)
+async def delete_currency_rate(
+    rate_id: str,
+    user_api_key_dict: Annotated[UserAPIKeyAuth, Depends(user_api_key_auth)],
+) -> RateDeletedResponse:
+    """Remove a rate, after which any period it covered reports per currency again."""
+    from token_iq.gateway.proxy.proxy_server import prisma_client
+
+    _admin_or_403(user_api_key_dict)
+    if prisma_client is None:
+        raise _proxy_error(status.HTTP_500_INTERNAL_SERVER_ERROR, CommonProxyErrors.db_not_connected_error.value)
+
+    if not await CurrencyRateRepository(prisma_client).delete(rate_id):
+        raise _proxy_error(status.HTTP_404_NOT_FOUND, f"No currency rate with id {rate_id!r}.")
+    return RateDeletedResponse(deleted=True)
+
+
+@router.get("/pricing/conversion", response_model=ConversionResponse)
+async def read_conversion(
+    user_api_key_dict: Annotated[UserAPIKeyAuth, Depends(user_api_key_auth)],
+    source_currency: str = fastapi.Query(description="The currency being converted"),
+    target_currency: str = fastapi.Query(description="The currency being reported in"),
+    on: str | None = fastapi.Query(default=None, description="The day to convert, as YYYY-MM-DD. Today by default"),
+) -> ConversionResponse:
+    """Whether one currency can be reported as another on a given day, and at whose rate."""
+    from token_iq.gateway.proxy.proxy_server import prisma_client
+
+    _admin_or_403(user_api_key_dict)
+    when: Final = datetime.now(timezone.utc).date() if on is None else _day_or_400(on, "on")
+    if prisma_client is None:
+        raise _proxy_error(status.HTTP_500_INTERNAL_SERVER_ERROR, CommonProxyErrors.db_not_connected_error.value)
+
+    rates: Final = await CurrencyRateRepository(prisma_client).all()
+    return conversion_to_wire(
+        conversion(rates, source=source_currency.upper(), target=target_currency.upper(), when=when)
+    )

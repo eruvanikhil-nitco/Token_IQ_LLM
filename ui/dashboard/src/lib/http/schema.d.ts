@@ -11531,6 +11531,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/pricing/conversion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Conversion
+         * @description Whether one currency can be reported as another on a given day, and at whose rate.
+         */
+        get: operations["read_conversion_pricing_conversion_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pricing/currency-rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Currency Rates
+         * @description Every conversion rate an administrator has recorded, newest period first within a pair.
+         */
+        get: operations["list_currency_rates_pricing_currency_rates_get"];
+        put?: never;
+        /**
+         * Add Currency Rate
+         * @description Record the rate a period was booked at, in the direction being reported in.
+         */
+        post: operations["add_currency_rate_pricing_currency_rates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pricing/currency-rates/{rate_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Currency Rate
+         * @description Remove a rate, after which any period it covered reports per currency again.
+         */
+        delete: operations["delete_currency_rate_pricing_currency_rates__rate_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/pricing/effective-rate": {
         parameters: {
             query?: never;
@@ -26750,6 +26814,64 @@ export interface components {
              */
             pattern_type: "prebuilt" | "regex";
         };
+        /** ConversionAvailable */
+        ConversionAvailable: {
+            /**
+             * Kind
+             * @default available
+             * @constant
+             */
+            kind: "available";
+            rate: components["schemas"]["CurrencyRateResponse"];
+        };
+        /**
+         * ConversionConflict
+         * @description Two rates for one pair are equally recent, so a person has to remove one.
+         */
+        ConversionConflict: {
+            /**
+             * Kind
+             * @default conflict
+             * @constant
+             */
+            kind: "conflict";
+            /** Rates */
+            rates: components["schemas"]["CurrencyRateResponse"][];
+        };
+        /**
+         * ConversionNotNeeded
+         * @description Both currencies are the same, so nothing is converted and no rate is involved.
+         */
+        ConversionNotNeeded: {
+            /**
+             * Kind
+             * @default not_needed
+             * @constant
+             */
+            kind: "not_needed";
+        };
+        /**
+         * ConversionUnavailable
+         * @description Nobody recorded this pair for this day.
+         *
+         *     Its own state, and the message names the direction to record. A rate recorded the other way
+         *     round is not inverted: one divided by a rate is a figure nobody entered, and its last digits
+         *     would be a rounding this product chose on a customer's behalf.
+         */
+        ConversionUnavailable: {
+            /**
+             * Kind
+             * @default unavailable
+             * @constant
+             */
+            kind: "unavailable";
+            /** Reason */
+            reason: string;
+            /** Source Currency */
+            source_currency: string;
+            /** Target Currency */
+            target_currency: string;
+        };
         /**
          * CoordinationRedisNode
          * @description A single startup node of a cluster-mode Redis used for proxy coordination.
@@ -27062,6 +27184,68 @@ export interface components {
             credential_values: {
                 [key: string]: unknown;
             };
+        };
+        /**
+         * CurrencyRateBody
+         * @description What an administrator sends after their finance team books a rate.
+         *
+         *     One direction only: the rate that converts `source_currency` into `target_currency`. A pair
+         *     needed the other way round is a second row, because inverting one here would report a figure
+         *     nobody entered.
+         */
+        CurrencyRateBody: {
+            /**
+             * Effective From
+             * @description First day it applies, as YYYY-MM-DD
+             */
+            effective_from: string;
+            /**
+             * Effective To
+             * @description Last day it applies. Null while still in force
+             */
+            effective_to?: string | null;
+            /**
+             * Rate
+             * @description Exact digits: how many of the target one unit of the source buys
+             */
+            rate: string;
+            /**
+             * Source
+             * @description Where the rate came from: the month's booked rate, a bank, a contract
+             */
+            source: string;
+            /**
+             * Source Currency
+             * @description The currency being converted, as ISO 4217
+             */
+            source_currency: string;
+            /**
+             * Target Currency
+             * @description The currency being reported in
+             */
+            target_currency: string;
+        };
+        /** CurrencyRateListResponse */
+        CurrencyRateListResponse: {
+            /** Rates */
+            rates: components["schemas"]["CurrencyRateResponse"][];
+        };
+        /** CurrencyRateResponse */
+        CurrencyRateResponse: {
+            /** Effective From */
+            effective_from: string;
+            /** Effective To */
+            effective_to: string | null;
+            /** Rate */
+            rate: string;
+            /** Rate Id */
+            rate_id: string;
+            /** Source */
+            source: string;
+            /** Source Currency */
+            source_currency: string;
+            /** Target Currency */
+            target_currency: string;
         };
         /**
          * CustomerResponse
@@ -56612,6 +56796,126 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PolicyValidationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_conversion_pricing_conversion_get: {
+        parameters: {
+            query: {
+                /** @description The currency being converted */
+                source_currency: string;
+                /** @description The currency being reported in */
+                target_currency: string;
+                /** @description The day to convert, as YYYY-MM-DD. Today by default */
+                on?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversionNotNeeded"] | components["schemas"]["ConversionAvailable"] | components["schemas"]["ConversionUnavailable"] | components["schemas"]["ConversionConflict"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_currency_rates_pricing_currency_rates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrencyRateListResponse"];
+                };
+            };
+        };
+    };
+    add_currency_rate_pricing_currency_rates_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CurrencyRateBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrencyRateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_currency_rate_pricing_currency_rates__rate_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RateDeletedResponse"];
                 };
             };
             /** @description Validation Error */

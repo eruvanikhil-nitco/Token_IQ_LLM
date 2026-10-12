@@ -251,17 +251,48 @@ paths reach the app covered it without being touched.
 
 ## Task 4: Currency, without inventing a rate
 
-- [ ] **Step 1: A recorded rate per currency pair and period**
+- [x] **Step 1: A recorded rate per currency pair and period**
 
 Entered by an admin, with its source, like an invoice. Reconciliation's current refusal to convert
 stays exactly as it is for a pair nobody recorded.
 
-- [ ] **Step 2: One reporting currency, with the conversion stated**
+- [x] **Step 2: One reporting currency, with the conversion stated**
 
 A converted figure says it was converted, at which rate and when, beside the figure. A total that
 mixes currencies silently is worse than one that refuses.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
+
+### What task 4 found
+
+**A rate recorded one way round is not inverted, and that is the whole decision.** One divided by
+1.0823 is a figure nobody entered, and its last digits are a rounding this code would be choosing on
+a customer's behalf. So the answer for the missing direction is a refusal that names it: record EUR
+to USD to report in USD. That is a minute's work for an administrator and it keeps every converted
+figure traceable to a rate a person booked.
+
+**A currency nobody can convert refuses the whole total.** Three options existed and two are worse.
+Excluding it silently gives a figure that looks complete and is short by exactly the money nobody
+could convert, which is the failure this product keeps finding in other people's software. Converting
+it at an invented rate is the thing the ledger has refused to do since it was written. So the total
+refuses, names the pair, and carries the per-currency figures with it so a screen still shows what it
+does know.
+
+**The conversion travels with the figure.** What was converted, from which currency, at which rate,
+and where that rate came from, because a converted total a finance team cannot check is a total they
+will not repeat.
+
+**Two rates for one pair on one day are a conflict**, for the same reason two prices for one model
+are. A month-by-month booked rate is a new row rather than an edit, so the conflict only happens when
+somebody records the same month twice, and then a person removes one.
+
+**The same currency is its own answer.** Not a rate of one: a screen that said "converted at 1.0"
+about money that never moved would invite somebody to go looking for the conversion.
+
+Proved live: no rate at all refuses and names the direction, the booked rate converts and shows its
+source, the opposite direction still refuses rather than inverting, a day before the rate was booked
+refuses, and a rate of zero, a currency converting to itself and a period that ends before it starts
+are each refused with their reason.
 
 ---
 

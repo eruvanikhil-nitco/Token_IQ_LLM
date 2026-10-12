@@ -3393,3 +3393,35 @@ refused with the reason. Every proof row removed afterwards.
 The router refactor from this morning paid for itself: four new endpoints mounted because the module
 exists, with no edit to the engine, and the test that every product module's paths reach the app
 covered them without being touched.
+
+## 12 Oct 2026: one currency, at a rate somebody booked
+
+Build step 3 task 4. Every figure in this product carries the currency it was billed in, and totals
+are reported per currency because adding two of them produces a number in no currency at all. That
+is right and it is not enough: a customer with invoices in two currencies wants one figure for the
+board.
+
+They can now record the rate their finance team booked a period at, in the direction they report in,
+with where it came from. A rate recorded the other way round is not inverted, which is the whole
+decision here: one divided by 1.0823 is a figure nobody entered, and its last digits would be a
+rounding this code chose on their behalf. The refusal names the direction to record instead, which
+is a minute's work.
+
+A currency nobody can convert refuses the whole total rather than being left out of it. Excluding it
+silently gives a figure that looks complete and is short by exactly the money nobody could convert,
+which is the failure this product keeps finding in other people's reporting. The refusal carries the
+per-currency figures, so a screen still shows what it does know.
+
+Every converted total states what was converted, at which rate and where that rate came from,
+because a figure a finance team cannot check is a figure they will not repeat. Two rates for one
+pair on one day are a conflict naming both. The same currency is its own answer rather than a rate of
+one, so no screen says "converted at 1.0" about money that never moved.
+
+Proved live: no rate refuses and names the direction, the booked rate converts and shows its source,
+the opposite direction still refuses, a day before the rate was booked refuses, and a rate of zero, a
+currency converting to itself and a period ending before it starts are each refused with their
+reason. 23 of 23 mutants killed.
+
+Reconciliation's own refusal to compare across currencies is untouched and still correct: nothing
+wires the conversion into it yet, which is a deliberate line rather than an omission, since changing
+what that screen says about a bill belongs with the screen rather than with the plumbing.

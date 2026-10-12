@@ -87,3 +87,70 @@ class PriceUnknown(BaseModel):
 
 
 EffectiveRateResponse: TypeAlias = RateApplied | ListPriceApplies | RatesConflict | PriceUnknown
+
+
+class CurrencyRateBody(BaseModel):
+    """What an administrator sends after their finance team books a rate.
+
+    One direction only: the rate that converts `source_currency` into `target_currency`. A pair
+    needed the other way round is a second row, because inverting one here would report a figure
+    nobody entered.
+    """
+
+    source_currency: str = Field(min_length=3, max_length=3, description="The currency being converted, as ISO 4217")
+    target_currency: str = Field(min_length=3, max_length=3, description="The currency being reported in")
+    rate: str = Field(description="Exact digits: how many of the target one unit of the source buys")
+    effective_from: str = Field(description="First day it applies, as YYYY-MM-DD")
+    effective_to: str | None = Field(default=None, description="Last day it applies. Null while still in force")
+    source: str = Field(description="Where the rate came from: the month's booked rate, a bank, a contract")
+
+
+class CurrencyRateResponse(BaseModel):
+    rate_id: str
+    source_currency: str
+    target_currency: str
+    rate: str
+    effective_from: str
+    effective_to: str | None
+    source: str
+
+
+class CurrencyRateListResponse(BaseModel):
+    rates: tuple[CurrencyRateResponse, ...]
+
+
+class ConversionNotNeeded(BaseModel):
+    """Both currencies are the same, so nothing is converted and no rate is involved."""
+
+    kind: Literal["not_needed"] = "not_needed"
+
+
+class ConversionAvailable(BaseModel):
+    kind: Literal["available"] = "available"
+    rate: CurrencyRateResponse
+
+
+class ConversionUnavailable(BaseModel):
+    """Nobody recorded this pair for this day.
+
+    Its own state, and the message names the direction to record. A rate recorded the other way
+    round is not inverted: one divided by a rate is a figure nobody entered, and its last digits
+    would be a rounding this product chose on a customer's behalf.
+    """
+
+    kind: Literal["unavailable"] = "unavailable"
+    source_currency: str
+    target_currency: str
+    reason: str
+
+
+class ConversionConflict(BaseModel):
+    """Two rates for one pair are equally recent, so a person has to remove one."""
+
+    kind: Literal["conflict"] = "conflict"
+    rates: tuple[CurrencyRateResponse, ...]
+
+
+ConversionResponse: TypeAlias = (
+    ConversionNotNeeded | ConversionAvailable | ConversionUnavailable | ConversionConflict
+)

@@ -226,6 +226,25 @@ model ProviderRate {
   @@map("LiteLLM_ProviderRate")
 }
 
+// One rate a customer booked a period at, in one direction, so several currencies can be reported
+// as one figure. Never inverted and never invented: a pair recorded the other way round is a
+// different row to record, because one divided by a rate is a figure nobody entered. A month-by-
+// month booked rate is a new row rather than an edit, for the same reason a renegotiated price is.
+model CurrencyRate {
+    rate_id         String   @id @default(uuid())
+    source_currency String
+    target_currency String
+    rate            String   // exact digits as text
+    effective_from  DateTime
+    effective_to    DateTime? // null: still in force
+    source          String
+    created_at      DateTime @default(now())
+    updated_at      DateTime @updatedAt
+
+    @@index([source_currency, target_currency, effective_from])
+  @@map("LiteLLM_CurrencyRate")
+}
+
 // Models on proxy
 model ProxyModelTable {
   model_id String @id @default(uuid())
