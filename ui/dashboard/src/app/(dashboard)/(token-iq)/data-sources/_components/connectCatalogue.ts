@@ -108,7 +108,7 @@ const AWS_ROLE: ConnectMethod = {
     },
   ],
   help: [
-    "The template takes two parameters: the external ID shown here, and the AWS principal this Token IQ installation runs as, which whoever deployed it can tell you.",
+    "The template takes two parameters and both are shown here: the external ID, and the AWS principal this Token IQ installation runs as, which is read from AWS rather than typed.",
     "The role it creates grants one action, ce:GetCostAndUsage, which is the only call the connector makes.",
     "Deleting the stack ends Token IQ's access immediately.",
   ],

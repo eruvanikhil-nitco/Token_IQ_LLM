@@ -3153,8 +3153,35 @@ wrong month is the one mistake nothing downstream catches. A provider or month a
 checked against what the server offered rather than trusted, because both came from an address
 somebody could have typed.
 
+### The CloudFormation template's second parameter is now discoverable
+
+It was the last thing in build step 1 that a customer could not act on: the template needs the AWS
+principal their new role will trust, and nothing in the product recorded it, so the dialog could
+only say to go and ask whoever deployed Token IQ. `GET /provider/connections/bedrock-principal`
+asks AWS instead. `sts:GetCallerIdentity` needs no permission and answers for every way an
+installation can hold credentials.
+
+The care is in what AWS answers with. A deployment holding a task role or an instance profile is
+told it is `arn:aws:sts::…:assumed-role/Name/session`, which is not a principal an IAM trust policy
+can name and which the template's own pattern rejects. What the trust policy needs is the role
+behind that session, so it is derived, and a test checks the derived ARN against the pattern the
+template declares. The one thing a session ARN cannot say is whether the role sits under an IAM
+path, so that caveat travels with the value rather than being discovered a month later through an
+AccessDenied naming nothing.
+
+Three states, not two. An identity no trust policy can name, a federated user for instance, is
+reported as unknown with its own ARN in the reason rather than converted into something plausible.
+An installation that cannot reach AWS gets the AWS error code and never the message, because the
+message can quote the access key that failed and this reaches a browser. And an unknown principal
+shows no ARN at all: an empty parameter is a stack that will not deploy, which beats a guessed one
+that deploys a role trusting a principal which never presents itself.
+
+Proved live both ways on this box, which holds no AWS credentials: the no-credentials state, and a
+real STS call with credentials AWS rejects, which comes back `InvalidClientTokenId` with the code
+in the reason. The two success states are covered by tests only, because proving them needs real
+AWS credentials this machine does not have.
+
 ### What is left
 
-Build step 1 is done, all five tasks. Still open and unchanged: the CloudFormation template's second
-parameter, the AWS principal this installation runs as, which nothing configures. The blueprint's own
+Build step 1 is done, all five tasks, and nothing it surfaced is still open. The blueprint's own
 next step is build step 3 onward, which depends on the truth layer rather than on this page.

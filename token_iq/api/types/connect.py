@@ -86,3 +86,39 @@ class RoleTemplateResponse(BaseModel):
 
     filename: str
     template: str
+
+
+class PrincipalKnownResponse(BaseModel):
+    """The ARN to paste into the template's other parameter, as AWS reported it."""
+
+    kind: Literal["known"] = "known"
+    arn: str
+
+
+class PrincipalDerivedResponse(BaseModel):
+    """AWS answered with a role session, so the role behind it is the principal.
+
+    `session_arn` is carried too, because an administrator checking this against their own
+    deployment needs to see what it was worked out from. `note` says the one thing that cannot be
+    worked out from here: whether the role sits under an IAM path.
+    """
+
+    kind: Literal["derived"] = "derived"
+    arn: str
+    session_arn: str
+    note: str
+
+
+class PrincipalUnknownResponse(BaseModel):
+    """Nobody can say which principal this installation runs as, and why.
+
+    Its own arm rather than an empty ARN. An empty parameter pasted into CloudFormation is a stack
+    that fails to deploy, and a guessed one is a role that trusts a principal which will never
+    present itself.
+    """
+
+    kind: Literal["unknown"] = "unknown"
+    reason: str
+
+
+BedrockPrincipalResponse: TypeAlias = PrincipalKnownResponse | PrincipalDerivedResponse | PrincipalUnknownResponse

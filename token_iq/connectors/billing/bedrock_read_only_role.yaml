@@ -14,8 +14,9 @@ Parameters:
   TokenIqPrincipalArn:
     Type: String
     Description: >-
-      The Token IQ principal allowed to assume this role. Your Token IQ administrator gives you
-      this; it identifies the Token IQ installation, not a person.
+      The Token IQ principal allowed to assume this role. The Token IQ connect dialog shows this
+      value beside the external ID; copy it exactly. It identifies the Token IQ installation, not
+      a person.
     MinLength: 20
     AllowedPattern: "^arn:aws[a-zA-Z-]*:iam::[0-9]{12}:(root|user/.+|role/.+)$"
     ConstraintDescription: must be an IAM user, role or account-root ARN.

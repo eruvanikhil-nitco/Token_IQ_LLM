@@ -12,6 +12,7 @@ credential down the same encryption path the credential endpoint uses.
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from pathlib import Path
 from types import MappingProxyType
@@ -27,12 +28,23 @@ from token_iq.api.types.connect import (
     ConnectRequest,
     ConnectResponse,
     ExternalIdAlreadyIssued,
+    BedrockPrincipalResponse,
     ExternalIdMinted,
     ExternalIdRequest,
     ExternalIdResponse,
+    PrincipalDerivedResponse,
+    PrincipalKnownResponse,
+    PrincipalUnknownResponse,
     RoleTemplateResponse,
 )
 from token_iq.connectors.billing import bedrock
+from token_iq.connectors.billing.aws_principal import (
+    InstallationPrincipal,
+    PrincipalDerived,
+    PrincipalKnown,
+    PrincipalUnknown,
+    installation_principal,
+)
 from token_iq.connectors.billing.bedrock import new_external_id
 from token_iq.connectors.billing.connect import (
     PROVIDERS_SIGNING_IN_WITH_A_ROLE,
@@ -290,3 +302,32 @@ async def bedrock_role_template(
         filename="token-iq-bedrock-role.yaml",
         template=ROLE_TEMPLATE_PATH.read_text(encoding="utf-8"),
     )
+
+
+def principal_to_wire(principal: InstallationPrincipal) -> BedrockPrincipalResponse:
+    """Exhaustive over the three states, so a fourth is a type error here rather than a parameter
+    that silently stops being offered."""
+    match principal:
+        case PrincipalKnown(arn=arn):
+            return PrincipalKnownResponse(arn=arn)
+        case PrincipalDerived(arn=arn, session_arn=session_arn, note=note):
+            return PrincipalDerivedResponse(arn=arn, session_arn=session_arn, note=note)
+        case PrincipalUnknown(reason=reason):
+            return PrincipalUnknownResponse(reason=reason)
+
+
+@router.get("/provider/connections/bedrock-principal", response_model=BedrockPrincipalResponse)
+async def bedrock_principal(
+    user_api_key_dict: Annotated[UserAPIKeyAuth, Depends(user_api_key_auth)],
+) -> BedrockPrincipalResponse:
+    """The template's other parameter: which AWS principal this installation runs as.
+
+    Asked of AWS rather than configured. Nothing in the product recorded it, so the dialog could
+    only tell a customer to go and ask whoever deployed Token IQ, at the one moment they need the
+    value. `sts:GetCallerIdentity` needs no permission and answers for every way an installation
+    can hold credentials.
+    """
+    _admin_or_403(user_api_key_dict)
+    # Off the event loop: boto3 is synchronous and this reaches out to AWS, so leaving it inline
+    # would block every other request on this worker for the length of the call.
+    return principal_to_wire(await asyncio.to_thread(installation_principal))

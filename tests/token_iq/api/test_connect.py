@@ -329,3 +329,66 @@ class TestTheRowTheDatabaseTakes:
 
         info = json.loads(str(row["credential_info"]))
         assert info == {"purpose": "billing_ingestion", "provider": "openrouter"}
+
+
+class TestTheTemplatesOtherParameter:
+    """The principal a customer's role must trust, asked of AWS rather than configured.
+
+    What is asserted here is the boundary: every state reaching the client as itself, and the
+    derived ARN being one the template's own pattern accepts. The parsing is tested in
+    `tests/token_iq/connectors/billing/test_aws_principal.py`.
+    """
+
+    def test_a_known_principal_reaches_the_client(self) -> None:
+        from token_iq.api.connect import principal_to_wire
+        from token_iq.connectors.billing.aws_principal import PrincipalKnown
+
+        wire: Final = principal_to_wire(PrincipalKnown(arn="arn:aws:iam::123456789012:role/tiq"))
+
+        assert (wire.kind, wire.arn) == ("known", "arn:aws:iam::123456789012:role/tiq")
+
+    def test_a_derived_principal_carries_what_it_came_from_and_its_caveat(self) -> None:
+        from token_iq.api.connect import principal_to_wire
+        from token_iq.connectors.billing.aws_principal import principal_from_caller_arn
+
+        wire: Final = principal_to_wire(
+            principal_from_caller_arn("arn:aws:sts::123456789012:assumed-role/tiq-task/abc")
+        )
+
+        assert wire.kind == "derived"
+        assert wire.arn == "arn:aws:iam::123456789012:role/tiq-task"
+        assert wire.session_arn.startswith("arn:aws:sts::")
+        assert wire.note != ""
+
+    def test_an_unknown_principal_is_its_own_state_rather_than_an_empty_arn(self) -> None:
+        """An empty parameter pasted into CloudFormation is a stack that will not deploy, and a
+        guessed one is a role trusting a principal that never presents itself."""
+        from token_iq.api.connect import principal_to_wire
+        from token_iq.connectors.billing.aws_principal import PrincipalUnknown
+
+        wire: Final = principal_to_wire(PrincipalUnknown(reason="no credentials here"))
+
+        assert wire.kind == "unknown"
+        assert not hasattr(wire, "arn")
+        assert wire.reason == "no credentials here"
+
+    def test_every_arn_it_offers_is_one_the_template_accepts(self) -> None:
+        # The template declares the pattern itself, so a value failing it is a stack that refuses
+        # to deploy with nothing on either side to say why.
+        import re
+
+        from token_iq.api.connect import ROLE_TEMPLATE_PATH, principal_to_wire
+        from token_iq.connectors.billing.aws_principal import principal_from_caller_arn
+
+        template: Final = ROLE_TEMPLATE_PATH.read_text(encoding="utf-8")
+        pattern: Final = re.search(r'AllowedPattern: "(\^arn[^"]+)"', template)
+        assert pattern is not None
+
+        for caller in (
+            "arn:aws:iam::123456789012:role/tiq",
+            "arn:aws:iam::123456789012:user/tiq",
+            "arn:aws:sts::123456789012:assumed-role/tiq-task/session",
+        ):
+            wire = principal_to_wire(principal_from_caller_arn(caller))
+            assert wire.kind != "unknown", caller
+            assert re.match(pattern.group(1), wire.arn), f"{caller} gave {wire.arn}"

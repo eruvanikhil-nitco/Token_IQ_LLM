@@ -238,6 +238,18 @@ test is no longer guarding. The template's other parameter, the AWS principal th
 runs as, is not discoverable here: nothing configures it. The dialog says where it comes from, and
 reading it from `sts:GetCallerIdentity` is the obvious follow-up.
 
+**Done on 12 Oct 2026.** `GET /provider/connections/bedrock-principal` asks AWS, and the dialog
+shows the value beside the external ID instead of naming somebody to go and ask. The part that
+needed care is that `GetCallerIdentity` does not answer with a principal a trust policy can name: a
+deployment holding a task role or an instance profile is told it is
+`arn:aws:sts::…:assumed-role/Name/session`, which the template's own pattern rejects. What the
+trust policy needs is the role behind the session, so that is derived, and the one thing a session
+ARN cannot say, whether the role sits under an IAM path, travels with the value as a caveat rather
+than being discovered later through an AccessDenied. An identity no trust policy can name, a
+federated user for instance, is reported as unknown with its ARN in the reason rather than
+converted into something that looks plausible, and an installation that cannot reach AWS gets the
+AWS error code and never the message, which can quote the access key that failed.
+
 **A read-only view is not a database row, and twice it reached one.** `MappingProxyType` is the
 house default for a fixed mapping and it is not JSON serialisable, so both places a mapping left
 this module turned into a 500. First every refusal: FastAPI runs an `HTTPException` detail

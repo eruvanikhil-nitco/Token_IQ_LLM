@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { methodsFor } from "./connectCatalogue";
-import { canSubmit, connectPayload, needsExternalId, resultMessage } from "./connectSubmit";
+import { canSubmit, connectPayload, needsExternalId, principalMessage, resultMessage } from "./connectSubmit";
 import type { ConnectAccountResponse } from "@/components/networking";
 
 /**
@@ -255,5 +255,41 @@ describe("what the dialog says came back", () => {
     };
 
     expect(resultMessage(response).tone).not.toBe("connected");
+  });
+});
+
+describe("the template's other parameter", () => {
+  it("offers an ARN AWS stated, with what to do with it", () => {
+    const message = principalMessage({ kind: "known", arn: "arn:aws:iam::123456789012:role/tiq" });
+
+    expect(message.arn).toBe("arn:aws:iam::123456789012:role/tiq");
+    expect(message.text).toContain("principal parameter");
+  });
+
+  it("carries the caveat with a value worked out from a role session", () => {
+    // Right for a role at the root path, which is the usual deployment, and wrong by exactly the
+    // path for one underneath it. The caveat travels with the value rather than being discovered
+    // later through an AccessDenied.
+    const derived = {
+      kind: "derived",
+      arn: "arn:aws:iam::123456789012:role/tiq-task",
+      session_arn: "arn:aws:sts::123456789012:assumed-role/tiq-task/abc",
+      note: "If that role sits under an IAM path, use the role's full ARN.",
+    } as const;
+
+    const message = principalMessage(derived);
+
+    expect(message.arn).toBe("arn:aws:iam::123456789012:role/tiq-task");
+    expect(message.text).toContain("IAM path");
+  });
+
+  it("offers no ARN at all when nobody can say which principal it is", () => {
+    // An empty parameter is a stack that will not deploy. A guessed one deploys a role trusting a
+    // principal that never presents itself, and every sync afterwards fails naming nothing.
+    const message = principalMessage({ kind: "unknown", reason: "This installation holds no AWS credentials." });
+
+    expect(message.arn).toBeNull();
+    expect(message.tone).toBe("unknown");
+    expect(message.text).toContain("no AWS credentials");
   });
 });

@@ -16,12 +16,21 @@ import ConnectAccountDialog from "./ConnectAccountDialog";
 const connectionExternalIdCall = vi.fn();
 const connectAccountCall = vi.fn();
 const bedrockRoleTemplateCall = vi.fn();
+const bedrockPrincipalCall = vi.fn();
+
+const DERIVED_PRINCIPAL = {
+  kind: "derived",
+  arn: "arn:aws:iam::123456789012:role/token-iq-task",
+  session_arn: "arn:aws:sts::123456789012:assumed-role/token-iq-task/abc",
+  note: "If that role sits under an IAM path, use the role's full ARN, which includes the path.",
+};
 
 vi.mock("@/components/networking", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/components/networking")>()),
   connectionExternalIdCall: (...args: unknown[]) => connectionExternalIdCall(...args),
   connectAccountCall: (...args: unknown[]) => connectAccountCall(...args),
   bedrockRoleTemplateCall: (...args: unknown[]) => bedrockRoleTemplateCall(...args),
+  bedrockPrincipalCall: (...args: unknown[]) => bedrockPrincipalCall(...args),
 }));
 
 vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
@@ -53,6 +62,7 @@ describe("the connect dialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     connectionExternalIdCall.mockResolvedValue({ kind: "minted", external_id: "tiq-abc123", provider: "bedrock" });
+    bedrockPrincipalCall.mockResolvedValue({ kind: "known", arn: "arn:aws:iam::123456789012:role/token-iq-task" });
     const connected = { kind: "connected", provider: "bedrock", credential_name: "aws-main", facts_found: 7 };
     connectAccountCall.mockResolvedValue(connected);
     bedrockRoleTemplateCall.mockResolvedValue({ filename: "token-iq-bedrock-role.yaml", template: "Resources: {}" });
@@ -106,6 +116,48 @@ describe("the connect dialog", () => {
     await user.click(signIn);
 
     expect(await screen.findByText(/no sign-in flow yet/)).toBeInTheDocument();
+  });
+
+  it("shows which AWS principal this installation runs as, rather than naming someone to ask", async () => {
+    // The template takes two parameters and this was the one nothing in the product recorded, so
+    // the step used to tell the customer to go and ask whoever deployed Token IQ at the exact
+    // moment they needed the value.
+    await openAwsConfigure();
+
+    expect(await screen.findByText("arn:aws:iam::123456789012:role/token-iq-task")).toBeInTheDocument();
+    expect(bedrockPrincipalCall).toHaveBeenCalledWith("sk-test");
+  });
+
+  it("carries the caveat when the value was worked out from a role session", async () => {
+    bedrockPrincipalCall.mockResolvedValue(DERIVED_PRINCIPAL);
+    await openAwsConfigure();
+
+    expect(await screen.findByText(/under an IAM path/)).toBeInTheDocument();
+  });
+
+  it("offers no principal at all when AWS cannot say, and says why", async () => {
+    // An empty parameter is a stack that will not deploy. A guessed one deploys a role trusting a
+    // principal that never presents itself, and every sync afterwards fails naming nothing.
+    bedrockPrincipalCall.mockResolvedValue({
+      kind: "unknown",
+      reason: "This installation holds no AWS credentials, so AWS cannot say which principal it runs as.",
+    });
+    await openAwsConfigure();
+
+    expect(await screen.findByText(/holds no AWS credentials/)).toBeInTheDocument();
+    expect(screen.queryByText(/^arn:aws:iam/)).not.toBeInTheDocument();
+  });
+
+  it("does not ask AWS who it is for a method that does not need it", async () => {
+    // Only the role method deploys that template. A key method asking anyway reaches out to AWS
+    // for a value nothing on the form uses.
+    const user = await openCatalogue();
+    await user.click(await screen.findByRole("button", { name: /OpenRouter/ }));
+    await user.click(await screen.findByRole("tab", { name: /Configure/ }));
+
+    expect(await screen.findByLabelText("Account name")).toBeInTheDocument();
+    expect(screen.queryByText("Token IQ principal")).not.toBeInTheDocument();
+    expect(bedrockPrincipalCall).not.toHaveBeenCalled();
   });
 
   it("asks the server for the external ID rather than offering a field for it", async () => {

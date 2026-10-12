@@ -2833,6 +2833,21 @@ export const connectAccountCall = async (
   });
 };
 
+export type BedrockPrincipal =
+  | components["schemas"]["PrincipalKnownResponse"]
+  | components["schemas"]["PrincipalDerivedResponse"]
+  | components["schemas"]["PrincipalUnknownResponse"];
+
+/**
+ * The template's other parameter: which AWS principal this installation runs as.
+ *
+ * Asked of AWS rather than configured, so the dialog can show the value instead of telling the
+ * customer to go and ask whoever deployed Token IQ at the one moment they need it.
+ */
+export const bedrockPrincipalCall = async (accessToken: string): Promise<BedrockPrincipal> => {
+  return await apiClient.get<BedrockPrincipal>(`/provider/connections/bedrock-principal`, { accessToken });
+};
+
 export type RoleTemplate = components["schemas"]["RoleTemplateResponse"];
 
 /** The CloudFormation template the role method's first step asks the customer to launch. */

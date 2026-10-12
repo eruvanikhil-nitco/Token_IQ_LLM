@@ -12100,6 +12100,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/provider/connections/bedrock-principal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Bedrock Principal
+         * @description The template's other parameter: which AWS principal this installation runs as.
+         *
+         *     Asked of AWS rather than configured. Nothing in the product recorded it, so the dialog could
+         *     only tell a customer to go and ask whoever deployed Token IQ, at the one moment they need the
+         *     value. `sts:GetCallerIdentity` needs no permission and answers for every way an installation
+         *     can hold credentials.
+         */
+        get: operations["bedrock_principal_provider_connections_bedrock_principal_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/provider/connections/bedrock-role-template": {
         parameters: {
             query?: never;
@@ -34801,6 +34826,60 @@ export interface components {
             version_status: string;
         };
         /**
+         * PrincipalDerivedResponse
+         * @description AWS answered with a role session, so the role behind it is the principal.
+         *
+         *     `session_arn` is carried too, because an administrator checking this against their own
+         *     deployment needs to see what it was worked out from. `note` says the one thing that cannot be
+         *     worked out from here: whether the role sits under an IAM path.
+         */
+        PrincipalDerivedResponse: {
+            /** Arn */
+            arn: string;
+            /**
+             * Kind
+             * @default derived
+             * @constant
+             */
+            kind: "derived";
+            /** Note */
+            note: string;
+            /** Session Arn */
+            session_arn: string;
+        };
+        /**
+         * PrincipalKnownResponse
+         * @description The ARN to paste into the template's other parameter, as AWS reported it.
+         */
+        PrincipalKnownResponse: {
+            /** Arn */
+            arn: string;
+            /**
+             * Kind
+             * @default known
+             * @constant
+             */
+            kind: "known";
+        };
+        /**
+         * PrincipalUnknownResponse
+         * @description Nobody can say which principal this installation runs as, and why.
+         *
+         *     Its own arm rather than an empty ARN. An empty parameter pasted into CloudFormation is a stack
+         *     that fails to deploy, and a guessed one is a role that trusts a principal which will never
+         *     present itself.
+         */
+        PrincipalUnknownResponse: {
+            /**
+             * Kind
+             * @default unknown
+             * @constant
+             */
+            kind: "unknown";
+            /** Reason */
+            reason: string;
+        };
+        /**
          * ProjectDeleteRequest
          * @description Request model for POST /project/delete
          */
@@ -56930,6 +57009,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bedrock_principal_provider_connections_bedrock_principal_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrincipalKnownResponse"] | components["schemas"]["PrincipalDerivedResponse"] | components["schemas"]["PrincipalUnknownResponse"];
                 };
             };
         };

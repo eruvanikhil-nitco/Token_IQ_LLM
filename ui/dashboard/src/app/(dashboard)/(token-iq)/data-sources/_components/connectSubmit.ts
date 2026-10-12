@@ -7,7 +7,7 @@
  * makes: nothing is saved until the test passes.
  */
 
-import type { ConnectAccountRequest, ConnectAccountResponse } from "@/components/networking";
+import type { BedrockPrincipal, ConnectAccountRequest, ConnectAccountResponse } from "@/components/networking";
 
 import { fieldProblem, missingRequiredFields, type ConnectMethod } from "./connectCatalogue";
 
@@ -96,4 +96,35 @@ export function resultMessage(response: ConnectAccountResponse): ResultMessage {
   const lead = OUTCOME_LEAD[response.outcome] ?? "The connection test did not pass";
   const detail = response.detail ? ` ${response.detail}` : "";
   return { tone: "failed", text: `${lead}, so nothing was saved.${detail}` };
+}
+
+export interface PrincipalMessage {
+  tone: "known" | "derived" | "unknown";
+  /** The value to paste, or null when nobody can say what it is. */
+  arn: string | null;
+  text: string;
+}
+
+const PASTE_IT = "Paste this into the template's Token IQ principal parameter, exactly as it reads.";
+
+/**
+ * What the dialog says about the template's other parameter.
+ *
+ * Three states, because a value worked out from a role session is not the same as one AWS stated.
+ * The derived one is right for a role at the root path, which is the usual deployment, and wrong by
+ * exactly the path for one underneath it, so the caveat travels with the value rather than being
+ * left for somebody to discover through an AccessDenied.
+ *
+ * An unknown principal shows no ARN at all. An empty parameter is a stack that will not deploy,
+ * which is a better outcome than a guessed one: that deploys a role trusting a principal which
+ * never presents itself, and every sync afterwards fails for a reason nothing names.
+ */
+export function principalMessage(principal: BedrockPrincipal): PrincipalMessage {
+  if (principal.kind === "known") {
+    return { tone: "known", arn: principal.arn, text: PASTE_IT };
+  }
+  if (principal.kind === "derived") {
+    return { tone: "derived", arn: principal.arn, text: `${PASTE_IT} ${principal.note}` };
+  }
+  return { tone: "unknown", arn: null, text: principal.reason };
 }

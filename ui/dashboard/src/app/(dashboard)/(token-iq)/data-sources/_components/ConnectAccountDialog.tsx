@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import {
+  bedrockPrincipalCall,
   bedrockRoleTemplateCall,
   connectAccountCall,
   connectionExternalIdCall,
+  type BedrockPrincipal,
   type ConnectAccountResponse,
 } from "@/components/networking";
 import { unwrapProxyErrorMessage } from "@/lib/http/client";
@@ -32,7 +34,7 @@ import {
   type ConnectMethod,
   type ConnectVendor,
 } from "./connectCatalogue";
-import { canSubmit, connectPayload, needsExternalId, resultMessage } from "./connectSubmit";
+import { canSubmit, connectPayload, needsExternalId, principalMessage, resultMessage } from "./connectSubmit";
 
 /**
  * Data Sources: + Connect account.
@@ -159,6 +161,74 @@ function ExternalIdStep({ externalId, note, busy, canIssue, onIssue, onDownloadT
       >
         Download the CloudFormation template
       </Button>
+    </div>
+  );
+}
+
+/**
+ * The template's other parameter, read from AWS rather than asked for.
+ *
+ * Nothing in the product recorded which principal this installation runs as, so this step used to
+ * be a sentence telling the customer to go and ask whoever deployed Token IQ, at the one moment
+ * they needed the value. `sts:GetCallerIdentity` needs no permission, so AWS can be asked directly.
+ *
+ * Its own component, which fetches only while the role method is showing: no other method needs
+ * the value, and the call reaches out to AWS.
+ */
+function PrincipalStep() {
+  const { accessToken } = useAuthorized();
+  const [principal, setPrincipal] = useState<BedrockPrincipal | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!accessToken) {
+      return;
+    }
+    let current = true;
+    bedrockPrincipalCall(accessToken)
+      .then((answer) => {
+        if (current) {
+          setPrincipal(answer);
+        }
+      })
+      .catch((error: unknown) => {
+        if (current) {
+          setFailure(unwrapProxyErrorMessage(error instanceof Error ? error.message : String(error)));
+        }
+      });
+    return () => {
+      current = false;
+    };
+  }, [accessToken]);
+
+  const message = principal === null ? null : principalMessage(principal);
+
+  return (
+    <div className="flex flex-col gap-2 rounded-md border p-3">
+      <span className="text-sm font-medium">Token IQ principal</span>
+      {message?.arn ? (
+        <div className="flex items-center gap-2">
+          <code className="rounded bg-muted px-2 py-1 text-sm break-all">{message.arn}</code>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              void navigator.clipboard?.writeText(message.arn ?? "");
+            }}
+          >
+            Copy
+          </Button>
+        </div>
+      ) : null}
+      {message ? (
+        <span className={`text-xs ${message.tone === "unknown" ? "text-destructive" : "text-muted-foreground"}`}>
+          {message.text}
+        </span>
+      ) : null}
+      {failure ? <span className="text-xs text-destructive">{failure}</span> : null}
+      {message === null && failure === null ? (
+        <span className="text-xs text-muted-foreground">Asking AWS which principal this installation runs as...</span>
+      ) : null}
     </div>
   );
 }
@@ -397,6 +467,8 @@ export default function ConnectAccountDialog() {
                       : "How this account appears across Token IQ"}
                   </span>
                 </div>
+
+                {needsExternalId(method) ? <PrincipalStep /> : null}
 
                 {needsExternalId(method) ? (
                   <ExternalIdStep
