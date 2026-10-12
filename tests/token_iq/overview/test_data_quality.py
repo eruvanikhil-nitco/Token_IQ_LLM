@@ -32,6 +32,7 @@ class TestFailingConnections:
         issues = data_quality_issues(
             connection_states=("healthy", "needs_attention", "healthy"),
             missing_invoices=0,
+            accounts_double_counted=0,
             keys_without_project=0,
         )
 
@@ -43,6 +44,7 @@ class TestFailingConnections:
         issues = data_quality_issues(
             connection_states=("not_connected", "not_connected"),
             missing_invoices=0,
+            accounts_double_counted=0,
             keys_without_project=0,
         )
 
@@ -52,6 +54,7 @@ class TestFailingConnections:
         issues = data_quality_issues(
             connection_states=("waiting_for_first_data",),
             missing_invoices=0,
+            accounts_double_counted=0,
             keys_without_project=0,
         )
 
@@ -63,6 +66,7 @@ class TestMissingInvoices:
         issues = data_quality_issues(
             connection_states=(),
             missing_invoices=2,
+            accounts_double_counted=0,
             keys_without_project=0,
         )
 
@@ -70,12 +74,12 @@ class TestMissingInvoices:
 
 class TestKeysWithoutProjects:
     def test_counts_them(self) -> None:
-        issues = data_quality_issues(connection_states=(), missing_invoices=0, keys_without_project=4)
+        issues = data_quality_issues(connection_states=(), missing_invoices=0, accounts_double_counted=0, keys_without_project=4)
 
         assert _issue(issues, "keys_without_project").state == Measured(4)
 
     def test_none_is_a_measured_zero(self) -> None:
-        issues = data_quality_issues(connection_states=(), missing_invoices=0, keys_without_project=0)
+        issues = data_quality_issues(connection_states=(), missing_invoices=0, accounts_double_counted=0, keys_without_project=0)
 
         assert _issue(issues, "keys_without_project").state == Measured(0)
 
@@ -89,7 +93,7 @@ class TestUnmatchedPeople:
     """
 
     def test_it_is_reported_as_unmeasurable_rather_than_zero(self) -> None:
-        issues = data_quality_issues(connection_states=(), missing_invoices=0, keys_without_project=0)
+        issues = data_quality_issues(connection_states=(), missing_invoices=0, accounts_double_counted=0, keys_without_project=0)
         state = _issue(issues, "unmatched_people").state
 
         assert isinstance(state, Unmeasurable)
@@ -98,7 +102,7 @@ class TestUnmatchedPeople:
     def test_it_says_what_is_missing_rather_than_just_declining(self) -> None:
         """"Unknown" on a page asking whether the data can be trusted is only useful with the
         reason attached, because the reason is the thing somebody has to go and fix."""
-        issues = data_quality_issues(connection_states=(), missing_invoices=0, keys_without_project=0)
+        issues = data_quality_issues(connection_states=(), missing_invoices=0, accounts_double_counted=0, keys_without_project=0)
         state = _issue(issues, "unmatched_people").state
 
         assert isinstance(state, Unmeasurable)
@@ -107,14 +111,14 @@ class TestUnmatchedPeople:
 
 class TestTheListItself:
     def test_every_issue_the_blueprint_names_appears(self) -> None:
-        issues = data_quality_issues(connection_states=(), missing_invoices=0, keys_without_project=0)
+        issues = data_quality_issues(connection_states=(), missing_invoices=0, accounts_double_counted=0, keys_without_project=0)
 
         assert tuple(issue.key for issue in issues) == ISSUE_KEYS
 
     def test_each_one_says_where_it_is_fixed(self) -> None:
         """A count with nowhere to go is a complaint. The blueprint's issues list links to the page
         that fixes each one."""
-        issues = data_quality_issues(connection_states=(), missing_invoices=0, keys_without_project=0)
+        issues = data_quality_issues(connection_states=(), missing_invoices=0, accounts_double_counted=0, keys_without_project=0)
 
         for issue in issues:
             assert issue.fix_on, issue.key
@@ -124,15 +128,16 @@ class TestTheListItself:
         busy = data_quality_issues(
             connection_states=("needs_attention",),
             missing_invoices=1,
+            accounts_double_counted=0,
             keys_without_project=9,
         )
-        quiet = data_quality_issues(connection_states=(), missing_invoices=0, keys_without_project=0)
+        quiet = data_quality_issues(connection_states=(), missing_invoices=0, accounts_double_counted=0, keys_without_project=0)
 
         assert tuple(i.key for i in busy) == tuple(i.key for i in quiet)
 
     @pytest.mark.parametrize("key", ISSUE_KEYS)
     def test_no_issue_is_silently_dropped(self, key: str) -> None:
-        issues = data_quality_issues(connection_states=(), missing_invoices=0, keys_without_project=0)
+        issues = data_quality_issues(connection_states=(), missing_invoices=0, accounts_double_counted=0, keys_without_project=0)
 
         assert key in {issue.key for issue in issues}
 
@@ -144,6 +149,7 @@ class TestWhatNeedsAttentionOverall:
         issues = data_quality_issues(
             connection_states=("needs_attention",),
             missing_invoices=1,
+            accounts_double_counted=0,
             keys_without_project=0,
         )
 
@@ -154,7 +160,7 @@ class TestWhatNeedsAttentionOverall:
         shows it so nobody mistakes the number for the whole picture."""
         from token_iq.overview.data_quality import issues_to_fix
 
-        issues = data_quality_issues(connection_states=(), missing_invoices=0, keys_without_project=0)
+        issues = data_quality_issues(connection_states=(), missing_invoices=0, accounts_double_counted=0, keys_without_project=0)
 
         assert issues_to_fix(issues) == 0
 
@@ -196,3 +202,49 @@ class TestInvoiceCoverage:
 
         assert coverage == NothingBilled()
         assert not isinstance(coverage, InvoicesCovered)
+
+
+class TestFiguresTwoAccountsBothReported:
+    """The fourth de-duplication rule, and the only one nothing else enforces.
+
+    It reaches this list rather than dropping a fact, because no provider says which of its
+    accounts a credential reads: two connections covering one account cannot be told from two
+    covering two, and a wrong deletion halves a bill with nothing to show it was halved.
+    """
+
+    def test_it_is_counted_and_sends_the_reader_to_the_accounts(self) -> None:
+        issues = data_quality_issues(
+            connection_states=(),
+            missing_invoices=0,
+            accounts_double_counted=3,
+            keys_without_project=0,
+        )
+        found = next(issue for issue in issues if issue.key == "accounts_double_counted")
+
+        assert found.state == Measured(3)
+        assert found.fix_on == "data-sources"
+
+    def test_none_found_is_a_measured_zero_rather_than_unmeasurable(self) -> None:
+        # Unlike matching people across accounts, this question can be answered from what is
+        # stored, so a zero here means looked at and none found.
+        issues = data_quality_issues(
+            connection_states=(),
+            missing_invoices=0,
+            accounts_double_counted=0,
+            keys_without_project=0,
+        )
+        found = next(issue for issue in issues if issue.key == "accounts_double_counted")
+
+        assert found.state == Measured(0)
+
+    def test_it_counts_towards_what_needs_fixing(self) -> None:
+        from token_iq.overview.data_quality import issues_to_fix
+
+        issues = data_quality_issues(
+            connection_states=(),
+            missing_invoices=0,
+            accounts_double_counted=2,
+            keys_without_project=0,
+        )
+
+        assert issues_to_fix(issues) == 1

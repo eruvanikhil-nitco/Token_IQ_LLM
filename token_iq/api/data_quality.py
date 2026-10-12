@@ -146,6 +146,7 @@ async def data_quality(
             account.state for connection in connections.providers for account in connection.accounts
         ),
         missing_invoices=missing_invoices,
+        accounts_double_counted=await repository.accounts_double_counted(start, end),
         keys_without_project=await repository.keys_without_project(),
     )
     coverage: Final = invoice_coverage(

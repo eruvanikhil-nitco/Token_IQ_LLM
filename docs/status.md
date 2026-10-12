@@ -3324,3 +3324,35 @@ Checked against the running proxy: all fourteen serve, including the one that fi
 
 What is left of that difference is the six files where the engine calls product policy inline while
 serving a request, which needs an interface per hook and a decision record of its own.
+
+## 12 Oct 2026: the fourth de-duplication rule, which nothing enforced
+
+Build step 3 task 2. Three of the four rules that stop this product counting money twice were
+already enforced, and none of them said so anywhere: a re-fetched fact by a unique `fact_key` in the
+database, tool money already on a provider bill and a gateway figure against a provider's by the
+cost line's own type. `token_iq/truth/dedup.py` names all four and where each lives, which is most
+of the value, because the next person adding a source needs to know which rules already cover it.
+
+The fourth is two connections covering one provider account: a management account and a member of
+it, an organisation key and a project key, or a key rotated by connecting the new one and forgetting
+the old. It cannot be detected properly, because no connector learns the provider's own account
+identifier. Two credentials reading one account look exactly like two credentials reading two, and a
+development account beside a production account is ordinary.
+
+What is distinguishable is the figure. The same amount, to every digit, for one day, model, meter
+and currency under two account names is one account read twice. Zero is excluded, or every unused
+model in an estate lands on the list and the list stops being read.
+
+Nothing is dropped, which is decision 0024. A wrong suspicion costs one look at a provider console;
+a wrong deletion halves a bill and nothing downstream can tell, because reconciliation would then
+blame the provider for an invoice larger than the ledger while every figure still added up. Nobody
+questions a number that went down.
+
+It surfaces as a fifth issue on Data Sources > Overview, counted, pointing at the Accounts tab.
+Proved live: a second credential's copy of two real facts took the issue to 2 and the things-to-fix
+count from 3 to 4, and removing the rows took both back, leaving 50 facts and 0.00780515 as before.
+
+One environmental thing worth remembering. The new query failed with a 500 while readiness still
+reported healthy: Postgres had run out of connections after a day of proxy restarts, and the
+readiness check answers on a connection it already holds. A brand-new query failing while
+everything else works is the pool, not the query.

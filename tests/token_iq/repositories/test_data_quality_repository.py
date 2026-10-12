@@ -228,3 +228,82 @@ class TestWhenTheCountCannotBeRead:
 
         with pytest.raises(ValidationError):
             await repo.providers_billing(START, END)
+
+
+class TestFiguresTwoAccountsBothReported:
+    """The one de-duplication rule nothing else enforces, counted in SQL.
+
+    The rule and the reason it reports rather than drops are in `token_iq/truth/dedup.py`. What is
+    asserted here is that the query asks the question that rule describes, because a GROUP BY that
+    forgets one of its columns silently reports every account pair on a provider as a duplicate.
+    """
+
+    @pytest.mark.asyncio
+    async def test_reads_the_count(self) -> None:
+        repo, _ = _repo([{"count": 2}])
+
+        assert await repo.accounts_double_counted(START, END) == 2
+
+    @pytest.mark.asyncio
+    async def test_no_rows_is_none_found(self) -> None:
+        repo, _ = _repo([])
+
+        assert await repo.accounts_double_counted(START, END) == 0
+
+    @pytest.mark.asyncio
+    async def test_it_passes_the_period_it_was_given(self) -> None:
+        repo, client = _repo([{"count": 0}])
+        await repo.accounts_double_counted(START, END)
+
+        assert client.db.args[0] == (START.isoformat(), END.isoformat())
+
+    async def test_the_period_filters_the_facts_rather_than_being_carried_along(self) -> None:
+        # Passing the dates and not filtering on them reports duplicates from every period a
+        # customer has ever had, on a tab asking whether this period's data can be trusted.
+        repo, client = _repo([{"count": 0}])
+        await repo.accounts_double_counted(START, END)
+
+        asked = client.db.queries[0].lower()
+        assert "f.bucket_start >= $1" in asked
+        assert "f.bucket_start < $2" in asked
+
+    @pytest.mark.asyncio
+    async def test_a_figure_counts_only_when_two_accounts_reported_it(self) -> None:
+        # Without the distinct count, one account's own rows for a day are reported as duplicates
+        # of each other and every provider with any spend lands on the list.
+        repo, client = _repo([{"count": 0}])
+        await repo.accounts_double_counted(START, END)
+
+        asked = client.db.queries[0].lower()
+        assert "count(distinct f.credential_name) > 1" in asked
+
+    @pytest.mark.asyncio
+    async def test_it_groups_on_everything_that_makes_a_figure_the_same_figure(self) -> None:
+        """Day, model, meter, currency and amount. Drop any one and two accounts that both billed
+        on a day are reported as covering each other, which is most customers."""
+        repo, client = _repo([{"count": 0}])
+        await repo.accounts_double_counted(START, END)
+
+        asked = client.db.queries[0].lower()
+        for column in ("f.bucket_start", "f.model", "f.meter", "f.billing_currency"):
+            assert column in asked, column
+
+    @pytest.mark.asyncio
+    async def test_the_amount_is_compared_as_a_number_rather_than_as_stored_text(self) -> None:
+        # The column is text so the digits survive, and "5.00" and "5.0" are the one figure they
+        # are. Grouped as text they would be two, and a real duplicate would go unreported.
+        repo, client = _repo([{"count": 0}])
+        await repo.accounts_double_counted(START, END)
+
+        # Asserted on the grouped column, not merely somewhere in the statement: the zero check
+        # casts too, so a cast lost from the select list would pass an "is it mentioned" test.
+        assert "f.billed_cost::numeric as amount" in client.db.queries[0].lower()
+
+    @pytest.mark.asyncio
+    async def test_a_figure_of_zero_is_never_reported(self) -> None:
+        """Two accounts reporting nothing against a model is the commonest figure a provider
+        publishes. Pairing those teaches a reader to ignore the list."""
+        repo, client = _repo([{"count": 0}])
+        await repo.accounts_double_counted(START, END)
+
+        assert "<> 0" in client.db.queries[0]

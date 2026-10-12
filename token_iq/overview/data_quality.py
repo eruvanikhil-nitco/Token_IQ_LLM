@@ -55,6 +55,7 @@ class DataQualityIssue:
 ISSUE_KEYS: Final[tuple[str, ...]] = (
     "failing_connections",
     "missing_invoices",
+    "accounts_double_counted",
     "unmatched_people",
     "keys_without_project",
 )
@@ -65,9 +66,10 @@ def data_quality_issues(
     *,
     connection_states: Sequence[str],
     missing_invoices: int,
+    accounts_double_counted: int,
     keys_without_project: int,
 ) -> tuple[DataQualityIssue, ...]:
-    """The four issues, each either counted or declared unmeasurable.
+    """The issues, each either counted or declared unmeasurable.
 
     Takes the facts rather than fetching them, so the rule about what counts as a problem is
     testable without a database and lives in one place instead of in each screen that asks.
@@ -89,6 +91,18 @@ def data_quality_issues(
             # Invoice Reconciliation, so sending somebody here to fix one would be the wrong page.
             state=Measured(missing_invoices),
             fix_on="ledger",
+        ),
+        DataQualityIssue(
+            key="accounts_double_counted",
+            title="Figures two accounts both reported",
+            # The fourth de-duplication rule, and the only one nothing else enforces. No provider
+            # tells us which of its accounts a credential reads, so two connections covering one
+            # account cannot be told from two covering two. What can be told is the figure: the
+            # same amount, to every digit, for one day and one meter under two accounts. Reported
+            # rather than dropped, because the answer belongs to the customer and a wrong deletion
+            # halves a bill with nothing to show it was halved.
+            state=Measured(accounts_double_counted),
+            fix_on="data-sources",
         ),
         DataQualityIssue(
             key="unmatched_people",

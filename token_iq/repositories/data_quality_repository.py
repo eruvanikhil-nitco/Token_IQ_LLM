@@ -55,6 +55,34 @@ provider.
 """
 
 
+_ACCOUNTS_DOUBLE_COUNTED_SQL: Final = """
+    SELECT COUNT(*)::int AS count
+      FROM (
+            SELECT f.provider,
+                   f.bucket_start,
+                   f.model,
+                   f.meter,
+                   f.billing_currency,
+                   f.billed_cost::numeric AS amount
+              FROM "LiteLLM_ProviderUsageFact" f
+             WHERE f.bucket_start >= $1::timestamp
+               AND f.bucket_start < $2::timestamp
+               AND f.billed_cost::numeric <> 0
+             GROUP BY 1, 2, 3, 4, 5, 6
+            HAVING COUNT(DISTINCT f.credential_name) > 1
+           ) AS doubled
+"""
+"""Figures that two or more connections on one provider both reported.
+
+Grouped on the amount as a number rather than as the stored text, so "5.00" and "5.0" are the one
+figure they are. Zero is excluded because two accounts reporting nothing against a model is the
+commonest figure a provider publishes, and pairing those would put a risk on the list for every
+unused model a customer has.
+
+The rule and the reason it reports rather than drops are in `token_iq/truth/dedup.py`.
+"""
+
+
 class _CountRow(BaseModel):
     """One row of a `SELECT COUNT(...) AS count` result.
 
@@ -108,6 +136,10 @@ class DataQualityRepository:
 
     async def providers_billing(self, start: datetime, end: datetime) -> int:
         return await self._count(_PROVIDERS_BILLING_SQL, start.isoformat(), end.isoformat())
+
+    async def accounts_double_counted(self, start: datetime, end: datetime) -> int:
+        """How many figures two or more connections on one provider both reported."""
+        return await self._count(_ACCOUNTS_DOUBLE_COUNTED_SQL, start.isoformat(), end.isoformat())
 
     async def providers_missing_invoice_names(self, start: datetime, end: datetime) -> tuple[str, ...]:
         rows: Final = await self._rows(

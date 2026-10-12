@@ -138,21 +138,55 @@ where the handlers are plain functions, a helper named after the thing it serves
 
 ## Task 2: De-duplication, with each rule named
 
-- [ ] **Step 1: A test per rule, because each one hides a different double count**
+- [x] **Step 1: A test per rule, because each one hides a different double count**
 
 Four rules, and they are not variations of one: a re-fetched fact (`fact_key`, already enforced by
 the database), a tool row whose money is already on a provider bill (`basis`), two provider accounts
 covering the same spend, and the provider total against the gateway's own. The last one is the
 counting rule and belongs to task 1; the third has nothing enforcing it today.
 
-- [ ] **Step 2: `token_iq/truth/dedup.py`, and a decision record for the third rule**
+- [x] **Step 2: `token_iq/truth/dedup.py`, and a decision record for the third rule**
 
 Two credentials reading one account is a real configuration: a customer connects a management
 account and a member account, or re-connects after a key rotation without removing the old
 connection. Whatever the rule is, it has to be stated and visible, because the symptom is a bill
 that reads double and still reconciles against nothing.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
+
+### What task 2 found
+
+**Three of the four rules were already enforced, in three different places, and none of them said
+so.** A re-fetched fact is stopped by a unique `fact_key` in the database. Tool money already on a
+provider bill, and a gateway figure against a provider's, are both stopped by the cost line's type
+from task 1. Naming all four in one place is most of this task's value: the next person to add a
+source needs to know which rules already cover it and which do not.
+
+**The fourth cannot be detected properly, and that is a fact about the providers.** No connector
+learns the provider's own account identifier, so two credentials reading one AWS account look
+exactly like two credentials reading two separate accounts. A development account beside a
+production account is ordinary, so there is no safe inference from the credentials alone.
+
+**What is distinguishable is the figure.** The same amount, to every digit, for one day, model,
+meter and currency, under two account names, is one account read twice. Zero is excluded, because
+two accounts reporting nothing against a model is the commonest figure a provider publishes, and
+pairing those would put a row on the list for every unused model in an estate.
+
+**Nothing is dropped, which is decision 0024.** The costs are asymmetric and only one direction is
+visible. A wrong suspicion costs a reader one look at their provider console. A wrong deletion
+halves a bill, and nothing downstream can tell: reconciliation would report the invoice as larger
+than the ledger and blame the provider, while every figure still added up internally. Nobody
+questions a number that went down.
+
+**It surfaces where the product already asks a person to act**, as a fifth data-quality issue on
+Data Sources > Overview, counted and pointing at the Accounts tab. Proved live by inserting a
+second credential's copy of two real facts: the issue went to 2 and the things-to-fix count from 3
+to 4, then both back when the rows were removed, with the fact table as it was.
+
+**Found on the way: the dev database had run out of connections.** "FATAL: sorry, too many clients
+already" after a day of restarts, which showed up as the new query returning a 500 while the
+proxy's own readiness check still said healthy, because that check answers on a connection it
+already holds. A brand-new query failing while everything else works is the pool, not the query.
 
 ---
 
