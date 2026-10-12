@@ -168,6 +168,31 @@ def _invoice_response(invoice: ProviderInvoice) -> InvoiceResponse:
     )
 
 
+def invoice_from_body(body: InvoiceBody) -> ProviderInvoice:
+    """The bill as it will be stored.
+
+    The period end goes through the same widening every read of a period applies, which is the
+    whole point of it being one function. `for_period` matches a period exactly, so a bill stored
+    with a bare date left at midnight is not the bill a reconciliation request for that same date
+    looks up: the month reads "no bill entered for this period yet" with the bill sitting in the
+    table. The coverage query fails the same way, counting a fully invoiced provider as missing
+    because its final day falls outside its own invoice.
+    """
+    return ProviderInvoice(
+        invoice_id="",
+        provider=body.provider,
+        period_start=_day_or_400(body.period_start, "period_start"),
+        period_end=_period_end_or_400(body.period_end, "period_end"),
+        currency=body.currency,
+        total=_amount_or_400(body.total, "total"),
+        adjustments=tuple(
+            InvoiceAdjustment(kind=a.kind, amount=_amount_or_400(a.amount, f"adjustment {a.kind}"), note=a.note)
+            for a in body.adjustments
+        ),
+        note=body.note,
+    )
+
+
 def _reconciliation_note(result: Reconciliation, ledger_totals: Mapping[str, Decimal]) -> str:
     """The sentence that says what the numbers cannot.
 
@@ -283,21 +308,7 @@ async def upsert_invoice(
     if prisma_client is None:
         raise _proxy_error(status.HTTP_500_INTERNAL_SERVER_ERROR, CommonProxyErrors.db_not_connected_error.value)
 
-    stored: Final = await InvoiceRepository(prisma_client).upsert(
-        ProviderInvoice(
-            invoice_id="",
-            provider=body.provider,
-            period_start=_day_or_400(body.period_start, "period_start"),
-            period_end=_day_or_400(body.period_end, "period_end"),
-            currency=body.currency,
-            total=_amount_or_400(body.total, "total"),
-            adjustments=tuple(
-                InvoiceAdjustment(kind=a.kind, amount=_amount_or_400(a.amount, f"adjustment {a.kind}"), note=a.note)
-                for a in body.adjustments
-            ),
-            note=body.note,
-        )
-    )
+    stored: Final = await InvoiceRepository(prisma_client).upsert(invoice_from_body(body))
     if stored is None:
         raise _proxy_error(
             status.HTTP_500_INTERNAL_SERVER_ERROR,

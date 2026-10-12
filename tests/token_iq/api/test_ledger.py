@@ -203,3 +203,77 @@ def test_a_period_start_is_still_the_first_instant_of_its_day() -> None:
     start: Final = _day_or_400("2026-09-01", "period_start")
     assert start.hour == 0
     assert start.minute == 0
+
+
+class TestABillEnteredIsTheBillReconciliationLooksUp:
+    """The entered bill and the period a read asks about have to be the same instants.
+
+    `for_period` matches a period exactly. A bill stored with its end left at midnight is not the
+    bill a reconciliation request for that same date looks up, so the month reports "no bill entered
+    for this period yet" while the bill sits in the table, and the coverage query counts a fully
+    invoiced provider as missing because its final day falls outside its own invoice. Nothing in a
+    status code or a response field shows it: both calls succeed.
+    """
+
+    def test_a_month_entered_as_dates_covers_its_final_day(self) -> None:
+        from token_iq.api.ledger import invoice_from_body
+
+        entered: Final = invoice_from_body(
+            InvoiceBody(provider="openrouter", period_start="2026-09-01", period_end="2026-09-30", total="123.45")
+        )
+
+        assert entered.period_end == datetime(2026, 9, 30, 23, 59, 59, 999000, tzinfo=timezone.utc)
+
+    def test_the_stored_period_is_the_period_a_read_of_the_same_dates_asks_for(self) -> None:
+        from token_iq.api.ledger import _day_or_400, _period_end_or_400, invoice_from_body
+
+        entered: Final = invoice_from_body(
+            InvoiceBody(provider="openrouter", period_start="2026-09-01", period_end="2026-09-30", total="1")
+        )
+
+        assert (entered.period_start, entered.period_end) == (
+            _day_or_400("2026-09-01", "period_start"),
+            _period_end_or_400("2026-09-30", "period_end"),
+        )
+
+    def test_the_first_day_of_the_month_is_inside_the_period_it_was_entered_for(self) -> None:
+        # The coverage query asks `period_start <= bucket_start`, so a start pushed past midnight
+        # would leave the first day of the month uncovered by its own invoice.
+        from token_iq.api.ledger import invoice_from_body
+
+        entered: Final = invoice_from_body(
+            InvoiceBody(provider="openrouter", period_start="2026-09-01", period_end="2026-09-30", total="1")
+        )
+
+        assert entered.period_start == datetime(2026, 9, 1, tzinfo=timezone.utc)
+
+    def test_an_end_that_names_a_time_is_stored_as_the_time_it_names(self) -> None:
+        from token_iq.api.ledger import invoice_from_body
+
+        entered: Final = invoice_from_body(
+            InvoiceBody(
+                provider="openrouter",
+                period_start="2026-09-01",
+                period_end="2026-09-15T12:00:00+00:00",
+                total="1",
+            )
+        )
+
+        assert entered.period_end == datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
+
+    def test_every_figure_on_the_bill_survives_as_exact_digits(self) -> None:
+        from token_iq.api.ledger import invoice_from_body
+
+        entered: Final = invoice_from_body(
+            InvoiceBody(
+                provider="openrouter",
+                period_start="2026-09-01",
+                period_end="2026-09-30",
+                total="48210.07",
+                adjustments=({"kind": "credit", "amount": "400.01"},),  # pyright: ignore[reportArgumentType]  # pydantic coerces the mapping
+                note="task 4",
+            )
+        )
+
+        assert entered.total == Decimal("48210.07")
+        assert entered.adjustments[0].amount == Decimal("400.01")
