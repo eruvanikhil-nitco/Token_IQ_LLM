@@ -2,6 +2,7 @@
 
 import React, { Suspense, useState, useRef, useEffect } from "react";
 import { DashboardHeader } from "@/components/DashboardHeader";
+import { PeriodProvider } from "@/app/(dashboard)/_scope/PeriodContext";
 import Navbar from "@/components/navbar";
 import LoadingScreen from "@/components/common_components/LoadingScreen";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -135,6 +136,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   // sidebar owns its own scroll and the content column scrolls independently,
   // so the page can't be dragged past the end of the nav.
   return (
+    <PeriodProvider>
     <div className="flex h-screen overflow-hidden bg-background">
       <SidebarProvider
         setPage={navigateToPage}
@@ -151,6 +153,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         <main className="min-w-0 flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
+    </PeriodProvider>
   );
 }
 

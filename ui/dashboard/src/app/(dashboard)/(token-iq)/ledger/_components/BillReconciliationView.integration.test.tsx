@@ -72,16 +72,11 @@ vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
   default: () => ({ accessToken: "sk-test", userRole: "proxy_admin" }),
 }));
 
-const renderView = (extra: { enterBillHref?: string } = {}) => {
+const renderView = (extra: { enterBillHref?: string; periodStart?: string; periodEnd?: string } = {}) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <BillReconciliationView
-        provider="openrouter"
-        periodStart="2026-09-01"
-        periodEnd="2026-09-30"
-        {...extra}
-      />
+      <BillReconciliationView provider="openrouter" periodStart="2026-09-01" periodEnd="2026-09-30" {...extra} />
     </QueryClientProvider>,
   );
 };
@@ -174,7 +169,7 @@ describe("BillReconciliationView", () => {
 
     const sum = Number(OVER.invoice_total) + Number(OVER.ledger_total);
     for (const digits of [2, 4, 6, 8]) {
-      expect(screen.queryByText(new RegExp(sum.toFixed(digits).replace(".", "\.")))).not.toBeInTheDocument();
+      expect(screen.queryByText(new RegExp(sum.toFixed(digits).replace(".", ".")))).not.toBeInTheDocument();
     }
   });
 
@@ -188,6 +183,34 @@ describe("BillReconciliationView", () => {
 
     expect(action).toHaveAttribute("href", expect.stringContaining("data-sources/uploads"));
     expect(action).toHaveAttribute("href", expect.stringContaining("month=2026-09"));
+  });
+
+  it("says the comparison is unsound when the period is not a whole month", async () => {
+    // A bill covers the month. Compared against part of one, the difference is the size of the days
+    // that have not happened yet, and a reader reads that as the provider overcharging them.
+    reconciliationCall.mockResolvedValue(OVER);
+    renderView({ periodStart: "2026-09-01", periodEnd: "2026-09-12" });
+
+    const warning = await screen.findByText(/covers a whole month/i);
+    expect(warning).toHaveTextContent("2026-09-01");
+    expect(warning).toHaveTextContent("2026-09-12");
+  });
+
+  it("says nothing of the sort when the period is the whole month", async () => {
+    reconciliationCall.mockResolvedValue(OVER);
+    renderView();
+    await screen.findByText("The bill says");
+
+    expect(screen.queryByText(/covers a whole month/i)).not.toBeInTheDocument();
+  });
+
+  it("warns about the period before showing the difference it distorts", async () => {
+    reconciliationCall.mockResolvedValue(OVER);
+    renderView({ periodStart: "2026-09-01", periodEnd: "2026-09-12" });
+
+    const warning = await screen.findByText(/covers a whole month/i);
+    const unexplained = screen.getByText("Unexplained");
+    expect(warning.compareDocumentPosition(unexplained) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("offers no such action when a bill is already there", async () => {

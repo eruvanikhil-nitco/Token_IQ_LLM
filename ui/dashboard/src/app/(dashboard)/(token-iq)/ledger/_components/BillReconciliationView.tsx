@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useReconciliation } from "@/app/(dashboard)/hooks/ledger/useReconciliation";
+import { isWholeMonth } from "@/app/(dashboard)/_scope/period";
 import { ADJUSTMENT_LABEL, OUTCOME_LABEL, formatAmount, hasRemainder, remainderDirection } from "./ledgerDisplay";
 
 interface BillReconciliationViewProps {
@@ -29,6 +30,7 @@ export default function BillReconciliationView({
   if (!data) return null;
 
   const direction = remainderDirection(data.unexplained);
+  const partOfAMonth = !isWholeMonth({ start: periodStart, end: periodEnd });
 
   return (
     <div className="flex flex-col gap-4">
@@ -36,10 +38,17 @@ export default function BillReconciliationView({
           accounts of the same spend, so their sum means nothing. Only the gap between them does. */}
       <p className="text-sm text-muted-foreground">
         What this provider invoiced for the period, against what the ledger recorded for it.
-        <strong> These two are never added together:</strong> they are two accounts of the same spend, and only
-        the difference between them is worth reading. Credits, tax and commitments explain part of it; whatever
-        is left is unexplained and needs a person.
+        <strong> These two are never added together:</strong> they are two accounts of the same spend, and only the
+        difference between them is worth reading. Credits, tax and commitments explain part of it; whatever is left is
+        unexplained and needs a person.
       </p>
+      {partOfAMonth && (
+        <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-800 dark:bg-amber-950">
+          A bill covers a whole month, and this period runs from {periodStart} to {periodEnd}. The difference below
+          includes every day of the month that is not in it, so read it as incomplete rather than as a problem with the
+          bill. Choose a whole month in the top bar to compare like with like
+        </p>
+      )}
       <Card className="p-4">
         <p className="text-sm text-muted-foreground">Outcome</p>
         <p className="text-xl font-semibold">{OUTCOME_LABEL[data.outcome]}</p>

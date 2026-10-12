@@ -10,10 +10,11 @@ Two numbering systems run in parallel and they are easy to confuse.
 
 **The product build order**, from section 13 of the blueprint, is the one that says what a
 customer gets next. Step 0 (an independent codebase) is done, step 1 (the Data Sources page and
-the connect dialog) is done, step 2 (the quick fixes) is done, and **step 3 is in progress: the
-truth layer and Pricing & Rates**, planned in
-`docs/plans/2026-10-12-blueprint-step-3-truth-layer.md`, five tasks, the first of them committed.
-Steps 4 to 10 have not started.
+the connect dialog) is done, step 2 (the quick fixes) is done, step 3 (the truth layer and
+Pricing & Rates) is done, and **step 4 is in progress: the app shell, the eight roles, page
+guides and Cost Explorer**, planned in
+`docs/plans/2026-10-12-blueprint-step-4-shell-roles-explorer.md`, six tasks, the first of them
+committed. Steps 5 to 10 have not started.
 
 **The codebase programme**, phases 0 to 10 of
 `docs/plans/2026-10-04-independent-codebase.md`, is the fork becoming its own product. Phases 0
@@ -23,7 +24,7 @@ seam for the old names is in. Phase 8 step 1 is done and step 2, the database ta
 behind a runbook. Phase 9, the navigation labels, finished with the Gateway tab. Phase 10's gate
 is in CI and ratchets as the last two land.
 
-So: build step 3 of 10, task 2 of 5, with the codebase programme complete apart from phase 5
+So: build step 4 of 10, task 2 of 6, with the codebase programme complete apart from phase 5
 (parked) and phase 8 step 2 (deferred, with a runbook).
 
 **Section 11 is the target repository layout, not work and not a phase.** It was checked on 8 Oct
@@ -3477,3 +3478,55 @@ One cost line with one composition, four de-duplication rules each named and the
 surfaced, a customer's own rates with the priced window the counting rule allows, currency without
 an invented rate, and the page that records both. What comes next is build step 4: the app shell,
 the eight roles and Cost Explorer.
+
+## 12 Oct 2026, last: one period for the whole product
+
+Build step 4 task 1. The shell now holds the period, in
+`ui/dashboard/src/app/(dashboard)/_scope/`, and the Overview page, the Ledger and Recommendations
+read it instead of each keeping their own.
+
+They each had a copy of the same helper and the copies disagreed. The Ledger's month ended on the
+last day of the month, the other two ended today, so the headline total and the ledger total
+covered different days and nothing on either screen said so. A reader comparing them was comparing
+month to date against a whole month.
+
+Both are things a reader means, so both are named rather than one being picked: month to date, this
+whole month, last month, the last 30 days, and a month chosen by name. The named month is there
+because deleting the Ledger's own date inputs would otherwise have cost a capability: a month closes
+long after it ends, and a finance team reconciles September in November. The last twelve are
+offered.
+
+Invoice Reconciliation says so when the period is not a whole month. It was the screen the
+disagreement damaged most: a provider's bill covers the month, so comparing it against part of one
+reports a difference the size of the days that have not happened yet, and the screen presented that
+as the provider overcharging. The warning sits above the figures, and a test asserts that order.
+
+The scope proper, organisation and team and project, is not in the bar yet, on purpose. Task 3
+enforces it where the data is read. A picker shipped before that would filter in the browser over an
+endpoint that still returns everything, which is a filter that looks like security.
+
+124 tests pass across the four directories touched, and 5 of 5 mutants were killed: the ledger
+keeping its own end of month, `isWholeMonth` always true, the warning naming no days, the bar's
+choice ignored, and the named month ignoring the month chosen.
+
+**No live proof, because the proxy will not start on this machine today.** Windows Application
+Control blocks the prisma query engine binary with `WinError 4551`, so prisma reports "Not connected
+to the query engine" and startup exits before any route is served. The dev-up script's own checks
+all pass first, which makes the log read as a database fault when it is a policy block on one
+unsigned file. It needs an allow rule for
+`~/.cache/prisma-python/binaries/5.4.2/<hash>/node_modules/prisma/query-engine-windows.exe` from
+whoever administers that policy.
+
+To check it by hand once the proxy runs, with the dashboard dev server on port 3000:
+
+1. Open `http://localhost:3000/ui/overview`. The top bar has a Period control reading "Month to
+   date" with the days it covers beside it
+2. Note the total, then open `http://localhost:3000/ui/ledger`. The ledger says which period it is
+   showing and names the same two days. Before this change the two pages disagreed here
+3. Change the top bar to "This whole month". Both pages follow it, and the Overview total does not
+   change until the month has days left in it that carry spend
+4. On the Ledger, open Bill Reconciliation with the period set to "Month to date". An amber note
+   says a bill covers a whole month and names the days the period actually covers. Switch to "This
+   whole month" and the note goes
+5. Choose "A month I choose" and pick a closed month. Both pages ask for that whole month, which is
+   what the Ledger's own date inputs used to be needed for

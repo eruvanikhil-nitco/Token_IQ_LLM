@@ -9,27 +9,20 @@ import { BILLING_PROVIDERS } from "@/components/model_add/credential_form_helper
 import BillReconciliationView from "./BillReconciliationView";
 import CostLedgerView from "./CostLedgerView";
 import InvoicesView from "./InvoicesView";
-import {
-  enterBillHref,
-  monthOfPeriod,
-} from "@/app/(dashboard)/(token-iq)/data-sources/_components/invoiceSubmit";
+import { enterBillHref, monthOfPeriod } from "@/app/(dashboard)/(token-iq)/data-sources/_components/invoiceSubmit";
 import SeatsView from "./SeatsView";
-
-/** The month that has most likely finished billing, which is the one a reader wants first. */
-const defaultPeriod = (): { start: string; end: string } => {
-  const now = new Date();
-  const first = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const last = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0));
-  return { start: first.toISOString().slice(0, 10), end: last.toISOString().slice(0, 10) };
-};
+import { usePeriod } from "@/app/(dashboard)/_scope/PeriodContext";
 
 export default function LedgerTabs() {
-  const period = defaultPeriod();
+  // The period comes from the scope bar in the top bar rather than from controls on this page.
+  // There were three copies of a period helper and they disagreed: this page ran to the end of the
+  // month while the Overview page ran to today, so the two totals described different periods.
+  const { period } = usePeriod();
+  const periodStart = period.start;
+  const periodEnd = period.end;
   const [provider, setProvider] = useState<string>(BILLING_PROVIDERS[0].value);
   // Controlled, so an empty state can move the reader to the tab that fills it.
   const [tab, setTab] = useState("ledger");
-  const [periodStart, setPeriodStart] = useState(period.start);
-  const [periodEnd, setPeriodEnd] = useState(period.end);
 
   return (
     <div className="flex flex-col gap-6">
@@ -53,26 +46,9 @@ export default function LedgerTabs() {
             </SelectContent>
           </Select>
         </div>
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Period start</span>
-          <input
-            aria-label="Period start"
-            type="date"
-            className="h-9 rounded-md border bg-background px-2"
-            value={periodStart}
-            onChange={(event) => setPeriodStart(event.target.value)}
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Period end</span>
-          <input
-            aria-label="Period end"
-            type="date"
-            className="h-9 rounded-md border bg-background px-2"
-            value={periodEnd}
-            onChange={(event) => setPeriodEnd(event.target.value)}
-          />
-        </label>
+        <p className="self-end text-sm text-muted-foreground">
+          {periodStart} to {periodEnd}, from the period in the top bar
+        </p>
       </div>
 
       <Tabs value={tab} onValueChange={(next) => next !== null && setTab(next)}>

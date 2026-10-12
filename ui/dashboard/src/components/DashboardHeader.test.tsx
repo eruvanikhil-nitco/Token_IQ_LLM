@@ -65,8 +65,10 @@ describe("DashboardHeader breadcrumb", () => {
     const { container } = render(<DashboardHeader page="logs" />);
 
     const separators = container.querySelectorAll('[data-slot="separator"][data-orientation="vertical"]');
-    expect(separators).toHaveLength(1);
-    expect(separators[0].className).not.toMatch(/self-stretch/);
-    expect(separators[0].className).toContain("data-vertical:self-center");
+    expect(separators.length).toBeGreaterThan(0);
+    for (const separator of separators) {
+      expect(separator.className).not.toMatch(/self-stretch/);
+      expect(separator.className).toContain("data-vertical:self-center");
+    }
   });
 });

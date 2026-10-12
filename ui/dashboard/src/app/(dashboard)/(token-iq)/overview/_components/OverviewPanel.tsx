@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+
+import { usePeriod } from "@/app/(dashboard)/_scope/PeriodContext";
 
 import { useOverview } from "@/app/(dashboard)/hooks/overview/useOverview";
 import { Badge } from "@/components/ui/badge";
@@ -17,13 +18,6 @@ import {
   formatShare,
   formatSynced,
 } from "./overviewDisplay";
-
-/** The month so far, which is the period someone opening this page is asking about. */
-const defaultPeriod = (): { start: string; end: string } => {
-  const now = new Date();
-  const first = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  return { start: first.toISOString().slice(0, 10), end: now.toISOString().slice(0, 10) };
-};
 
 const TONE_BADGE = {
   good: "secondary",
@@ -48,9 +42,11 @@ function Stat({ label, value, note }: { label: string; value: string; note?: Rea
 }
 
 export default function OverviewPanel() {
-  const period = defaultPeriod();
-  const [periodStart, setPeriodStart] = useState(period.start);
-  const [periodEnd, setPeriodEnd] = useState(period.end);
+  // One period for the whole product, from the scope bar: this page used to end its month today
+  // while the Ledger ended on the last day, so the same spend read as two different figures.
+  const { period } = usePeriod();
+  const periodStart = period.start;
+  const periodEnd = period.end;
 
   const { data, isLoading, error } = useOverview(periodStart, periodEnd);
 
@@ -62,28 +58,9 @@ export default function OverviewPanel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Period start</span>
-          <input
-            aria-label="Period start"
-            type="date"
-            className="h-9 rounded-md border bg-background px-2"
-            value={periodStart}
-            onChange={(event) => setPeriodStart(event.target.value)}
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Period end</span>
-          <input
-            aria-label="Period end"
-            type="date"
-            className="h-9 rounded-md border bg-background px-2"
-            value={periodEnd}
-            onChange={(event) => setPeriodEnd(event.target.value)}
-          />
-        </label>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        {periodStart} to {periodEnd}, the period in the top bar
+      </p>
 
       {nothingYet ? (
         <Card className="p-6">
@@ -101,9 +78,7 @@ export default function OverviewPanel() {
           <Stat
             label={`Total spend, ${data.currency}`}
             value={formatAmount(data.total)}
-            note={
-              <p className={`text-xs ${CHANGE_CLASS[changeDirection(data.change)]}`}>{changeLabel(data.change)}</p>
-            }
+            note={<p className={`text-xs ${CHANGE_CLASS[changeDirection(data.change)]}`}>{changeLabel(data.change)}</p>}
           />
           <Stat
             label="Attributed through the gateway"
@@ -117,7 +92,11 @@ export default function OverviewPanel() {
           <Stat
             label="Nobody owns"
             value={formatAmount(data.unallocated)}
-            note={<p className="text-xs text-muted-foreground">{formatShare(data.unallocated_share)} of what providers billed</p>}
+            note={
+              <p className="text-xs text-muted-foreground">
+                {formatShare(data.unallocated_share)} of what providers billed
+              </p>
+            }
           />
           <Stat
             label="Providers billing"

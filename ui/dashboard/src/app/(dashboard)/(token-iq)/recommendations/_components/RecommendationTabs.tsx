@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { usePeriod } from "@/app/(dashboard)/_scope/PeriodContext";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -10,13 +10,6 @@ import {
 } from "@/app/(dashboard)/hooks/recommendations/useRecommendations";
 import RecommendationCard from "./RecommendationCard";
 import type { Recommendation, RecommendationDecision } from "@/components/networking";
-
-/** The month so far, which is the period a reader is deciding about right now. */
-const defaultPeriod = (): { start: string; end: string } => {
-  const now = new Date();
-  const first = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  return { start: first.toISOString().slice(0, 10), end: now.toISOString().slice(0, 10) };
-};
 
 interface CardListProps {
   cards: Recommendation[];
@@ -38,9 +31,10 @@ function CardList({ cards, empty, onDecide, onUndo, busy }: CardListProps) {
 }
 
 export default function RecommendationTabs() {
-  const period = defaultPeriod();
-  const [periodStart, setPeriodStart] = useState(period.start);
-  const [periodEnd, setPeriodEnd] = useState(period.end);
+  // From the scope bar, so a recommendation and the figure it is based on cover the same days.
+  const { period } = usePeriod();
+  const periodStart = period.start;
+  const periodEnd = period.end;
 
   const { data, isLoading, error } = useRecommendations(periodStart, periodEnd);
   const decide = useDecideRecommendation();
@@ -55,28 +49,9 @@ export default function RecommendationTabs() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Period start</span>
-          <input
-            aria-label="Period start"
-            type="date"
-            className="h-9 rounded-md border bg-background px-2"
-            value={periodStart}
-            onChange={(event) => setPeriodStart(event.target.value)}
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Period end</span>
-          <input
-            aria-label="Period end"
-            type="date"
-            className="h-9 rounded-md border bg-background px-2"
-            value={periodEnd}
-            onChange={(event) => setPeriodEnd(event.target.value)}
-          />
-        </label>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        What is worth doing between {periodStart} and {periodEnd}, the period in the top bar
+      </p>
 
       {isLoading && <p className="text-sm text-muted-foreground">Working out what is worth doing...</p>}
       {error && <p className="text-sm text-destructive">The recommendations could not be read.</p>}

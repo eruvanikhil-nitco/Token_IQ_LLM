@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { ToolbarSeparator } from "@/components/shared/ToolbarSeparator";
 import { getBreadcrumb } from "@/components/leftnav";
+import PeriodPicker from "@/app/(dashboard)/_scope/PeriodPicker";
 import { CommunityEngagementButtons } from "@/components/Navbar/CommunityEngagementButtons/CommunityEngagementButtons";
 import { NotificationsBell } from "@/components/Navbar/NotificationsBell/NotificationsBell";
 import ViewSwitcher from "@/components/Navbar/ViewSwitcher";
@@ -53,7 +54,9 @@ export function DashboardHeader({ page }: DashboardHeaderProps) {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="flex flex-none items-center gap-1">
+      <div className="flex flex-none items-center gap-2">
+        <PeriodPicker />
+        <ToolbarSeparator />
         {showWorkerSwitch && (
           <>
             <WorkerDropdown onWorkerSwitch={handleWorkerSwitch} />
