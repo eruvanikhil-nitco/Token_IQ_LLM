@@ -847,7 +847,7 @@ token-iq/   (repository)
 │  ├─ truth/            the cost line every analysis screen reads
 │  ├─ ledger/  attribution/  overview/  seats/  recommendations/  policy/  pricing/
 │  ├─ repositories/     database access for Token IQ tables
-│  ├─ proxy/            Token IQ hooks inside the gateway  (does not exist: see below)
+│  ├─ proxy/            Token IQ hooks inside the gateway  (routers done, see below)
 │  └─ types/            data types and API schemas
 ├─ token-iq-migrations/ the distribution, holding the token_iq_migrations package
 ├─ schema.prisma        (plus the two synced copies Prisma needs)
@@ -871,17 +871,21 @@ distribution directory, which is how a Python distribution is laid out; `policy/
 `truth/` exist and carry real code; and `deploy/helm/` is gone, deleted by decision rather than
 repointed.
 
-The fifth is architectural and still open. **There is no `token_iq/proxy/`.** Instead eleven engine
-files import Token IQ's own modules directly, which is coupling in the wrong direction: the engine
-should not know what the product is. They split in two.
+The fifth is architectural, and half of it is now closed. The coupling ran the wrong way: the engine
+is inherited code that serves requests, and eleven of its files imported Token IQ's own modules.
 
-- **Router registration**, about fifteen import-and-include pairs inside `proxy_server.py`. One
-  `token_iq/proxy/` module exporting a single `register(app)` would replace all of them, and
-  nothing else about the engine would have to change. This is the cheap half and worth doing.
-- **Behavioural hooks**, in `auth_checks`, `credential_endpoints`, `key_management_endpoints`,
-  `model_management_endpoints`, `team_endpoints` and `pass_through_endpoints`, where the engine
-  calls product policy inline. Inverting these needs an interface per hook so the product registers
-  what the engine then calls, which is a task of its own and earns a decision record.
+- **Router registration: done on 12 Oct 2026.** `token_iq/proxy/routers.py` exports one
+  `register(app)`, and `proxy_server.py` holds one import and one call where it held fourteen
+  import-and-mount pairs. The registry is read off the package, so a module under `token_iq/api/`
+  that declares a router is mounted by existing, and a test asserts every such module's paths reach
+  the app. That test is the point: the old arrangement needed two edits in an
+  eighteen-thousand-line file, and forgetting the second left an endpoint answering 404 while its
+  own tests passed.
+- **Behavioural hooks, still open**, in `auth_checks`, `credential_endpoints`,
+  `key_management_endpoints`, `model_management_endpoints`, `team_endpoints` and
+  `pass_through_endpoints`, where the engine calls product policy inline while serving a request.
+  Inverting these needs an interface per hook so the product registers what the engine then calls,
+  which is a task of its own and earns a decision record.
 
 ---
 

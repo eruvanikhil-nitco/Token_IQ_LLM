@@ -3303,3 +3303,24 @@ is the MIT attribution, so the documented search should exclude it beside `LICEN
 Phase 5's deletions, which also close the search row. The owners of security advisories and
 provider API changes, which have to be named by somebody who can commit people. And phase 8 step 2,
 which now has its runbook and needs a window.
+
+## 12 Oct 2026, last: the product mounts itself on the engine
+
+Section 11's one architectural difference, half closed. `proxy_server.py` held fourteen pairs of
+"import this product router" and "mount this product router", 150 lines apart in an
+eighteen-thousand-line file. Now it holds one import and one call, and `token_iq/proxy/routers.py`
+owns the attachment.
+
+The registry is read off the package rather than typed out: a module under `token_iq/api/` that
+declares a router is one the product means to serve, so it is mounted by existing. The test that
+earns this change asserts every such module's paths reach the app, because the failure the old
+arrangement invited is specific and silent. Adding an endpoint meant two edits in that file, and
+forgetting the second left an endpoint answering 404 with every one of its own tests passing, since
+those tests call the router rather than the app. My own connect endpoint was added that way a day
+ago and only live curls proved it was mounted.
+
+Checked against the running proxy: all fourteen serve, including the one that first looked like a
+404 and was a 422 for a query parameter I had left out of the check.
+
+What is left of that difference is the six files where the engine calls product policy inline while
+serving a request, which needs an interface per hook and a decision record of its own.

@@ -198,30 +198,7 @@ from functools import lru_cache
 
 import token_iq.gateway._redis
 from token_iq import gateway
-from token_iq.api.attribution import router as attribution_router
-from token_iq.api.audit_logs import (
-    router as audit_log_endpoints_router,
-)
-from token_iq.api.combined_usage import router as combined_usage_router
-from token_iq.api.connect import router as connect_router
-from token_iq.api.data_quality import router as data_quality_router
-from token_iq.api.ledger import router as ledger_router
-from token_iq.api.overview import (
-    router as overview_router,
-)
-from token_iq.api.projects import router as project_router
-from token_iq.api.provider_connections import (
-    router as provider_connections_router,
-)
-from token_iq.api.provider_reconciliation import (
-    router as provider_reconciliation_router,
-)
-from token_iq.api.provider_usage import router as provider_usage_router
-from token_iq.api.recommendations import router as recommendations_router
-from token_iq.api.seats import router as seats_router
-from token_iq.api.tool_connections import (
-    router as tool_connections_router,
-)
+from token_iq.proxy import register as register_token_iq
 from token_iq.connectors.billing.scheduled import INTERVAL_SECONDS as PROVIDER_BILLING_INTERVAL_SECONDS
 from token_iq.connectors.billing.scheduled import build_provider_billing_job
 from token_iq.connectors.billing.startup import register_billing_connectors
@@ -18144,19 +18121,8 @@ app.include_router(health_router)
 app.include_router(key_management_router)
 app.include_router(internal_user_router)
 app.include_router(team_router)
-app.include_router(project_router)
-app.include_router(provider_reconciliation_router)
-app.include_router(provider_connections_router)
-app.include_router(data_quality_router)
-app.include_router(connect_router)
-app.include_router(tool_connections_router)
-app.include_router(overview_router)
-app.include_router(provider_usage_router)
-app.include_router(attribution_router)
-app.include_router(combined_usage_router)
-app.include_router(ledger_router)
-app.include_router(seats_router)
-app.include_router(recommendations_router)
+# Token IQ's own endpoints, mounted by the product rather than listed here one by one.
+register_token_iq(app)
 app.include_router(ui_sso_router)
 app.include_router(organization_router)
 app.include_router(customer_router)
@@ -18169,7 +18135,6 @@ app.include_router(debugging_endpoints_router)
 app.include_router(rust_control_plane_router)
 app.include_router(ui_crud_endpoints_router)
 app.include_router(user_banner_endpoints_router)
-app.include_router(audit_log_endpoints_router)
 app.include_router(team_callback_router)
 app.include_router(budget_management_router)
 app.include_router(model_management_router)
