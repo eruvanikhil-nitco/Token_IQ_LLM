@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import BillReconciliationView from "./BillReconciliationView";
@@ -73,7 +72,7 @@ vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
   default: () => ({ accessToken: "sk-test", userRole: "proxy_admin" }),
 }));
 
-const renderView = (extra: { onEnterBill?: () => void } = {}) => {
+const renderView = (extra: { enterBillHref?: string } = {}) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
@@ -180,20 +179,20 @@ describe("BillReconciliationView", () => {
   });
 
   it("offers the way out when no bill has been entered", async () => {
-    // "No bill entered" used to be the whole message, with the form that fixes it in another tab.
-    // A dead end that names no way out is worse than an error, because nothing is obviously broken.
-    const onEnterBill = vi.fn();
+    // "No bill entered" used to be the whole message, with the form that fixes it elsewhere. A
+    // dead end that names no way out is worse than an error, because nothing is obviously broken.
     reconciliationCall.mockResolvedValue(NO_INVOICE);
-    renderView({ onEnterBill });
+    renderView({ enterBillHref: "/ui/data-sources/uploads/?enter=1&provider=openrouter&month=2026-09" });
 
     const action = await screen.findByRole("button", { name: "Enter this bill" });
-    await userEvent.click(action);
-    expect(onEnterBill).toHaveBeenCalledOnce();
+
+    expect(action).toHaveAttribute("href", expect.stringContaining("data-sources/uploads"));
+    expect(action).toHaveAttribute("href", expect.stringContaining("month=2026-09"));
   });
 
   it("offers no such action when a bill is already there", async () => {
     reconciliationCall.mockResolvedValue(BALANCED);
-    renderView({ onEnterBill: vi.fn() });
+    renderView({ enterBillHref: "/ui/data-sources/uploads/?enter=1" });
     await screen.findByText("The bill says");
 
     expect(screen.queryByRole("button", { name: "Enter this bill" })).not.toBeInTheDocument();

@@ -9,6 +9,10 @@ import { BILLING_PROVIDERS } from "@/components/model_add/credential_form_helper
 import BillReconciliationView from "./BillReconciliationView";
 import CostLedgerView from "./CostLedgerView";
 import InvoicesView from "./InvoicesView";
+import {
+  enterBillHref,
+  monthOfPeriod,
+} from "@/app/(dashboard)/(token-iq)/data-sources/_components/invoiceSubmit";
 import SeatsView from "./SeatsView";
 
 /** The month that has most likely finished billing, which is the one a reader wants first. */
@@ -78,7 +82,7 @@ export default function LedgerTabs() {
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
           <TabsTrigger value="seats">Seats &amp; Commitments</TabsTrigger>
         </TabsList>
-        {/* keepMounted: switching tabs must not discard a half-typed bill or reset the period */}
+        {/* keepMounted: switching tabs must not discard a half-typed seat or reset the period */}
         <TabsContent value="ledger" className="pt-6" keepMounted>
           <CostLedgerView provider={provider} periodStart={periodStart} periodEnd={periodEnd} />
         </TabsContent>
@@ -87,11 +91,11 @@ export default function LedgerTabs() {
             provider={provider}
             periodStart={periodStart}
             periodEnd={periodEnd}
-            onEnterBill={() => setTab("invoices")}
+            enterBillHref={enterBillHref({ provider, month: monthOfPeriod(periodStart) })}
           />
         </TabsContent>
         <TabsContent value="invoices" className="pt-6" keepMounted>
-          <InvoicesView provider={provider} periodStart={periodStart} periodEnd={periodEnd} />
+          <InvoicesView provider={provider} periodStart={periodStart} />
         </TabsContent>
         {/* keepMounted: switching tabs must not discard a half-typed seat */}
         <TabsContent value="seats" className="pt-6" keepMounted>

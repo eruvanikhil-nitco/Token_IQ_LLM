@@ -5,10 +5,14 @@ import {
   amountProblem,
   canSaveInvoice,
   defaultMonth,
+  enterBillHref,
   invoicePayload,
   invoiceSavedMessage,
+  monthOfPeriod,
   monthOptions,
   periodForMonth,
+  prefilledMonth,
+  prefilledProvider,
   signHint,
   type InvoiceFormDraft,
 } from "./invoiceSubmit";
@@ -212,5 +216,75 @@ describe("what it says once the bill is saved", () => {
     expect(message).toContain("2026-09-01");
     expect(message).toContain("2026-09-30");
     expect(message).toContain("48210.07");
+  });
+});
+
+describe("a link to this dialog from another screen", () => {
+  it("carries the provider and month, and asks for the dialog to be open", () => {
+    // Invoice Reconciliation links here from a month with no bill. Without the provider and the
+    // month, the reader chooses both again on a screen that already knew them.
+    const href = enterBillHref({ provider: "bedrock", month: "2026-09" });
+
+    expect(href).toContain("data-sources/uploads");
+    expect(href).toContain("provider=bedrock");
+    expect(href).toContain("month=2026-09");
+    expect(href).toContain("enter=1");
+  });
+
+  it("still opens the dialog when the linking screen knows neither", () => {
+    const href = enterBillHref();
+
+    expect(href).toContain("enter=1");
+    expect(href).not.toContain("provider=");
+    expect(href).not.toContain("month=");
+  });
+
+  it("reads the month off the period a screen is looking at", () => {
+    expect(monthOfPeriod("2026-09-01")).toBe("2026-09");
+    expect(monthOfPeriod("2026-09-15")).toBe("2026-09");
+  });
+
+  it("names no month for a period that is not a date", () => {
+    expect(monthOfPeriod("September")).toBeNull();
+    expect(monthOfPeriod("2026-13-01")).toBeNull();
+    expect(monthOfPeriod("")).toBeNull();
+  });
+});
+
+describe("what the dialog opens on when a link named it", () => {
+  const providers = [
+    { provider: "bedrock", display_name: "Amazon Bedrock" },
+    { provider: "openrouter", display_name: "OpenRouter" },
+  ];
+
+  it("opens on the provider the link named", () => {
+    expect(prefilledProvider("openrouter", providers)).toBe("openrouter");
+  });
+
+  it("ignores a provider the save would refuse", () => {
+    // The value came from a URL, so it is checked against what the server offered rather than
+    // trusted. Honoured, it would be a form whose save answers 404.
+    expect(prefilledProvider("not-a-provider", providers)).toBe("bedrock");
+  });
+
+  it("opens on the first provider when the link named none", () => {
+    expect(prefilledProvider(null, providers)).toBe("bedrock");
+  });
+
+  it("opens on nothing when this build can read no provider's bill at all", () => {
+    expect(prefilledProvider("bedrock", [])).toBe("");
+  });
+
+  it("opens on the month the link named", () => {
+    expect(prefilledMonth("2026-09", OCTOBER)).toBe("2026-09");
+  });
+
+  it("ignores a month it does not offer", () => {
+    expect(prefilledMonth("1999-01", OCTOBER)).toBe(defaultMonth(OCTOBER));
+    expect(prefilledMonth("whenever", OCTOBER)).toBe(defaultMonth(OCTOBER));
+  });
+
+  it("opens on the month that has finished when the link named none", () => {
+    expect(prefilledMonth(null, OCTOBER)).toBe("2026-09");
   });
 });

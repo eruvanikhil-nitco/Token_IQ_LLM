@@ -6,11 +6,11 @@ import { useReconciliation } from "@/app/(dashboard)/hooks/ledger/useReconciliat
 import { ADJUSTMENT_LABEL, OUTCOME_LABEL, formatAmount, hasRemainder, remainderDirection } from "./ledgerDisplay";
 
 interface BillReconciliationViewProps {
-  /** Takes the reader to the form that enters a bill.
+  /** Where this bill is entered, with the provider and month already chosen.
    *
    * The outcome "No bill entered" used to be the whole message, while the form that fixes it sat
-   * in a different tab. A dead end that names no way out is worse than an error. */
-  onEnterBill?: () => void;
+   * elsewhere. A dead end that names no way out is worse than an error. */
+  enterBillHref?: string;
   provider: string;
   periodStart: string;
   periodEnd: string;
@@ -20,7 +20,7 @@ export default function BillReconciliationView({
   provider,
   periodStart,
   periodEnd,
-  onEnterBill,
+  enterBillHref,
 }: BillReconciliationViewProps) {
   const { data, isLoading, error } = useReconciliation(provider, periodStart, periodEnd);
 
@@ -44,8 +44,8 @@ export default function BillReconciliationView({
         <p className="text-sm text-muted-foreground">Outcome</p>
         <p className="text-xl font-semibold">{OUTCOME_LABEL[data.outcome]}</p>
         <p className="pt-1 text-sm text-muted-foreground">{data.note}</p>
-        {data.outcome === "no_invoice" && onEnterBill !== undefined && (
-          <Button className="mt-3" onClick={onEnterBill}>
+        {data.outcome === "no_invoice" && enterBillHref !== undefined && (
+          <Button className="mt-3" nativeButton={false} render={<a href={enterBillHref} />}>
             Enter this bill
           </Button>
         )}

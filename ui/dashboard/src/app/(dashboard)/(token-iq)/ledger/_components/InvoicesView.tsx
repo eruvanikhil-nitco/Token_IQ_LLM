@@ -1,104 +1,51 @@
 "use client";
 
-import { useState } from "react";
-
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useDeleteInvoice, useInvoices, useSaveInvoice } from "@/app/(dashboard)/hooks/ledger/useInvoices";
+import { useDeleteInvoice, useInvoices } from "@/app/(dashboard)/hooks/ledger/useInvoices";
+import {
+  enterBillHref,
+  monthOfPeriod,
+} from "@/app/(dashboard)/(token-iq)/data-sources/_components/invoiceSubmit";
 import { ADJUSTMENT_LABEL, formatAmount } from "./ledgerDisplay";
-import type { AdjustmentKind } from "@/components/networking";
-
-const KINDS: readonly AdjustmentKind[] = ["credit", "discount", "tax", "commitment"] as const;
 
 interface InvoicesViewProps {
+  /** What the page is reconciling, so the link opens the dialog on that bill. */
   provider: string;
   periodStart: string;
-  periodEnd: string;
 }
 
-export default function InvoicesView({ provider, periodStart, periodEnd }: InvoicesViewProps) {
+/**
+ * The bills entered, listed where they are compared against the ledger.
+ *
+ * Entering one happens on Data Sources > Uploads, which is where the blueprint puts it and what
+ * Invoice Reconciliation's own "not here" line says. This tab had a second form for the same
+ * endpoint; two forms writing one table drift, and the one here knew nothing about the months a
+ * provider has billed for without a bill, which is the part worth acting on.
+ *
+ * The list stays, and so does removing a bill: this is the screen where a wrong figure shows up,
+ * as a difference the ledger cannot explain.
+ */
+export default function InvoicesView({ provider, periodStart }: InvoicesViewProps) {
   const { data, isLoading, error } = useInvoices();
-  const save = useSaveInvoice();
   const remove = useDeleteInvoice();
 
-  const [total, setTotal] = useState("");
-  const [currency, setCurrency] = useState("USD");
-  const [kind, setKind] = useState<AdjustmentKind>("credit");
-  const [adjustment, setAdjustment] = useState("");
-
-  const canSave = total.trim() !== "" && !save.isPending;
-
-  const onSave = async () => {
-    const adjustments = adjustment.trim() === "" ? [] : [{ kind, amount: adjustment.trim(), note: null }];
-    const draft = {
-      provider,
-      period_start: periodStart,
-      period_end: periodEnd,
-      currency,
-      total: total.trim(),
-      adjustments,
-    };
-    await save.mutateAsync(draft);
-    setTotal("");
-    setAdjustment("");
-  };
+  // The same reading of a period the reconciliation link uses, so a period that is not a date
+  // asks the dialog for no month rather than for a month nobody can read.
+  const month = monthOfPeriod(periodStart);
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-muted-foreground">
-        Enter the bill as the provider wrote it, in the currency it was written in. Almost no provider publishes
-        invoices through an API, so this is read off the real bill. Adjustments are the reasons a bill legitimately
-        differs from usage: a credit or discount makes the bill smaller, tax or a commitment charge makes it larger.
-      </p>
-
-      <div className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Invoice total</span>
-          <Input
-            aria-label="Invoice total"
-            value={total}
-            onChange={(event) => setTotal(event.target.value)}
-            placeholder="as written on the bill"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Currency</span>
-          <Input
-            aria-label="Currency"
-            value={currency}
-            onChange={(event) => setCurrency(event.target.value.toUpperCase())}
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Adjustment</span>
-          <select
-            aria-label="Adjustment kind"
-            className="h-9 rounded-md border bg-background px-2"
-            value={kind}
-            onChange={(event) => setKind(event.target.value as AdjustmentKind)}
-          >
-            {KINDS.map((option) => (
-              <option key={option} value={option}>
-                {ADJUSTMENT_LABEL[option]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Adjustment amount</span>
-          <Input
-            aria-label="Adjustment amount"
-            value={adjustment}
-            onChange={(event) => setAdjustment(event.target.value)}
-            placeholder="negative reduces the bill"
-          />
-        </label>
-        <Button onClick={onSave} disabled={!canSave}>
-          {save.isPending ? "Saving…" : "Save invoice"}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <p className="max-w-3xl text-sm text-muted-foreground">
+          Every bill an administrator has entered, which is what reconciliation compares the ledger against. Almost no
+          provider publishes invoices through an API, so each one is read off the real bill and typed in on Data
+          Sources, where the months that have billed without one are listed too.
+        </p>
+        <Button nativeButton={false} render={<a href={enterBillHref({ provider, month })} />}>
+          Enter a bill on Data Sources
         </Button>
       </div>
 
-      {save.isError && <p className="text-sm text-destructive">Could not save that bill.</p>}
       {remove.isError && (
         <p className="text-sm text-destructive">Could not remove that bill, so it is still being compared.</p>
       )}
@@ -108,8 +55,8 @@ export default function InvoicesView({ provider, periodStart, periodEnd }: Invoi
 
       {!isLoading && (data?.invoices.length ?? 0) === 0 && (
         <p className="text-sm text-muted-foreground">
-          No bills entered yet, so nothing can be reconciled against the ledger. Enter the first one in the form
-          above, as the provider wrote it.
+          No bills entered yet, so nothing can be reconciled against the ledger. Enter the first one on Data Sources,
+          as the provider wrote it.
         </p>
       )}
 

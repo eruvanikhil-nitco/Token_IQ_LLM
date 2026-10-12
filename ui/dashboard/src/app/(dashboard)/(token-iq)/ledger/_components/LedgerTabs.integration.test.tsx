@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -117,59 +117,58 @@ describe("LedgerTabs", () => {
     expect(screen.getByText(/would count it twice/i)).toBeInTheDocument();
   });
 
-  it("will not save a bill with no total", async () => {
+  it("has no second form of its own, and sends the reader to the one that enters a bill", async () => {
+    // Two forms writing one table drift, and this one knew nothing about the months a provider has
+    // billed for with no bill entered, which is the part worth acting on.
     const user = userEvent.setup();
     renderTabs();
     await user.click(screen.getByRole("tab", { name: "Invoices" }));
-    expect(await screen.findByRole("button", { name: "Save invoice" })).toBeDisabled();
+
+    expect(await screen.findByRole("button", { name: "Enter a bill on Data Sources" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Save invoice" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Invoice total")).not.toBeInTheDocument();
   });
 
-  it("sends the bill an admin typed, for the provider and period they chose", async () => {
+  it("takes the provider and month it is looking at to the dialog", async () => {
+    // Arriving on an empty dialog from a screen that knows which bill is missing makes the reader
+    // choose both again, and choosing the wrong month is the one mistake nothing downstream
+    // catches.
     const user = userEvent.setup();
     renderTabs();
     await user.click(screen.getByRole("tab", { name: "Invoices" }));
 
-    fireEvent.change(await screen.findByLabelText("Invoice total"), { target: { value: " 1234.56 " } });
-    fireEvent.change(screen.getByLabelText("Period start"), { target: { value: "2026-09-01" } });
-    fireEvent.change(screen.getByLabelText("Period end"), { target: { value: "2026-09-30" } });
-    await user.click(screen.getByRole("button", { name: "Save invoice" }));
+    const link = await screen.findByRole("button", { name: "Enter a bill on Data Sources" });
+    const thisMonth = new Date().toISOString().slice(0, 7);
 
-    const expected = {
-      total: "1234.56",
-      period_start: "2026-09-01",
-      period_end: "2026-09-30",
-      currency: "USD",
-      adjustments: [],
-    };
-    expect(upsertCall).toHaveBeenCalledWith("sk-test", expect.objectContaining(expected));
+    expect(link).toHaveAttribute("href", expect.stringContaining("data-sources/uploads"));
+    expect(link).toHaveAttribute("href", expect.stringContaining(`month=${thisMonth}`));
+    expect(link).toHaveAttribute("href", expect.stringContaining("enter=1"));
   });
 
-  it("sends an adjustment when one is entered, so the bill can explain itself", async () => {
+  it("follows the provider the reader chose rather than naming a fixed one", async () => {
     const user = userEvent.setup();
     renderTabs();
+    await screen.findByText("$0.00774700");
+    // The provider picker is a Base UI select: it answers to real clicks, not a change event.
+    await user.click(screen.getByRole("combobox", { name: "Provider" }));
+    await user.click(await screen.findByRole("option", { name: "Anthropic" }));
     await user.click(screen.getByRole("tab", { name: "Invoices" }));
 
-    fireEvent.change(await screen.findByLabelText("Invoice total"), { target: { value: "100" } });
-    fireEvent.change(screen.getByLabelText("Adjustment kind"), { target: { value: "tax" } });
-    fireEvent.change(screen.getByLabelText("Adjustment amount"), { target: { value: "15" } });
-    await user.click(screen.getByRole("button", { name: "Save invoice" }));
-
-    expect(upsertCall).toHaveBeenCalledWith(
-      "sk-test",
-      expect.objectContaining({ adjustments: [{ kind: "tax", amount: "15", note: null }] }),
+    expect(await screen.findByRole("button", { name: "Enter a bill on Data Sources" })).toHaveAttribute(
+      "href",
+      expect.stringContaining("provider=anthropic"),
     );
   });
 
-  it("keeps a half-typed bill when the reader checks the ledger tab", async () => {
+  it("still lets a wrong bill be removed here, where the difference shows up", async () => {
+    invoicesCall.mockResolvedValue({ invoices: [SAVED_INVOICE] });
     const user = userEvent.setup();
     renderTabs();
     await user.click(screen.getByRole("tab", { name: "Invoices" }));
-    fireEvent.change(await screen.findByLabelText("Invoice total"), { target: { value: "1234.56" } });
 
-    await user.click(screen.getByRole("tab", { name: "Cost Ledger" }));
-    await user.click(screen.getByRole("tab", { name: "Invoices" }));
-
-    expect(screen.getByLabelText("Invoice total")).toHaveValue("1234.56");
+    expect(
+      await screen.findByRole("button", { name: "Remove the bill for openai, 2026-09-01" }),
+    ).toBeInTheDocument();
   });
 
   it("says no bills are entered rather than leaving the tab blank", async () => {
@@ -190,16 +189,18 @@ describe("LedgerTabs", () => {
     expect(linesCall).toHaveBeenLastCalledWith("sk-test", "anthropic", expect.any(String), expect.any(String));
   });
 
-  it("takes the reader from the reconciliation dead end to the form that fills it", async () => {
-    // The empty state used to say "No bill entered" and stop. The form sits in another tab, so the
-    // way out has to move the reader there rather than naming a place for them to go and find.
+  it("takes the reader from the reconciliation dead end to the dialog that fills it", async () => {
+    // The empty state used to say "No bill entered" and stop. The dialog is on another page now,
+    // so the way out carries the provider and the month rather than naming a place to go and find.
     const user = userEvent.setup();
     renderTabs();
 
     await user.click(screen.getByRole("tab", { name: "Bill Reconciliation" }));
-    await user.click(await screen.findByRole("button", { name: "Enter this bill" }));
+    const link = await screen.findByRole("button", { name: "Enter this bill" });
+    const thisMonth = new Date().toISOString().slice(0, 7);
 
-    expect(await screen.findByRole("tab", { name: "Invoices", selected: true })).toBeInTheDocument();
+    expect(link).toHaveAttribute("href", expect.stringContaining("data-sources/uploads"));
+    expect(link).toHaveAttribute("href", expect.stringContaining(`month=${thisMonth}`));
   });
 
   it("says what the ledger is before showing its total, not after", async () => {

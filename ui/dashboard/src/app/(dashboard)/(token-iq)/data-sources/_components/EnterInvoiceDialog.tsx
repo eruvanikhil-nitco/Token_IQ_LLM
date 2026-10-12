@@ -1,5 +1,6 @@
 "use client";
 
+import { parseAsString, useQueryState } from "nuqs";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -19,13 +20,15 @@ import type { AdjustmentKind, InvoiceProviderOption } from "@/components/network
 
 import {
   ADJUSTMENT_KINDS,
+  ENTER_BILL_PARAM,
   INVOICE_CURRENCIES,
   amountProblem,
   canSaveInvoice,
-  defaultMonth,
   invoicePayload,
   invoiceSavedMessage,
   monthOptions,
+  prefilledMonth,
+  prefilledProvider,
   signHint,
   type AdjustmentDraft,
 } from "./invoiceSubmit";
@@ -50,9 +53,15 @@ export default function EnterInvoiceDialog({ providers }: EnterInvoiceDialogProp
   const save = useSaveInvoice();
   const months = monthOptions(new Date());
 
-  const [open, setOpen] = useState(false);
-  const [provider, setProvider] = useState(providers[0]?.provider ?? "");
-  const [month, setMonth] = useState(defaultMonth(new Date()));
+  // A link from another screen can say which bill it meant, and ask for the dialog to be open on
+  // arrival. Both values are checked rather than trusted: they came from a URL.
+  const [askedToEnter, setAskedToEnter] = useQueryState(ENTER_BILL_PARAM, parseAsString);
+  const [providerParam] = useQueryState("provider", parseAsString);
+  const [monthParam] = useQueryState("month", parseAsString);
+
+  const [open, setOpen] = useState(askedToEnter === "1");
+  const [provider, setProvider] = useState(prefilledProvider(providerParam, providers));
+  const [month, setMonth] = useState(prefilledMonth(monthParam, new Date()));
   const [currency, setCurrency] = useState<string>(INVOICE_CURRENCIES[0]);
   const [total, setTotal] = useState("");
   const [note, setNote] = useState("");
@@ -102,6 +111,8 @@ export default function EnterInvoiceDialog({ providers }: EnterInvoiceDialogProp
         setOpen(next);
         if (!next) {
           reset();
+          // Cleared so a reload does not reopen a dialog the reader has closed.
+          void setAskedToEnter(null);
         }
       }}
     >

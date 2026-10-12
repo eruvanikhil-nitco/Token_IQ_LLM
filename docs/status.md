@@ -3139,9 +3139,22 @@ Provider APIs and User Tools as Accounts, LLM Provider Credentials as Upstreams,
 virtual keys as the other two views, Providers and Models + Endpoints linked from Upstreams. Every
 one of the seven addresses still resolves and a test covers each.
 
+### The Ledger page's own invoice form now points here
+
+Two forms writing one table drift, and the one on the Ledger page knew nothing about the months a
+provider has billed for with no bill entered, which is the part worth acting on. Its Invoices tab
+keeps the list and the Remove, because that is the screen where a wrong figure shows up as a
+difference the ledger cannot explain, and the form is a link to the dialog.
+
+Both hand-offs carry what the linking screen already knew: the Invoices tab sends the provider and
+month the page is on, and the reconciliation screen's "Enter this bill" sends the month it could not
+reconcile. Neither makes the reader choose a month that screen had in front of it, and choosing the
+wrong month is the one mistake nothing downstream catches. A provider or month arriving in the URL is
+checked against what the server offered rather than trusted, because both came from an address
+somebody could have typed.
+
 ### What is left
 
 Build step 1 is done, all five tasks. Still open and unchanged: the CloudFormation template's second
-parameter, the AWS principal this installation runs as, which nothing configures. The Ledger page's
-own invoice form duplicates the Uploads tab's dialog and should point at it. The blueprint's own next
-step is build step 3 onward, which depends on the truth layer rather than on this page.
+parameter, the AWS principal this installation runs as, which nothing configures. The blueprint's own
+next step is build step 3 onward, which depends on the truth layer rather than on this page.

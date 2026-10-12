@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { withNuqsTestingAdapter } from "nuqs/adapters/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import UploadsTab from "./UploadsTab";
@@ -69,12 +70,13 @@ vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
   default: () => ({ accessToken: "sk-test", userRole: "proxy_admin" }),
 }));
 
-const renderTab = (canEnter = true) => {
+const renderTab = (canEnter = true, searchParams = "") => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
       <UploadsTab canEnter={canEnter} />
     </QueryClientProvider>,
+    { wrapper: withNuqsTestingAdapter({ searchParams }) },
   );
 };
 
@@ -247,5 +249,63 @@ describe("entering a bill", () => {
     const dialog = await openDialog();
 
     expect(within(dialog).getByText(/nothing here parses a PDF or a billing CSV yet/)).toBeInTheDocument();
+  });
+});
+
+describe("arriving from a screen that knows which bill is missing", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    uploadsCall.mockResolvedValue(UPLOADS);
+    upsertInvoiceCall.mockResolvedValue(SAVED);
+  });
+
+  it("opens the dialog when the link asked for it", async () => {
+    // Invoice Reconciliation links here from a month with no bill. Landing on the tab with the
+    // dialog shut makes the reader find the button that the link was already pressing for them.
+    cleanup();
+    renderTab(true, "?enter=1");
+
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("stays shut when nothing asked for it", async () => {
+    cleanup();
+    renderTab();
+
+    await screen.findByText("Amazon Bedrock");
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("opens on the bill the link named", async () => {
+    // Choosing the wrong month is the one mistake nothing downstream catches, so a link that knows
+    // the month carries it rather than making the reader choose again.
+    cleanup();
+    renderTab(true, "?enter=1&provider=openrouter&month=2026-09");
+
+    const dialog = await screen.findByRole("dialog");
+
+    expect(within(dialog).getByLabelText("Provider")).toHaveValue("openrouter");
+    expect(within(dialog).getByLabelText("Billing period")).toHaveValue("2026-09");
+  });
+
+  it("ignores a provider no bill can be entered for", async () => {
+    // The value came from a URL, so it is checked against what the server offered rather than
+    // trusted. Honoured, it would be a form whose save answers 404.
+    cleanup();
+    renderTab(true, "?enter=1&provider=not-a-provider");
+
+    const dialog = await screen.findByRole("dialog");
+
+    expect(within(dialog).getByLabelText("Provider")).toHaveValue("bedrock");
+  });
+
+  it("ignores a month it does not offer", async () => {
+    cleanup();
+    renderTab(true, "?enter=1&month=1999-01");
+
+    const dialog = await screen.findByRole("dialog");
+
+    expect(within(dialog).getByLabelText("Billing period")).not.toHaveValue("1999-01");
   });
 });

@@ -10,8 +10,9 @@
  * two loose dates is a bill that silently fails to cover the last day of its own month.
  */
 
+import { migratedHref } from "@/utils/migratedPages";
 import type { InvoiceDraft } from "@/app/(dashboard)/hooks/ledger/useInvoices";
-import type { AdjustmentKind, Invoice } from "@/components/networking";
+import type { AdjustmentKind, Invoice, InvoiceProviderOption } from "@/components/networking";
 
 export const INVOICE_CURRENCIES = ["USD", "EUR", "GBP", "INR"] as const;
 
@@ -239,4 +240,63 @@ export function canSaveInvoice(draft: InvoiceFormDraft): boolean {
  */
 export function invoiceSavedMessage(invoice: Invoice, providerName: string): string {
   return `${providerName} is recorded for ${invoice.period_start} to ${invoice.period_end} at ${invoice.total} ${invoice.currency}. Reconciliation compares it against that period's usage.`;
+}
+
+/**
+ * The month a period belongs to, or null when it is not a date.
+ *
+ * For a link from a screen that already knows which month it is looking at, so the dialog opens on
+ * that month rather than on its own default. A period that spans two months names the first, which
+ * is the month a provider's bill is for.
+ */
+export function monthOfPeriod(periodStart: string): string | null {
+  const match = /^(\d{4})-(\d{2})/.exec(periodStart);
+  if (!match) {
+    return null;
+  }
+  return periodForMonth(`${match[1]}-${match[2]}`) === null ? null : `${match[1]}-${match[2]}`;
+}
+
+export interface EnterBillLink {
+  provider?: string | null;
+  month?: string | null;
+}
+
+export const ENTER_BILL_PARAM = "enter";
+
+/**
+ * A link that opens the enter-a-bill dialog, with what the linking screen already knows.
+ *
+ * The reconciliation screen's dead end is the reason this exists: its outcome for a month nobody
+ * has entered is "No bill entered", and naming a place for the reader to go and find is worse than
+ * taking them there with the provider and the month already filled in.
+ */
+export function enterBillHref({ provider, month }: EnterBillLink = {}): string {
+  const params = new URLSearchParams([[ENTER_BILL_PARAM, "1"]]);
+  if (provider) {
+    params.set("provider", provider);
+  }
+  if (month) {
+    params.set("month", month);
+  }
+  return `${migratedHref("data-sources/uploads")}/?${params.toString()}`;
+}
+
+/**
+ * The provider a link asked for, if the save would accept it.
+ *
+ * A value from a URL is a value somebody could have typed, so it is checked against the providers
+ * the server offered rather than trusted. An unknown one falls back to the first, because a dialog
+ * opening on nothing is worse than one opening on the wrong provider, which is visible and one
+ * click from right.
+ */
+export function prefilledProvider(param: string | null, providers: readonly InvoiceProviderOption[]): string {
+  const found = providers.find((option) => option.provider === param);
+  return found?.provider ?? providers[0]?.provider ?? "";
+}
+
+/** The month a link asked for, if it is one this dialog offers. */
+export function prefilledMonth(param: string | null, today: Date): string {
+  const offered = monthOptions(today).some((option) => option.value === param);
+  return offered && param !== null ? param : defaultMonth(today);
 }

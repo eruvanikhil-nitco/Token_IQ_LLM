@@ -322,6 +322,15 @@ since the ledger work, and the blueprint puts this on Data Sources > Uploads, wh
 Invoice Reconciliation's own "not here" line says. Nothing was removed, because removing a tab
 needs asking first. Worth consolidating: the Ledger tab should point here.
 
+**Consolidated on 12 Oct 2026, after task 5.** The Ledger page's Invoices tab keeps its list and
+its Remove, because that is the screen where a wrong figure shows up as a difference the ledger
+cannot explain, and it now links to the dialog instead of carrying a second form for the same
+endpoint. The link takes the provider and month the page is on, and the reconciliation screen's
+"Enter this bill" takes them from the month it could not reconcile, so neither hand-off makes the
+reader choose a month that screen already knew. A provider or month arriving in the URL is checked
+against what the server offered rather than trusted, because both came from an address somebody
+could have typed.
+
 **Bills entered before the period fix sit at a midnight end.** Re-entering that month now writes a
 second row rather than correcting the first, because the upsert's conflict target is the exact
 period. Two bills for one month would double the invoiced figure. Only two dev rows existed and
