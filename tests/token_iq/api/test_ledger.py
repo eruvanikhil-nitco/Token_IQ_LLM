@@ -277,3 +277,99 @@ class TestABillEnteredIsTheBillReconciliationLooksUp:
 
         assert entered.total == Decimal("48210.07")
         assert entered.adjustments[0].amount == Decimal("400.01")
+
+
+class TestWhatTheUploadsTabReads:
+    """The shaping the Uploads tab depends on.
+
+    The rules are tested in `tests/token_iq/ledger/`. What is asserted here is the part that only
+    exists at the boundary: a missing bill carrying no total, the provider list being exactly the
+    set the save accepts, and every forwarding state reaching the client as itself.
+    """
+
+    def test_a_missing_bill_carries_no_total_at_all(self) -> None:
+        """Not a total of zero and not an empty string. There is no bill, so the only figure
+        available would be one Token IQ worked out, and a figure it worked out sitting in an
+        invoice column is how a provider total and an attribution total get added together."""
+        from token_iq.api.ledger import upload_row_to_wire
+        from token_iq.ledger.uploads import BillNotEntered
+
+        row: Final = upload_row_to_wire(BillNotEntered(provider="bedrock"))
+
+        assert row.kind == "not_entered"
+        assert not hasattr(row, "total")
+
+    def test_a_missing_bill_names_the_provider_as_a_reader_knows_it(self) -> None:
+        from token_iq.api.ledger import upload_row_to_wire
+        from token_iq.ledger.uploads import BillNotEntered
+
+        row: Final = upload_row_to_wire(BillNotEntered(provider="bedrock"))
+
+        assert row.display_name == "Amazon Bedrock"
+
+    def test_an_entered_bill_crosses_with_its_exact_digits(self) -> None:
+        from token_iq.api.ledger import upload_row_to_wire
+
+        row: Final = upload_row_to_wire(_invoice("48210.07"))
+
+        assert row.kind == "entered"
+        assert row.total == "48210.07"
+
+    def test_an_entered_bill_reports_the_period_as_the_days_it_covers(self) -> None:
+        from token_iq.api.ledger import upload_row_to_wire
+
+        row: Final = upload_row_to_wire(_invoice("100"))
+
+        assert (row.period_start, row.period_end) == ("2026-09-01", "2026-09-30")
+
+    def test_every_provider_offered_for_a_bill_is_one_the_save_accepts(self) -> None:
+        # The form offering a provider the upsert answers with a 404 is a dead end nothing else
+        # catches, because both calls succeed on their own terms.
+        from token_iq.api.ledger import _known_provider_or_404, provider_options
+
+        for option in provider_options():
+            _known_provider_or_404(option.provider)
+
+    def test_every_provider_offered_is_named_in_words(self) -> None:
+        from token_iq.api.ledger import provider_options
+
+        for option in provider_options():
+            assert option.display_name != ""
+
+    def test_a_configured_address_reaches_the_client(self) -> None:
+        from token_iq.api.ledger import forwarding_to_wire
+        from token_iq.ledger.invoice_forwarding import ForwardingAddress
+
+        wire: Final = forwarding_to_wire(ForwardingAddress(address="invoices@example.com"))
+
+        assert (wire.kind, wire.address) == ("configured", "invoices@example.com")
+
+    def test_an_unset_address_names_the_setting_to_set(self) -> None:
+        from token_iq.api.ledger import forwarding_to_wire
+        from token_iq.ledger.invoice_forwarding import NoForwardingAddress
+
+        wire: Final = forwarding_to_wire(NoForwardingAddress(setting="TOKEN_IQ_INVOICE_FORWARDING_ADDRESS"))
+
+        assert (wire.kind, wire.setting) == ("not_configured", "TOKEN_IQ_INVOICE_FORWARDING_ADDRESS")
+
+    def test_an_unusable_address_reaches_the_client_as_its_own_state(self) -> None:
+        """Collapsed into "not configured" it would read as nobody having tried, and shown as
+        configured it would send a finance team's invoices nowhere."""
+        from token_iq.api.ledger import forwarding_to_wire
+        from token_iq.ledger.invoice_forwarding import UnusableForwardingAddress
+
+        wire: Final = forwarding_to_wire(
+            UnusableForwardingAddress(setting="S", value="invoices", problem="no @.")
+        )
+
+        assert (wire.kind, wire.value, wire.problem) == ("unusable", "invoices", "no @.")
+
+
+class TestTheWindowTheUploadsTabAsksAbout:
+    def test_a_window_nobody_passed_is_the_shared_one(self) -> None:
+        """The same window the Overview tab's coverage figure uses. Two windows would have the two
+        screens disagree about which providers are missing a bill."""
+        from token_iq.api.data_quality import DEFAULT_DAYS
+        from token_iq.ledger.uploads import INVOICE_WINDOW_DAYS
+
+        assert DEFAULT_DAYS == INVOICE_WINDOW_DAYS

@@ -2840,6 +2840,22 @@ export const bedrockRoleTemplateCall = async (accessToken: string): Promise<Role
   return await apiClient.get<RoleTemplate>(`/provider/connections/bedrock-role-template`, { accessToken });
 };
 
+/**
+ * The Uploads tab, read straight from the generated spec for the same reason the connect types are:
+ * both the forwarding state and the row kinds are tagged unions, and restating a union by hand is
+ * what lets an arm go missing. The arm that matters here is the bill nobody entered, because it is
+ * the only row on the tab anybody has to act on.
+ */
+export type InvoiceForwarding = components["schemas"]["UploadsResponse"]["forwarding"];
+export type UploadRow = components["schemas"]["UploadsResponse"]["rows"][number];
+export type UploadsResponse = components["schemas"]["UploadsResponse"];
+export type InvoiceProviderOption = components["schemas"]["ProviderOption"];
+
+/** No try/catch: the tab needs the ApiError to say why, and a swallowed one leaves it empty. */
+export const uploadsCall = async (accessToken: string): Promise<UploadsResponse> => {
+  return await apiClient.get<UploadsResponse>(`/ledger/uploads`, { accessToken });
+};
+
 export type MatchStatus = "matched" | "gateway_saw_less" | "gateway_saw_more" | "not_seen_by_gateway";
 
 export interface ProviderStanding {

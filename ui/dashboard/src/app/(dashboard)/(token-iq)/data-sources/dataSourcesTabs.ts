@@ -46,8 +46,9 @@ export const DATA_SOURCES_TABS: Readonly<Record<DataSourcesTab, TabSpec>> = {
   },
   uploads: {
     label: "Uploads",
-    description: "Invoices, workspace exports and contracts that have no API, uploaded or forwarded by email.",
-    built: false,
+    description:
+      "Bills that no API publishes, entered here or forwarded by email, and the months still waiting for one.",
+    built: true,
   },
 };
 

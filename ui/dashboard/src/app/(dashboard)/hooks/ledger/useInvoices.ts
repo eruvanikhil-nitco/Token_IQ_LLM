@@ -5,6 +5,8 @@ import { deleteInvoiceCall, invoicesCall, upsertInvoiceCall } from "@/components
 import { all_admin_roles } from "@/utils/roles";
 import type { Adjustment, InvoiceListResponse } from "@/components/networking";
 
+import { UPLOADS_KEY } from "./useUploads";
+
 const INVOICES_KEY = ["ledger-invoices"];
 
 export const useInvoices = () => {
@@ -42,6 +44,9 @@ export const useSaveInvoice = () => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: INVOICES_KEY });
       await queryClient.invalidateQueries({ queryKey: ["ledger-reconciliation"] });
+      // The Uploads tab is the list a bill was most likely entered from, and the row it just
+      // filled in is the one still saying no bill has been entered.
+      await queryClient.invalidateQueries({ queryKey: UPLOADS_KEY });
     },
   });
 };
@@ -55,6 +60,9 @@ export const useDeleteInvoice = () => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: INVOICES_KEY });
       await queryClient.invalidateQueries({ queryKey: ["ledger-reconciliation"] });
+      // The Uploads tab is the list a bill was most likely entered from, and the row it just
+      // filled in is the one still saying no bill has been entered.
+      await queryClient.invalidateQueries({ queryKey: UPLOADS_KEY });
     },
   });
 };

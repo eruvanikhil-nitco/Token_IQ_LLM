@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, timezone
 from types import MappingProxyType
 from typing import Annotated, Final
 
+import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from token_iq.api.provider_connections import build_provider_connections
@@ -28,6 +29,7 @@ from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
 from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
 from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.ledger.uploads import INVOICE_WINDOW_DAYS
 from token_iq.overview.data_quality import (
     DataQualityIssue,
     InvoiceCoverage,
@@ -48,8 +50,10 @@ router: Final = APIRouter(
     dependencies=(Depends(user_api_key_auth),),
 )
 
-DEFAULT_DAYS: Final = 30
-"""The window the tab asks about. Long enough that a monthly invoice has had a chance to arrive."""
+DEFAULT_DAYS: Final = INVOICE_WINDOW_DAYS
+"""The window the tab asks about, shared with the Uploads tab's missing-invoice rows: the coverage
+figure here and the rows there are the same question asked twice, and two windows would have them
+disagree about one provider."""
 
 RUNS_FOR_STATE: Final = 200
 """How many recent sync runs decide a connection's state. The same number the connections
@@ -103,7 +107,10 @@ async def data_quality(
     # instead of being evaluated as a default argument, which is what B008 objects to, and it is
     # the form FastAPI now documents. A parameter with no default has to come first.
     user_api_key_dict: Annotated[UserAPIKeyAuth, Depends(user_api_key_auth)],
-    days: int = DEFAULT_DAYS,
+    # Bounded for the same reason the Uploads window is: a negative window matches no facts, and
+    # no facts reads as every check coming back clean on the one tab whose job is to say whether
+    # the data can be trusted.
+    days: int = fastapi.Query(default=DEFAULT_DAYS, ge=1, le=366),
 ) -> DataQualityResponse:
     """What is wrong with the incoming data, and where each one is fixed."""
     from token_iq.gateway.proxy.proxy_server import prisma_client

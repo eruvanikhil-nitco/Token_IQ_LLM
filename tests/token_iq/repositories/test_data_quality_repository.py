@@ -1,8 +1,8 @@
-"""The two counts the issues list cannot work out without the database.
+"""The facts the issues list cannot work out without the database.
 
-Both are counts, and a count query that silently returns nothing looks exactly like a healthy
-installation. So these assert the shape that comes back and that the reading, not just the query,
-survives each form Prisma can hand back a row in.
+A query that silently returns nothing looks exactly like a healthy installation, so these assert
+the shape that comes back and that the reading, not just the query, survives each form Prisma can
+hand back a row in.
 """
 
 from __future__ import annotations
@@ -82,20 +82,39 @@ class TestKeysWithNoProject:
 
 class TestProvidersWithNoInvoice:
     @pytest.mark.asyncio
-    async def test_reads_the_count(self) -> None:
-        repo, _ = _repo([{"count": 2}])
+    async def test_reads_which_providers_are_missing_one(self) -> None:
+        repo, _ = _repo([{"provider": "bedrock"}, {"provider": "azure"}])
+
+        assert await repo.providers_missing_invoice_names(START, END) == ("bedrock", "azure")
+
+    @pytest.mark.asyncio
+    async def test_reads_a_row_handed_back_as_an_object(self) -> None:
+        class Row:
+            provider = "openai"
+
+        repo, _ = _repo([Row()])
+
+        assert await repo.providers_missing_invoice_names(START, END) == ("openai",)
+
+    @pytest.mark.asyncio
+    async def test_the_count_is_however_many_providers_were_named(self) -> None:
+        """One query answers both. The Overview tab's coverage figure and the Uploads tab's rows
+        are the same question asked twice, and two statements eventually disagree about one
+        provider."""
+        repo, _ = _repo([{"provider": "bedrock"}, {"provider": "azure"}])
 
         assert await repo.providers_missing_invoice(START, END) == 2
 
     @pytest.mark.asyncio
-    async def test_no_rows_is_zero(self) -> None:
+    async def test_no_rows_is_nothing_missing(self) -> None:
         repo, _ = _repo([])
 
+        assert await repo.providers_missing_invoice_names(START, END) == ()
         assert await repo.providers_missing_invoice(START, END) == 0
 
     @pytest.mark.asyncio
     async def test_it_passes_the_period_it_was_given(self) -> None:
-        repo, client = _repo([{"count": 0}])
+        repo, client = _repo([])
         await repo.providers_missing_invoice(START, END)
 
         assert client.db.args[0] == (START.isoformat(), END.isoformat())
@@ -108,7 +127,7 @@ class TestProvidersWithNoInvoice:
         one appear, and a query matching on provider alone would report a clean period for a month
         nobody has billed for.
         """
-        repo, client = _repo([{"count": 0}])
+        repo, client = _repo([])
         await repo.providers_missing_invoice(START, END)
 
         asked = client.db.queries[0].lower()
@@ -117,15 +136,33 @@ class TestProvidersWithNoInvoice:
         assert "not exists" in asked
 
     @pytest.mark.asyncio
-    async def test_it_only_counts_providers_that_actually_billed_something(self) -> None:
-        """A provider nobody uses has no invoice and needs none. Counting it would put every
-        unused provider on the issues list, which is the same trap `not_connected` is."""
-        repo, client = _repo([{"count": 0}])
+    async def test_it_only_names_providers_that_actually_billed_something(self) -> None:
+        """A provider nobody uses has no invoice and needs none. Naming it would put every unused
+        provider on the issues list, which is the same trap `not_connected` is."""
+        repo, client = _repo([])
         await repo.providers_missing_invoice(START, END)
 
         asked = client.db.queries[0].lower()
         assert "providerusagefact" in asked
         assert "providerinvoice" in asked
+
+    @pytest.mark.asyncio
+    async def test_each_provider_is_named_once_however_many_facts_it_has(self) -> None:
+        # Without the distinct, a provider with fifty uninvoiced days is fifty rows on the tab and
+        # a coverage figure of fifty missing invoices for one missing invoice.
+        repo, client = _repo([])
+        await repo.providers_missing_invoice_names(START, END)
+
+        assert "distinct" in client.db.queries[0].lower()
+
+    @pytest.mark.asyncio
+    async def test_a_row_that_is_not_a_provider_raises_rather_than_reading_as_clean(self) -> None:
+        """A silent empty result on this query reads as every bill being accounted for, which is
+        the failure that looks most like success."""
+        repo, _ = _repo([{"count": 2}])
+
+        with pytest.raises(ValidationError):
+            await repo.providers_missing_invoice_names(START, END)
 
 
 class TestProvidersThatBilled:

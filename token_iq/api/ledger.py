@@ -7,30 +7,49 @@ computes the clock-dependent parts so the arithmetic stays pure.
 
 from __future__ import annotations
 
+import os
 from collections.abc import Mapping
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
-from typing import Final
+from typing import Annotated, Final
 
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from token_iq.api.types.ledger import (
     AdjustmentBody,
+    BillNotEnteredRow,
+    EnteredBillRow,
+    ForwardingConfigured,
+    ForwardingNotConfigured,
+    ForwardingUnusable,
     InvoiceBody,
     InvoiceDeletedResponse,
+    InvoiceForwardingResponse,
     InvoiceListResponse,
     InvoiceResponse,
     LedgerLineResponse,
     LedgerLinesResponse,
+    ProviderOption,
     ReconciliationResponse,
+    UploadRowResponse,
+    UploadsResponse,
 )
 from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
 from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES
 from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.ledger.invoice_forwarding import (
+    ForwardingAddress,
+    InvoiceForwarding,
+    NoForwardingAddress,
+    UnusableForwardingAddress,
+    invoice_forwarding,
+)
 from token_iq.ledger.reconciliation import Reconciliation, reconcile
+from token_iq.ledger.uploads import INVOICE_WINDOW_DAYS, BillNotEntered, UploadRow, upload_rows
 from token_iq.repositories.attribution_rule_repository import AttributionRuleRepository
+from token_iq.repositories.data_quality_repository import DataQualityRepository
 from token_iq.repositories.invoice_repository import InvoiceRepository
 from token_iq.repositories.ledger_repository import LedgerLine, LedgerRepository
 from token_iq.types.attribution import AttributionRule
@@ -365,4 +384,79 @@ async def ledger_reconciliation(
         period_end=end,
         result=reconcile(invoice=invoice, ledger_totals=totals),
         ledger_totals=totals,
+    )
+
+
+def forwarding_to_wire(forwarding: InvoiceForwarding) -> InvoiceForwardingResponse:
+    """Exhaustive over the three states, so a fourth is a type error here rather than an address
+    that quietly stops being reported."""
+    match forwarding:
+        case ForwardingAddress(address=address):
+            return ForwardingConfigured(address=address)
+        case NoForwardingAddress(setting=setting):
+            return ForwardingNotConfigured(setting=setting)
+        case UnusableForwardingAddress(setting=setting, value=value, problem=problem):
+            return ForwardingUnusable(setting=setting, value=value, problem=problem)
+
+
+def upload_row_to_wire(row: UploadRow) -> UploadRowResponse:
+    match row:
+        case BillNotEntered(provider=provider):
+            return BillNotEnteredRow(provider=provider, display_name=_display_name(provider))
+        case ProviderInvoice():
+            return EnteredBillRow(
+                invoice_id=row.invoice_id,
+                provider=row.provider,
+                display_name=_display_name(row.provider),
+                period_start=row.period_start.date().isoformat(),
+                period_end=row.period_end.date().isoformat(),
+                currency=row.currency,
+                total=_plain(row.total),
+                note=row.note,
+            )
+
+
+def provider_options() -> tuple[ProviderOption, ...]:
+    """The providers a bill may be entered for.
+
+    Exactly the set `upsert_invoice` accepts, built from the same constant, so the form cannot
+    offer a provider the save would answer with a 404.
+    """
+    return tuple(
+        ProviderOption(provider=provider, display_name=_display_name(provider))
+        for provider in sorted(BILLING_PROVIDERS)
+    )
+
+
+@router.get("/ledger/uploads", response_model=UploadsResponse)
+async def ledger_uploads(
+    user_api_key_dict: Annotated[UserAPIKeyAuth, Depends(user_api_key_auth)],
+    # Bounded rather than taken as given. A negative window asks for facts after today and before
+    # a month ago, which matches nothing, and no rows from this query reads as every bill being
+    # accounted for.
+    days: int = fastapi.Query(default=INVOICE_WINDOW_DAYS, ge=1, le=366),
+) -> UploadsResponse:
+    """Every bill entered, every bill missing, and where a bill may be forwarded instead."""
+    from token_iq.gateway.proxy.proxy_server import prisma_client
+
+    _admin_or_403(user_api_key_dict)
+    if prisma_client is None:
+        raise _proxy_error(status.HTTP_500_INTERNAL_SERVER_ERROR, CommonProxyErrors.db_not_connected_error.value)
+
+    end: Final = datetime.now(timezone.utc)
+    start: Final = end - timedelta(days=days)
+
+    rows: Final = upload_rows(
+        invoices=await InvoiceRepository(prisma_client).all(),
+        providers_missing_invoice=await DataQualityRepository(prisma_client).providers_missing_invoice_names(
+            start, end
+        ),
+    )
+
+    return UploadsResponse(
+        checked_from=start.isoformat(),
+        checked_to=end.isoformat(),
+        forwarding=forwarding_to_wire(invoice_forwarding(os.environ)),
+        providers=provider_options(),
+        rows=tuple(upload_row_to_wire(row) for row in rows),
     )

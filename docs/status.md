@@ -3014,3 +3014,78 @@ The template's other CloudFormation parameter, the AWS principal this installati
 discoverable here: nothing configures it. The dialog says where it comes from, and reading it from
 `sts:GetCallerIdentity` is the obvious follow-up. Task 4 is the Uploads tab; task 5 still needs the
 owner's decision on whether Virtual Keys and Logs really move behind a tab on a data page.
+
+## 12 Oct 2026: the Uploads tab, and a bill reconciliation could not find
+
+Task 4 of build step 1. The blueprint's fourth tab: "Invoices, workspace exports and contracts that
+have no API, uploaded or forwarded by email." Only invoices have anywhere to go, so only invoices
+are offered.
+
+### An entered bill was not the bill reconciliation looked up
+
+`POST /ledger/invoices` parsed its period end as a bare date, so September ended at midnight on the
+thirtieth. Every read of a period widens the same date to the last instant of that day, and
+`for_period` matches a period exactly, so the month then answered "No bill entered for this period
+yet" with the bill sitting in the table. Both calls succeed and both render the period as
+2026-09-30, which is why nothing noticed.
+
+The coverage query fails the same way, through `period_end > bucket_start`: a provider whose whole
+month was entered still counted as missing one, because the final day fell outside its own invoice.
+
+One function now builds the bill that gets stored, so the write and the read cannot disagree. Live,
+the round trip went from `outcome: no_invoice` to a real comparison against the ledger.
+
+Bills entered before this sit at a midnight end, and re-entering that month writes a second row
+rather than correcting the first, because the upsert's conflict target is the exact period. Two
+bills for one month would double the invoiced figure. Two dev rows existed and both were removed; a
+fresh installation cannot reach it.
+
+### The rows worth having are the bills nobody entered
+
+A missing bill is invisible everywhere else: reconciliation reports no bill rather than a
+difference, and the Overview tab's coverage figure says how many are missing without saying which.
+So `providers_missing_invoice_names` returns the providers, the count is the length of that list,
+and one statement answers both tabs instead of two that eventually disagree about one provider.
+
+A missing row carries no total, and not a zero. There is no bill, so the only figure available would
+be the ledger's own, and a figure Token IQ worked out printed in an invoice column is how a provider
+total and an attribution total get added together.
+
+A provider can be missing a bill and have one at the same time, because it billed since the last one
+was entered. Both rows are listed, which the live check shows: OpenRouter recorded for October and
+still missing one for the days before it.
+
+### The forwarding address has three states
+
+Configured, not configured, and set to something that cannot receive mail.
+`TOKEN_IQ_INVOICE_FORWARDING_ADDRESS` is read per installation from the environment. An unusable
+value shown as though it worked sends a finance team's bills nowhere and nothing says so until a
+month-end close has nothing to reconcile; folded into "not configured" it reads as nobody having
+tried. All three were checked against a running proxy, because an environment-driven setting is
+where in-process tests prove least.
+
+Even a working address is described as a mailbox a person reads. Nothing here opens mail or parses
+an attachment, and an address presented as automatic would have a customer forwarding bills for a
+month and then asking why none arrived.
+
+### The dialog asks for the figures rather than pretending to read them
+
+The blueprint's modal takes a PDF or CSV and confirms its parsed lines before saving. There is no
+parser and no document store, so a file field would leave a customer believing their bill had been
+understood. The month is one field rather than two dates, for the reason above. Adjustments are
+offered because a bill entered without its credits is a reconciliation that reports the credit as a
+difference nothing explains; an adjustment entered the wrong way round does not fail, it moves the
+remainder by twice the amount, so the sign is explained per kind and a contradicting sign is a note
+rather than a refusal.
+
+### Entering a bill is now in two places
+
+The Ledger page's Invoices tab has had an inline form since the ledger work. The blueprint puts this
+on Data Sources > Uploads, which is what Invoice Reconciliation's own "not here" line says too.
+Nothing was removed, because removing a tab needs asking first. The Ledger tab should point here.
+
+### What is left
+
+Task 5, the Gateway tab, needs the owner's decision on whether Virtual Keys and Logs really move
+behind a tab on a data page. Still open from task 3: the CloudFormation template's second parameter,
+the AWS principal this installation runs as, which nothing configures.

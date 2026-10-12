@@ -10,6 +10,7 @@ screen that showed it only when awkward would let a reader assume its absence me
 from __future__ import annotations
 
 from collections.abc import Mapping
+from typing import Literal, TypeAlias
 
 from pydantic import BaseModel
 
@@ -90,3 +91,72 @@ class ReconciliationResponse(BaseModel):
     explained_total: str
     unexplained: str
     note: str
+
+
+class ForwardingConfigured(BaseModel):
+    kind: Literal["configured"] = "configured"
+    address: str
+
+
+class ForwardingNotConfigured(BaseModel):
+    kind: Literal["not_configured"] = "not_configured"
+    setting: str
+
+
+class ForwardingUnusable(BaseModel):
+    """Somebody set an address and it cannot receive mail.
+
+    Its own state rather than a blank. Shown as though it worked, a typo sends a finance team's
+    invoices nowhere and nothing says so until a month-end close has nothing to reconcile.
+    """
+
+    kind: Literal["unusable"] = "unusable"
+    setting: str
+    value: str
+    problem: str
+
+
+InvoiceForwardingResponse: TypeAlias = ForwardingConfigured | ForwardingNotConfigured | ForwardingUnusable
+
+
+class EnteredBillRow(BaseModel):
+    kind: Literal["entered"] = "entered"
+    invoice_id: str
+    provider: str
+    display_name: str
+    period_start: str
+    period_end: str
+    currency: str
+    total: str
+    note: str | None
+
+
+class BillNotEnteredRow(BaseModel):
+    """A provider that billed in the window with no invoice covering it.
+
+    No total, and not an optional one. There is no bill, so the only figure available would be the
+    ledger's own, and a figure Token IQ worked out sitting in an invoice column is how a provider
+    total and an attribution total get added together by accident.
+    """
+
+    kind: Literal["not_entered"] = "not_entered"
+    provider: str
+    display_name: str
+
+
+UploadRowResponse: TypeAlias = EnteredBillRow | BillNotEnteredRow
+
+
+class ProviderOption(BaseModel):
+    """A provider a bill may be entered for: exactly the set the upsert accepts."""
+
+    provider: str
+    display_name: str
+
+
+class UploadsResponse(BaseModel):
+    checked_from: str
+    checked_to: str
+    forwarding: InvoiceForwardingResponse
+    providers: tuple[ProviderOption, ...]
+    rows: tuple[UploadRowResponse, ...]

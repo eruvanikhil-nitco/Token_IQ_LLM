@@ -8234,6 +8234,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ledger/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ledger Uploads
+         * @description Every bill entered, every bill missing, and where a bill may be forwarded instead.
+         */
+        get: operations["ledger_uploads_ledger_uploads_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/litellm/.well-known/litellm-ui-config": {
         parameters: {
             query?: never;
@@ -24250,6 +24270,26 @@ export interface components {
             entities: components["schemas"]["BedrockChecksSensitiveInformationEntityItem"][];
         };
         /**
+         * BillNotEnteredRow
+         * @description A provider that billed in the window with no invoice covering it.
+         *
+         *     No total, and not an optional one. There is no bill, so the only figure available would be the
+         *     ledger's own, and a figure Token IQ worked out sitting in an invoice column is how a provider
+         *     total and an attribution total get added together by accident.
+         */
+        BillNotEnteredRow: {
+            /** Display Name */
+            display_name: string;
+            /**
+             * Kind
+             * @default not_entered
+             * @constant
+             */
+            kind: "not_entered";
+            /** Provider */
+            provider: string;
+        };
+        /**
          * BillingProbeResponse
          * @description One on-demand fetch from a provider's billing API, reported without storing anything
          */
@@ -27589,6 +27629,31 @@ export interface components {
             /** Template Id */
             template_id: string;
         };
+        /** EnteredBillRow */
+        EnteredBillRow: {
+            /** Currency */
+            currency: string;
+            /** Display Name */
+            display_name: string;
+            /** Invoice Id */
+            invoice_id: string;
+            /**
+             * Kind
+             * @default entered
+             * @constant
+             */
+            kind: "entered";
+            /** Note */
+            note: string | null;
+            /** Period End */
+            period_end: string;
+            /** Period Start */
+            period_start: string;
+            /** Provider */
+            provider: string;
+            /** Total */
+            total: string;
+        };
         /** ErrorResponse */
         ErrorResponse: {
             /**
@@ -27857,6 +27922,49 @@ export interface components {
             field_type: string;
             /** Stored In Db */
             stored_in_db: boolean | null;
+        };
+        /** ForwardingConfigured */
+        ForwardingConfigured: {
+            /** Address */
+            address: string;
+            /**
+             * Kind
+             * @default configured
+             * @constant
+             */
+            kind: "configured";
+        };
+        /** ForwardingNotConfigured */
+        ForwardingNotConfigured: {
+            /**
+             * Kind
+             * @default not_configured
+             * @constant
+             */
+            kind: "not_configured";
+            /** Setting */
+            setting: string;
+        };
+        /**
+         * ForwardingUnusable
+         * @description Somebody set an address and it cannot receive mail.
+         *
+         *     Its own state rather than a blank. Shown as though it worked, a typo sends a finance team's
+         *     invoices nowhere and nothing says so until a month-end close has nothing to reconcile.
+         */
+        ForwardingUnusable: {
+            /**
+             * Kind
+             * @default unusable
+             * @constant
+             */
+            kind: "unusable";
+            /** Problem */
+            problem: string;
+            /** Setting */
+            setting: string;
+            /** Value */
+            value: string;
         };
         /** FreshnessResponse */
         FreshnessResponse: {
@@ -34977,6 +35085,16 @@ export interface components {
             total: number;
         };
         /**
+         * ProviderOption
+         * @description A provider a bill may be entered for: exactly the set the upsert accepts.
+         */
+        ProviderOption: {
+            /** Display Name */
+            display_name: string;
+            /** Provider */
+            provider: string;
+        };
+        /**
          * ProviderOverviewResponse
          * @description The four stat blocks plus the provider table beneath them.
          */
@@ -39597,6 +39715,19 @@ export interface components {
             user_id?: string | null;
             /** User Role */
             user_role?: ("proxy_admin" | "proxy_admin_viewer" | "internal_user" | "internal_user_viewer") | null;
+        };
+        /** UploadsResponse */
+        UploadsResponse: {
+            /** Checked From */
+            checked_from: string;
+            /** Checked To */
+            checked_to: string;
+            /** Forwarding */
+            forwarding: components["schemas"]["ForwardingConfigured"] | components["schemas"]["ForwardingNotConfigured"] | components["schemas"]["ForwardingUnusable"];
+            /** Providers */
+            providers: components["schemas"]["ProviderOption"][];
+            /** Rows */
+            rows: (components["schemas"]["EnteredBillRow"] | components["schemas"]["BillNotEnteredRow"])[];
         };
         /** UsageAIChatRequest */
         UsageAIChatRequest: {
@@ -51785,6 +51916,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["token_iq__api__types__ledger__ReconciliationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ledger_uploads_ledger_uploads_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadsResponse"];
                 };
             };
             /** @description Validation Error */

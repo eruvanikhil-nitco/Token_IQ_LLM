@@ -71,6 +71,8 @@ describe("the tabs themselves", () => {
     expect(built.every((tab) => DATA_SOURCES_TABS[tab].built)).toBe(true);
     expect(built).toContain("accounts");
     expect(built).toContain("overview");
+    expect(built).toContain("uploads");
+    expect(built).not.toContain("gateway");
   });
 
   it("opens on Overview, because that is the tab the blueprint puts first", () => {

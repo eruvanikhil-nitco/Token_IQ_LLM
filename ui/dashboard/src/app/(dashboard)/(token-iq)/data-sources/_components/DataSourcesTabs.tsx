@@ -16,6 +16,7 @@ import {
 } from "../dataSourcesTabs";
 import AccountsTab from "./AccountsTab";
 import OverviewTab from "./OverviewTab";
+import UploadsTab from "./UploadsTab";
 
 const routes = createTabRoutes("data-sources", DATA_SOURCES_TAB_ORDER);
 
@@ -50,6 +51,8 @@ export default function DataSourcesTabs() {
         return <OverviewTab />;
       case "accounts":
         return <AccountsTab />;
+      case "uploads":
+        return <UploadsTab canEnter={access === "manage"} />;
       default:
         return null;
     }

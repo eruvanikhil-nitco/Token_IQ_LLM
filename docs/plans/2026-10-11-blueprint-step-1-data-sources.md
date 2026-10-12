@@ -264,9 +264,69 @@ box, because it defaults to `python3`.
 
 ## Task 4: The Uploads tab
 
-- [ ] **Step 1: Invoices, which have an endpoint**
-- [ ] **Step 2: The forwarding address**
-- [ ] **Step 3: Commit**
+- [x] **Step 1: Invoices, which have an endpoint**
+- [x] **Step 2: The forwarding address**
+- [x] **Step 3: Commit**
+
+### What task 4 found
+
+**An entered bill was not the bill reconciliation looked up.** The endpoint that stores a bill
+parsed its period end as a bare date, so September ended at midnight on the thirtieth, while every
+read of a period widens the same date to the last instant of that day. `for_period` matches a
+period exactly, so the month then reported "No bill entered for this period yet" with the bill
+sitting in the table. Both calls succeed and both responses render the period as 2026-09-30, which
+is why nothing noticed. The coverage query fails the same way, through `period_end > bucket_start`:
+a provider whose whole month was entered still counted as missing one, because the final day fell
+outside its own invoice. One function now builds the stored bill, so the write and the read cannot
+disagree, and the live round trip went from `no_invoice` to a real comparison.
+
+**The rows worth having are the bills nobody entered.** A missing bill is invisible everywhere
+else: reconciliation reports no bill rather than a difference, and the Overview tab's coverage
+figure says how many are missing without saying which. So the missing-invoice query returns names
+rather than a count, the count becomes the length of that list, and both tabs are answered by one
+statement rather than two that eventually disagree about one provider.
+
+**A missing row carries no total, and not a zero.** There is no bill, so the only figure available
+would be the ledger's own, and a figure Token IQ worked out printed in an invoice column is how a
+provider total and an attribution total get added together by accident. The same reason the
+Accounts tab totals records and not money.
+
+**A provider can be missing a bill and have one at the same time.** It billed since the last bill
+was entered. Collapsing the two rows would drop whichever was judged the duplicate, so both are
+listed, and the live check shows exactly that: OpenRouter recorded for October and still missing
+one for the days before it.
+
+**A forwarding address that cannot receive mail is its own state.** Shown as though it worked, a
+typo sends a finance team's bills nowhere and nothing says so until a month-end close has nothing
+to reconcile against; folded into "not configured", the same typo reads as nobody having tried and
+the next administrator sets it a second time instead of fixing it. All three states were checked
+against a running proxy, because an environment-driven setting is exactly where in-process tests
+prove nothing.
+
+**Even a working address is said to be a mailbox a person reads.** Nothing here opens mail or
+parses an attachment. An address presented as automatic would have a customer forwarding bills for
+a month and then asking why none of them arrived.
+
+**The dialog asks for the figures instead of pretending to read them.** The blueprint's modal takes
+a PDF or CSV and confirms its parsed lines before saving. There is no parser and no document store,
+so a file field would leave a customer believing their bill had been understood. The month is one
+field rather than two dates for the reason above: a period assembled by hand is a bill that fails
+to cover the last day of its own month.
+
+**An adjustment entered the wrong way round does not fail.** It moves the unexplained remainder by
+twice the amount and blames the provider for it. The sign is explained per kind and a contradicting
+sign is a note rather than a refusal, because a reversed credit is real.
+
+**Entering a bill is now in two places.** The Ledger page's Invoices tab has had an inline form
+since the ledger work, and the blueprint puts this on Data Sources > Uploads, which is also what
+Invoice Reconciliation's own "not here" line says. Nothing was removed, because removing a tab
+needs asking first. Worth consolidating: the Ledger tab should point here.
+
+**Bills entered before the period fix sit at a midnight end.** Re-entering that month now writes a
+second row rather than correcting the first, because the upsert's conflict target is the exact
+period. Two bills for one month would double the invoiced figure. Only two dev rows existed and
+both were removed; a fresh installation cannot reach it, and a check for two bills covering one
+month would be the honest guard if one ever ships.
 
 ---
 
