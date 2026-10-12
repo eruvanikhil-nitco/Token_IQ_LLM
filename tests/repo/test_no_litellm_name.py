@@ -50,6 +50,7 @@ ALLOWED: Final[Mapping[str, str]] = {
     "docs/specs/": "historical",
     "docs/status.md": "historical",
     "docs/product/": "the blueprint describes removing the name, so it has to say it",
+    "docs/runbooks/": "the rename runbook's subject is the old table names, so it has to name every one it renames",
     "token_iq/gateway/compat.py": "the one module allowed to name old names, until the compat release ends",
     "tests/gateway/test_compat.py": "its test, for the same reason",
     "tests/repo/test_no_litellm_name.py": "this gate itself, for the same reason as the budget file above: every pattern and every canary string here has to spell the name out, so counting them counts the bookkeeping",

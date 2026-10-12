@@ -1,6 +1,6 @@
 {
   "areas": {
-    "(root)": 328,
+    "(root)": 317,
     ".cargo": 1,
     ".circleci": 187,
     ".devcontainer": 3,
@@ -20,8 +20,8 @@
     "scripts": 555,
     "terraform": 2271,
     "tests": 28375,
-    "token-iq-migrations": 1113,
-    "token_iq": 23449,
+    "token-iq-migrations": 1123,
+    "token_iq": 23460,
     "ui": 2980
   }
 }
