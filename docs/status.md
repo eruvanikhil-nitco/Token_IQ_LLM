@@ -1,30 +1,38 @@
 # Token IQ, current state
 
-Updated 2026-09-30. This file is the one place to look for where the work stands. Keep it
-current at the end of every session rather than rediscovering the answer from git log.
+Updated 2026-10-12. This file is the one place to look for where the work stands. Keep it
+current at the end of every session rather than rediscovering the answer from git log. The
+dated sections below are the record, newest last.
 
-## What we are doing right now
+## Where we are
 
-**The Overview landing page is built**, which was the last thing standing between six phases
-of backend work and a customer being able to see it. Plan:
-`docs/plans/2026-09-30-overview-home-page.md`, all five tasks.
+Two numbering systems run in parallel and they are easy to confuse.
 
-It shows total spend and the change on the period before, how much the gateway can attribute,
-how much nobody owns and what share that is, whether each provider's bill matched, the top
-recommendations, and when each source last reported. It is in a new HOME group at the top of
-the sidebar.
+**The product build order**, from section 13 of the blueprint, is the one that says what a
+customer gets next. Step 0 (an independent codebase) is done, step 1 (the Data Sources page and
+the connect dialog) is done, step 2 (the quick fixes) is done, and **step 3 is in progress: the
+truth layer and Pricing & Rates**, planned in
+`docs/plans/2026-10-12-blueprint-step-3-truth-layer.md`, five tasks, the first of them committed.
+Steps 4 to 10 have not started.
 
-The rule it exists to protect: the headline total is what providers billed plus tool spend on
-no provider bill plus seats. The gateway figure is excluded and labelled as attribution, in
-words, on the screen. Adding the two would roughly double the number a customer repeats to
-their finance team. Checked live: the total reads 0.00780515, the provider figure, and not
-that plus the gateway's 0.00797225.
+**The codebase programme**, phases 0 to 10 of
+`docs/plans/2026-10-04-independent-codebase.md`, is the fork becoming its own product. Phases 0
+to 4 are done and were build step 0. Phase 5, deleting the upstream features Token IQ does not
+use, is parked by the owner's decision. Phase 6, the rename, is done. Phase 7's compatibility
+seam for the old names is in. Phase 8 step 1 is done and step 2, the database table names, waits
+behind a runbook. Phase 9, the navigation labels, finished with the Gateway tab. Phase 10's gate
+is in CI and ratchets as the last two land.
 
-Phase 0 is otherwise complete apart from what needs an AWS account. The provider was chosen
-on 2026-09-30: AWS, plain containers on ECS Fargate, shared VPC and Postgres server and load
-balancer, with only the container, database, secrets and hostname separate per customer. The
-image is built and proved, 1.69 GB from a clean checkout running against real Postgres.
-Publishing it, applying Terraform and routing a hostname all wait on the account.
+So: build step 3 of 10, task 2 of 5, with the codebase programme complete apart from phase 5
+(parked) and phase 8 step 2 (deferred, with a runbook).
+
+**There is no phase 11.** The programme stops at phase 10, and the product build steps are not
+phases: they are the blueprint's own build order, of which the phases were step 0. Two notes from
+phase 0 and phase 1 below say "phase 11" as loose shorthand for the defects they deliberately left
+alone, which were the OpenAI line items, Bedrock static keys and the committed UI bundle. The first
+two became build step 2 and are fixed. The bundle is still open and is recorded under what is left.
+Section 11 of the programme plan is the target repository layout, not a phase, and one status
+heading below calls it "phase 11's layout" by mistake.
 
 ## Two real defects found by this work
 
@@ -3226,3 +3234,65 @@ reading the same provider account. Task 3 records a customer's own rates, which 
 makes the `priced` grade real. Task 4 is currency, with a rate a customer entered rather than one we
 invented. Task 5 renames Cost Tracking to Pricing & Rates, keeping its address alive, and puts both
 on it.
+
+## 12 Oct 2026, later still: the restructure's definition of done, measured
+
+The owner asked whether the product work had drifted off the restructure plan. It had not: section
+12 of that plan is titled "Using the blueprint for product changes (after phase 4)" and says to
+follow the blueprint's build order, which is what build steps 1 to 3 are. But the question was
+worth the check, because nobody had measured the plan's own definition of done since the phases
+finished, and three of its ten rows turned out to be open.
+
+### The old-name gate was red, and nothing had run it
+
+`tests/repo/test_no_litellm_name.py` fails when any area holds more of the old name than its
+ceiling. It was over by six: the physical name of the new external-id table, in its migration SQL
+and in three `@@map` lines, plus two SQL strings naming existing tables. Every one of those is what
+phase 8 step 1 says to keep until step 2 renames the tables for real, so the ceilings were
+re-baselined rather than the names removed. `ui` fell by 27 and `scripts` by 2 in the same run,
+from this week's work.
+
+Worth saying why it went unnoticed: the per-task checks are the ruff, LIT and migration gates,
+which are fast. This one takes a minute and lives in `make check`, which needs a machine slot, so
+it had not run in a week of commits. It belongs in the per-task list.
+
+### The security policy told people to report vulnerabilities to another company
+
+`security.md` was upstream's, unchanged: a private advisory link to their repository, their support
+address for security inquiries, installation docs pointing at their site, and a section describing
+their cloud's data regions and database provider. For a product sold as one installation per
+customer on the customer's own infrastructure, the data-region section was not merely stale, it was
+false, and the reporting instructions sent Token IQ vulnerabilities to somebody else.
+
+Rewritten for what this product is, with the reporting route being this repository's own private
+advisories, no invented address, and the categories that actually matter here. P3 is now the
+observer-only guarantee: anything that makes Token IQ change which endpoint serves a call, what a
+response contains, or whether the provider is reached is a vulnerability in the product's central
+promise rather than a feature request.
+
+### Phase 8 step 2 needed a runbook, so it has one
+
+`docs/runbooks/rename-tables.md`. Measured against a development database: 87 tables, 250 indexes,
+29 foreign keys and one sequence, with Postgres renaming the dependents for free and the
+verification step confirming it did. The order that matters is in it, since the old release cannot
+read the new names and the new release cannot read the old ones, and so is the rollback, which is
+only a rename for as long as the two releases differ by nothing else.
+
+### What the 6.3 search still finds, and why it cannot be closed here
+
+No runtime call leaves for upstream. The one hit inside `token_iq/` is a docstring naming
+`litellm.aimage_generation`, which the search pattern matches by accident.
+
+What remains is upstream content on phase 5's parked deletion list, `cookbook/`, `litellm-rust/`,
+`terraform/litellm/`, `terraform/provider/` and `packaging/homebrew/`, plus two files worth their
+own decision. `render.yaml` one-click deploys upstream's published image, so anyone using it would
+install the wrong product; it cannot be repointed truthfully until Token IQ publishes an image,
+which waits on the AWS account. `proxy_server_config.yaml`'s comments link to upstream's
+documentation. And `README.md` keeps one link to the upstream repository on purpose, because that
+is the MIT attribution, so the documented search should exclude it beside `LICENSE` and `NOTICE`.
+
+### The three rows that need the owner
+
+Phase 5's deletions, which also close the search row. The owners of security advisories and
+provider API changes, which have to be named by somebody who can commit people. And phase 8 step 2,
+which now has its runbook and needs a window.

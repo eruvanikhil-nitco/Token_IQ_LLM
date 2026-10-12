@@ -915,21 +915,63 @@ In the `<script>` that starts with `/* Token IQ v7 page model`:
 
 ## 13. Definition of done
 
-- [ ] Decision records 0022 and 0023 are written; `LICENSE` and `NOTICE` meet the MIT
+Measured on 12 Oct 2026, each row against the code rather than against memory.
+
+- [x] Decision records 0022 and 0023 are written; `LICENSE` and `NOTICE` meet the MIT
       attribution requirement.
 - [ ] Every row of the dependency register (6.1) is closed. The 6.3 search returns nothing,
       and no runtime call leaves for upstream.
+
+      No runtime call leaves: the one hit the search reports inside `token_iq/` is a docstring
+      naming `litellm.aimage_generation`, which the pattern `litellm\.ai` matches by accident.
+      What the search still finds is upstream content on phase 5's parked deletion list,
+      `cookbook/`, `litellm-rust/`, `terraform/litellm/`, `terraform/provider/`,
+      `packaging/homebrew/`, plus two files worth deciding on their own: `render.yaml`, which
+      one-click deploys *upstream's* published image and so would install the wrong product, and
+      `proxy_server_config.yaml`, whose comments link to upstream's documentation. `README.md`
+      keeps one link to the upstream repository on purpose, because it is the MIT attribution,
+      and the search's exclusion list should name it beside `LICENSE` and `NOTICE`.
+      **So this row waits on phase 5, which the owner parked.**
 - [ ] Prices load from the bundled file. The daily update job opens pull requests, additions
       auto-merge, and changes are reviewed. Past periods re-price from `price_history`.
+
+      The bundled file, the append-only history and `price_on` all exist, and the job and its
+      workflow exist. What nothing does yet is call `price_on`: no screen or job re-prices a past
+      period, so the last sentence of this row is unproven in the product rather than done. It is
+      task 3 of `docs/plans/2026-10-12-blueprint-step-3-truth-layer.md`.
 - [ ] Renovate or Dependabot is active. Owners for security advisories (P2) and provider API
       changes (P3) are named in `docs/status.md`.
+
+      `.github/dependabot.yml` covers the four ecosystems. **The two owners have to be named by
+      somebody who can commit people to it.**
 - [ ] Unused upstream features are deleted, as approved in the inventory.
-- [ ] `tests/repo/test_no_litellm_name.py` passes in CI, and the allowlist is as small as
+      **Parked by the owner.**
+- [x] `tests/repo/test_no_litellm_name.py` passes in CI, and the allowlist is as small as
       section 10 says.
-- [ ] An installation configured with old `LITELLM_*` names upgrades and keeps working, with
+
+      It was red: this session's own work added the physical table name of a new table in SQL and
+      in three `@@map` lines, which phase 8 step 1 says to keep until step 2. Ceilings
+      re-baselined, and `ui` and `scripts` came down at the same time.
+- [x] An installation configured with old `LITELLM_*` names upgrades and keeps working, with
       warnings. `CHANGELOG.md` lists every rename.
-- [ ] `assert_ci_coverage.py` passes. The Token IQ and gateway tests match the baseline.
-- [ ] The Docker image builds and starts; the Overview page loads; a request through the
+- [x] `assert_ci_coverage.py` passes. The Token IQ and gateway tests match the baseline.
+
+      2636 test files and 10 Dockerfiles each invoked by a job or allowlisted. 944 tests pass
+      across `tests/token_iq/` outside the API folder, which is the slow one.
+- [x] The Docker image builds and starts; the Overview page loads; a request through the
       gateway is recorded.
-- [ ] `docs/status.md` records what was done, what was deferred (for example step 2 of
+- [x] `docs/status.md` records what was done, what was deferred (for example step 2 of
       phase 8) and why.
+
+      Its header now answers "where are we" first, in both numbering systems, and says plainly
+      that there is no phase 11.
+
+**What is left, and who it waits on**
+
+| Item | Waits on |
+|---|---|
+| Phase 5, deleting the upstream features Token IQ does not use, which also closes the 6.3 search row | the owner, who parked it |
+| `render.yaml`, which deploys another company's image, and `proxy_server_config.yaml`'s documentation links | the owner: delete the first or point it at an image Token IQ publishes, which needs the AWS account |
+| Naming the owners of security advisories and provider API changes | the owner |
+| Phase 8 step 2, the real table names | the owner. The runbook it needed is written: `docs/runbooks/rename-tables.md` |
+| Re-pricing a past period from `price_history` | nobody. It is task 3 of build step 3 |
