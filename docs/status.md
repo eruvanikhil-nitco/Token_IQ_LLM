@@ -26,6 +26,13 @@ is in CI and ratchets as the last two land.
 So: build step 3 of 10, task 2 of 5, with the codebase programme complete apart from phase 5
 (parked) and phase 8 step 2 (deferred, with a runbook).
 
+**Section 11 is the target repository layout, not work and not a phase.** It was checked on 8 Oct
+and measured again on 12 Oct: the repository matches it apart from five differences, four of which
+were the diagram being imprecise and are now corrected in the plan. The fifth is open and
+architectural: the diagram wants a `token_iq/proxy/` package so the engine never imports the
+product, and instead eleven engine files import Token IQ's modules directly. The plan now says so
+under the tree, with the two halves it splits into.
+
 **There is no phase 11.** The programme stops at phase 10, and the product build steps are not
 phases: they are the blueprint's own build order, of which the phases were step 0. Two notes from
 phase 0 and phase 1 below say "phase 11" as loose shorthand for the defects they deliberately left

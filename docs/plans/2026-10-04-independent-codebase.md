@@ -844,23 +844,44 @@ token-iq/   (repository)
 │  ├─ gateway/          the engine: provider translation, proxy, auth, keys, spend tracking
 │  ├─ api/              Token IQ product API routers
 │  ├─ connectors/       billing/ (providers) and tools/ (Claude Code, Copilot, Cursor)
-│  ├─ ledger/  attribution/  overview/  seats/  recommendations/
+│  ├─ truth/            the cost line every analysis screen reads
+│  ├─ ledger/  attribution/  overview/  seats/  recommendations/  policy/  pricing/
 │  ├─ repositories/     database access for Token IQ tables
-│  ├─ proxy/            Token IQ hooks inside the gateway
-│  ├─ types/            data types and API schemas
-│  └─ plan.py
-├─ token_iq_migrations/ Prisma migrations package (was litellm-proxy-extras)
+│  ├─ proxy/            Token IQ hooks inside the gateway  (does not exist: see below)
+│  └─ types/            data types and API schemas
+├─ token-iq-migrations/ the distribution, holding the token_iq_migrations package
 ├─ schema.prisma        (plus the two synced copies Prisma needs)
 ├─ tests/
 │  ├─ token_iq/         product tests
 │  ├─ gateway/          engine tests (was test_litellm)
 │  └─ repo/             repository-wide checks (no-litellm-name gate)
 ├─ ui/dashboard/        the admin and product UI
-├─ deploy/              images/, installations/, terraform/, helm/
+├─ deploy/              images/, installations/, terraform/
 ├─ docs/                README, status.md, product/, decisions/, specs/, plans/, runbooks/
 ├─ scripts/             dev/, update_model_prices.py, quality gates
 └─ pyproject.toml  Makefile  Dockerfile
 ```
+
+### Where the tree above and the repository differ
+
+Checked on 8 Oct 2026 and measured again on 12 Oct. Four of the differences were the diagram
+being imprecise and are corrected above: `plan.py` lives at `token_iq/policy/plan.py` rather than
+the package root; `token_iq_migrations` is the package inside the `token-iq-migrations`
+distribution directory, which is how a Python distribution is laid out; `policy/`, `pricing/` and
+`truth/` exist and carry real code; and `deploy/helm/` is gone, deleted by decision rather than
+repointed.
+
+The fifth is architectural and still open. **There is no `token_iq/proxy/`.** Instead eleven engine
+files import Token IQ's own modules directly, which is coupling in the wrong direction: the engine
+should not know what the product is. They split in two.
+
+- **Router registration**, about fifteen import-and-include pairs inside `proxy_server.py`. One
+  `token_iq/proxy/` module exporting a single `register(app)` would replace all of them, and
+  nothing else about the engine would have to change. This is the cheap half and worth doing.
+- **Behavioural hooks**, in `auth_checks`, `credential_endpoints`, `key_management_endpoints`,
+  `model_management_endpoints`, `team_endpoints` and `pass_through_endpoints`, where the engine
+  calls product policy inline. Inverting these needs an interface per hook so the product registers
+  what the engine then calls, which is a task of its own and earns a decision record.
 
 ---
 
