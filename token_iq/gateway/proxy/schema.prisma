@@ -203,6 +203,29 @@ model AttributionRule {
   @@map("LiteLLM_AttributionRule")
 }
 
+// One thing a customer's contract says about what they pay, with the period it says it for.
+// A percentage off list across a provider, or a committed price per million tokens for one model
+// and one meter. The period is required because a closed month must re-price with the rate that
+// applied then: re-pricing last quarter at this quarter's rate gives a figure that still looks
+// like a figure. A renegotiation is a new row, never an edit, for the same reason.
+model ProviderRate {
+    rate_id        String   @id @default(uuid())
+    provider       String
+    model          String?  // null: every model of that provider
+    field          String?  // null: every meter. input_cost_per_token and its siblings
+    basis          String   // discount | unit_price
+    percent_off    String?  // exact digits as text, for a discount
+    per_million    String?  // exact digits as text, for a committed price
+    effective_from DateTime
+    effective_to   DateTime? // null: still in force
+    source         String
+    created_at     DateTime @default(now())
+    updated_at     DateTime @updatedAt
+
+    @@index([provider, effective_from])
+  @@map("LiteLLM_ProviderRate")
+}
+
 // Models on proxy
 model ProxyModelTable {
   model_id String @id @default(uuid())

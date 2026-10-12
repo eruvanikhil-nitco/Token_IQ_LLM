@@ -192,20 +192,60 @@ already holds. A brand-new query failing while everything else works is the pool
 
 ## Task 3: Effective rates, which makes the `priced` grade real
 
-- [ ] **Step 1: Where a customer's own rate is recorded**
+- [x] **Step 1: Where a customer's own rate is recorded**
 
 A negotiated discount, a committed-use rate or a private price list, per provider and optionally
 per model, with the period it applies to and where it came from. A rate with no period cannot
 re-price a closed month, which is the whole reason `price_history` exists.
 
-- [ ] **Step 2: Pricing gateway traffic at those rates, as `priced` evidence**
+- [x] **Step 2: Pricing gateway traffic at those rates, as `priced` evidence**
 
 Today a request the gateway observed and no provider has billed yet contributes nothing to any
 figure. Priced at the customer's rate it becomes a cost line graded `priced`, which is the
 blueprint's "estimated cost has been observed by the gateway but not yet billed", and which is
 replaced by the provider's own figure when it arrives.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
+
+### What task 3 found
+
+**Two shapes cover what customers actually negotiate**, and they are not variants of one. A
+percentage off list follows the list price when it changes, which is what a discount on a price list
+means. A committed price per million replaces list entirely, which is what a commitment means, and
+it has to work for a model the bundled list has never heard of, because a private deployment is
+exactly the case somebody negotiates a price for.
+
+**A missing rate is list price, never free.** The one reading of an absent rate that must never
+happen is zero, and the same goes for a model the price list does not know: that is its own answer,
+`unknown`, with a reason. A caller that reads either as nothing turns real spend into free usage, on
+the screen a customer checks against their own invoice.
+
+**Two rates claiming one model on one day are a conflict, not a coin toss.** Resolved silently, the
+figure depends on which row was written first, which nobody could work out from a screen. So the
+answer is its own arm, it names both rates, and it prices nothing until a person removes one.
+Proved live: two committed prices for one model came back as `conflict` with both figures and no
+price.
+
+**A rate that cannot price anything is refused before it is stored.** A committed price with no
+model would price a small model like a large one; with no meter it would price output at the input
+rate, which differ by a factor of three or more at list. Both refused with the reason, as is a
+discount over a hundred per cent, which would make spend negative, and a negative discount, because
+a price above list is a committed price rather than a negative anything.
+
+**A rate is never edited.** A renegotiation is a new row with its own period, because the old row
+priced months that are already reported and a reported figure must not move under a reader. The
+insert is an insert, and a test asserts there is no `ON CONFLICT` to make it anything else.
+
+**The priced grade is money for exactly the days a provider has not billed.** That is the counting
+rule in its only form that is a date rather than a source, and the watermark is per provider because
+OpenRouter prices each request as it happens while Bedrock settles two days late. One watermark
+across both would either double count the fast one or hide the slow one. A provider that has never
+billed at all has every day priced, which is the right answer for a provider connected to the
+gateway and not to billing.
+
+**The router refactor paid for itself immediately.** `token_iq/api/pricing.py` is mounted because it
+exists: four new endpoints, no edit to the engine, and the test that checks every product module's
+paths reach the app covered it without being touched.
 
 ---
 

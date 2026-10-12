@@ -11531,6 +11531,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/pricing/effective-rate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Effective Rate
+         * @description What prices this model and meter on a given day, and what that makes a million tokens cost.
+         *
+         *     The day matters: a closed month prices with the rate and the list price that applied then, not
+         *     with today's.
+         */
+        get: operations["read_effective_rate_pricing_effective_rate_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pricing/rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Rates
+         * @description Every rate an administrator has recorded, newest period first within a provider.
+         */
+        get: operations["list_rates_pricing_rates_get"];
+        put?: never;
+        /**
+         * Add Rate
+         * @description Record what a contract says. Refused when it could never price anything.
+         *
+         *     An insert, never an update: a renegotiation is a new rate with its own period, because the old
+         *     one priced months that have already been reported.
+         */
+        post: operations["add_rate_pricing_rates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pricing/rates/{rate_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Rate
+         * @description Remove a rate, after which its periods price at whatever else covers them.
+         */
+        delete: operations["delete_rate_pricing_rates__rate_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/project/daily/activity": {
         parameters: {
             query?: never;
@@ -29141,6 +29211,20 @@ export interface components {
             /** Plugins */
             plugins: components["schemas"]["PluginListItem"][];
         };
+        /**
+         * ListPriceApplies
+         * @description No contract covers this, so list price does. Not free, and not an error.
+         */
+        ListPriceApplies: {
+            /** Cost Per Million */
+            cost_per_million: string;
+            /**
+             * Kind
+             * @default list_price
+             * @constant
+             */
+            kind: "list_price";
+        };
         /** ListPromptsResponse */
         ListPromptsResponse: {
             /** Prompts */
@@ -34825,6 +34909,23 @@ export interface components {
             version_status: string;
         };
         /**
+         * PriceUnknown
+         * @description Neither the price history nor the bundled list knows this model and meter.
+         *
+         *     Its own state rather than a zero: a caller that read an unknown price as free would turn real
+         *     spend into free usage.
+         */
+        PriceUnknown: {
+            /**
+             * Kind
+             * @default unknown
+             * @constant
+             */
+            kind: "unknown";
+            /** Reason */
+            reason: string;
+        };
+        /**
          * PrincipalDerivedResponse
          * @description AWS answered with a role session, so the role behind it is the principal.
          *
@@ -35550,6 +35651,124 @@ export interface components {
                     [key: string]: unknown;
                 };
             } | null;
+        };
+        /**
+         * RateApplied
+         * @description The rate that prices one meter of one model today, and what it makes a million tokens cost.
+         */
+        RateApplied: {
+            /** Cost Per Million */
+            cost_per_million: string;
+            /**
+             * Kind
+             * @default applied
+             * @constant
+             */
+            kind: "applied";
+            rate: components["schemas"]["RateResponse"];
+        };
+        /**
+         * RateBody
+         * @description What an administrator sends after reading a contract.
+         *
+         *     `basis` decides which amount is required, and the server refuses the combinations that cannot
+         *     price anything: a committed price with no model, or with no meter.
+         */
+        RateBody: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "discount" | "unit_price";
+            /**
+             * Effective From
+             * @description First day it applies, as YYYY-MM-DD
+             */
+            effective_from: string;
+            /**
+             * Effective To
+             * @description Last day it applies. Null while still in force
+             */
+            effective_to?: string | null;
+            /**
+             * Field
+             * @description Null for every meter, for a discount
+             */
+            field?: string | null;
+            /**
+             * Model
+             * @description Null for every model of that provider
+             */
+            model?: string | null;
+            /**
+             * Per Million
+             * @description Exact digits, for a committed price per million tokens
+             */
+            per_million?: string | null;
+            /**
+             * Percent Off
+             * @description Exact digits, for a discount: 20 means 20%
+             */
+            percent_off?: string | null;
+            /** Provider */
+            provider: string;
+            /**
+             * Source
+             * @description Where it came from: a contract reference, an email, a renegotiation
+             */
+            source: string;
+        };
+        /** RateDeletedResponse */
+        RateDeletedResponse: {
+            /** Deleted */
+            deleted: boolean;
+        };
+        /** RateListResponse */
+        RateListResponse: {
+            /** Rates */
+            rates: components["schemas"]["RateResponse"][];
+        };
+        /** RateResponse */
+        RateResponse: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "discount" | "unit_price";
+            /** Effective From */
+            effective_from: string;
+            /** Effective To */
+            effective_to: string | null;
+            /** Field */
+            field: string | null;
+            /** Model */
+            model: string | null;
+            /** Per Million */
+            per_million: string | null;
+            /** Percent Off */
+            percent_off: string | null;
+            /** Provider */
+            provider: string;
+            /** Rate Id */
+            rate_id: string;
+            /** Source */
+            source: string;
+        };
+        /**
+         * RatesConflict
+         * @description Two rates are equally specific and equally recent, so nothing can be priced until a person
+         *     removes one. Reported rather than resolved, because resolving it silently would make the figure
+         *     depend on which row was written first.
+         */
+        RatesConflict: {
+            /**
+             * Kind
+             * @default conflict
+             * @constant
+             */
+            kind: "conflict";
+            /** Rates */
+            rates: components["schemas"]["RateResponse"][];
         };
         /** RawRequestTypedDict */
         RawRequestTypedDict: {
@@ -56393,6 +56612,128 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PolicyValidationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_effective_rate_pricing_effective_rate_get: {
+        parameters: {
+            query: {
+                /** @description The provider whose bill this model is on */
+                provider: string;
+                /** @description The model as the price list names it */
+                model: string;
+                /** @description Which meter: input_cost_per_token and its siblings */
+                field?: string;
+                /** @description The day to price, as YYYY-MM-DD. Today by default */
+                on?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RateApplied"] | components["schemas"]["ListPriceApplies"] | components["schemas"]["RatesConflict"] | components["schemas"]["PriceUnknown"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_rates_pricing_rates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RateListResponse"];
+                };
+            };
+        };
+    };
+    add_rate_pricing_rates_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RateBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_rate_pricing_rates__rate_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RateDeletedResponse"];
                 };
             };
             /** @description Validation Error */

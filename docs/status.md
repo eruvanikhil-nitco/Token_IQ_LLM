@@ -3356,3 +3356,40 @@ One environmental thing worth remembering. The new query failed with a 500 while
 reported healthy: Postgres had run out of connections after a day of proxy restarts, and the
 readiness check answers on a connection it already holds. A brand-new query failing while
 everything else works is the pool, not the query.
+
+## 12 Oct 2026: what a customer actually pays
+
+Build step 3 task 3. The bundled price list says what a model costs anybody. A customer with a
+contract pays something else, and nothing in this product could record it, so every figure it worked
+out for itself was list price: wrong by exactly the discount they negotiated, in their favour, on
+the screen they check against their own invoice.
+
+Two shapes, because they are not variants of one. A percentage off list follows list price when it
+changes, which is what a discount on a price list means. A committed price per million replaces list
+entirely, and works for a model the bundled list has never heard of, because a private deployment is
+exactly the case somebody negotiates a price for.
+
+Three answers are refusals rather than figures. A missing rate is list price, never free. A model
+the price list does not know is `unknown` with a reason, never zero. And two rates claiming one model
+on one day are a conflict that names both and prices nothing, because resolving it silently makes
+the figure depend on which row was written first.
+
+A rate that could never price anything is refused before it is stored: a committed price with no
+model would price a small model like a large one, and with no meter it would price output at the
+input rate. A rate is never edited either. A renegotiation is a new row with its own period, because
+the old row priced months that are already reported.
+
+`priced` is money for exactly the days a provider has not billed yet, which is the counting rule in
+its only form that is a date rather than a source. The watermark is per provider, because OpenRouter
+prices each request as it happens and Bedrock settles two days late; one watermark across both would
+double count the fast one or hide the slow one.
+
+Proved live, end to end: a Bedrock model priced at 0.80 per million at list, a twenty per cent
+discount recorded, the same model then priced at 0.64, and a day before the contract started back at
+0.80. Two committed prices for one model came back as a conflict with both figures and no price. A
+committed price with no model, a discount over a hundred per cent and an unknown provider were each
+refused with the reason. Every proof row removed afterwards.
+
+The router refactor from this morning paid for itself: four new endpoints mounted because the module
+exists, with no edit to the engine, and the test that every product module's paths reach the app
+covered them without being touched.
