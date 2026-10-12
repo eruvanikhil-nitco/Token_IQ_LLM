@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { migratedHref } from "@/utils/migratedPages";
+import { gatewayViewHref } from "@/app/(dashboard)/(token-iq)/data-sources/_components/gatewayViews";
 import { stateBadgeVariant, stateLabel, verificationBadgeVariant, verificationLabel } from "./connectionState";
 import { probeHeadline, probeTone } from "./probeResult";
 
@@ -73,7 +74,7 @@ export default function ConnectionTab({ connection }: { connection: ProviderConn
         <p className="text-sm">
           No account is connected yet. Add a read-only billing key on{" "}
           <Link
-            href={migratedHref("llm-provider-credentials")}
+            href={gatewayViewHref("upstreams")}
             className="text-primary underline-offset-4 hover:underline"
           >
             LLM Provider Credentials

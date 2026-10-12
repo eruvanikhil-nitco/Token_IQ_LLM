@@ -3089,3 +3089,59 @@ Nothing was removed, because removing a tab needs asking first. The Ledger tab s
 Task 5, the Gateway tab, needs the owner's decision on whether Virtual Keys and Logs really move
 behind a tab on a data page. Still open from task 3: the CloudFormation template's second parameter,
 the AWS principal this installation runs as, which nothing configures.
+
+## 12 Oct 2026, later: the Gateway tab, and the move the owner had to approve
+
+Task 5 of build step 1, the last one. The blueprint's fourth tab and the one task here whose cost
+was not technical: it moves the request log and virtual keys, the two most-visited screens in the
+product, behind a tab on a data page.
+
+**Asked, and the answer was yes.** So they moved, with one carve-out the asking surfaced.
+
+### The move cannot apply to everyone
+
+Data Sources is manage for Org Admin, view for Finance Admin and hidden for every other role. The
+request log and virtual keys have no role restriction at all: a team member reads their own keys and
+their own requests there. Moving them unconditionally would take those two screens away from every
+non-admin and leave nothing in their place, which is a loss of access rather than a navigation
+change.
+
+`gatewayPagesMovedFor` is the one function the sidebar asks, so the entry disappears exactly when
+the tab that replaced it appears, and both routes keep serving the page either way. The blueprint's
+own answer for those roles is My Team and My Usage, which are build step 4.
+
+### Views, not tabs
+
+The blueprint's navigation rule is that a page has sub-tabs and a sub-tab never has its own tabs,
+and it writes this tab's address itself as `/data-sources/gateway?view=upstreams`. So the three
+screens are a `?view=` switcher: request log, virtual keys, upstreams. A value nobody recognises
+opens the first view rather than a blank tab, because a stale bookmark would otherwise look exactly
+like an outage.
+
+The request log is the flat panel rather than the whole Logs page, which carries four tabs of its
+own. Its other three, the audit log, deleted keys and deleted teams, record what administrators did
+rather than what the gateway observed, so they stay on Logs and the view says where they are.
+
+Providers and Models + Endpoints stay pages and the upstreams view links to them. Both carry their
+own tab strips, nine in one case, and both are gateway configuration rather than a place data
+arrives from. What the blueprint actually describes on this tab is the credential the gateway
+forwards with, which is the panel LLM Provider Credentials was.
+
+### LLM Provider Credentials moved outright
+
+Admin-only already, so there was no carve-out to make. Its sidebar entry is gone,
+`/llm-provider-credentials` redirects to the upstreams view, and the three places in the product
+that linked to it now link to the view directly rather than through a redirect.
+
+### Seven entries are one page
+
+Provider APIs and User Tools as Accounts, LLM Provider Credentials as Upstreams, the request log and
+virtual keys as the other two views, Providers and Models + Endpoints linked from Upstreams. Every
+one of the seven addresses still resolves and a test covers each.
+
+### What is left
+
+Build step 1 is done, all five tasks. Still open and unchanged: the CloudFormation template's second
+parameter, the AWS principal this installation runs as, which nothing configures. The Ledger page's
+own invoice form duplicates the Uploads tab's dialog and should point at it. The blueprint's own next
+step is build step 3 onward, which depends on the truth layer rather than on this page.

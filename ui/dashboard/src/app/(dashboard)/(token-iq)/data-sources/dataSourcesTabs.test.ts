@@ -6,6 +6,7 @@ import {
   DATA_SOURCES_TABS,
   DATA_SOURCES_TAB_ORDER,
   dataSourcesAccess,
+  gatewayPagesMovedFor,
   visibleDataSourcesTabs,
   type DataSourcesViewer,
 } from "./dataSourcesTabs";
@@ -69,10 +70,7 @@ describe("the tabs themselves", () => {
     const built = visibleDataSourcesTabs(viewer("proxy_admin"));
 
     expect(built.every((tab) => DATA_SOURCES_TABS[tab].built)).toBe(true);
-    expect(built).toContain("accounts");
-    expect(built).toContain("overview");
-    expect(built).toContain("uploads");
-    expect(built).not.toContain("gateway");
+    expect(built).toEqual(["overview", "accounts", "gateway", "uploads"]);
   });
 
   it("opens on Overview, because that is the tab the blueprint puts first", () => {
@@ -92,6 +90,23 @@ describe("the tabs themselves", () => {
     for (const key of DATA_SOURCES_TAB_ORDER) {
       expect(DATA_SOURCES_TABS[key].label).toBeTruthy();
       expect(DATA_SOURCES_TABS[key].description).toBeTruthy();
+    }
+  });
+});
+
+describe("the pages the Gateway tab took over", () => {
+  it("has them moved for a viewer who can open this page", () => {
+    // The owner's decision on 12 Oct 2026: the request log and virtual keys move. The sidebar asks
+    // this so the entry disappears exactly when the tab that replaced it appears.
+    expect(gatewayPagesMovedFor(viewer("proxy_admin"))).toBe(true);
+    expect(gatewayPagesMovedFor(viewer("Admin Viewer"))).toBe(true);
+  });
+
+  it("leaves them where they are for a role this page is hidden from", () => {
+    // Both are pages every role uses and this page is admin-only, so moving them unconditionally
+    // would take away the two screens a team member uses most and leave nothing in their place.
+    for (const role of [...internalUserRoles, "customer", "team"]) {
+      expect(gatewayPagesMovedFor(viewer(role)), role).toBe(false);
     }
   });
 });

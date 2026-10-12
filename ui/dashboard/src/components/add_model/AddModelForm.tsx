@@ -37,7 +37,7 @@ import ConnectionErrorDisplay from "./model_connection_test";
 import { TEST_MODES } from "./add_model_modes";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { migratedHref } from "@/utils/migratedPages";
+import { gatewayViewHref } from "@/app/(dashboard)/(token-iq)/data-sources/_components/gatewayViews";
 
 interface AddModelFormProps {
   form: UseFormReturn<MountedFormValues>; // For the Add Model tab
@@ -312,7 +312,7 @@ const AddModelForm: React.FC<AddModelFormProps> = ({
                           onCreated={(name) => form.setValue("litellm_credential_name", name)}
                         />
                         <a
-                          href={migratedHref("llm-provider-credentials")}
+                          href={gatewayViewHref("upstreams")}
                           className="text-sm text-primary hover:underline"
                         >
                           Manage LLM Provider Credentials

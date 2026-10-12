@@ -21,7 +21,6 @@ export const MIGRATED_PAGES: Record<string, string> = {
   attribution: "attribution",
   ledger: "ledger",
   recommendations: "recommendations",
-  "llm-provider-credentials": "llm-provider-credentials",
   overview: "overview",
   workflows: "workflows",
   "guardrails-monitor": "guardrails-monitor",
@@ -59,6 +58,10 @@ export const MIGRATED_PAGES: Record<string, string> = {
   "data-sources": "data-sources",
   "provider-apis": "data-sources/accounts",
   "user-tools": "data-sources/accounts",
+  // Forwarding credentials are the Gateway tab's Upstreams view. The request log and virtual keys
+  // moved into the same tab for an admin and keep their own routes, because every non-admin role
+  // still reaches them there and cannot open Data Sources at all.
+  "llm-provider-credentials": "data-sources/gateway",
   settings: "settings",
   "admin-panel": "settings",
   "logging-and-alerts": "settings/logging-and-alerts",

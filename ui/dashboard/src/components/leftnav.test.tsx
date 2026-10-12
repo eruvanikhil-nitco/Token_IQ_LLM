@@ -175,7 +175,7 @@ describe("Sidebar (leftnav)", () => {
       OPTIMIZATION: ["recommendations", "cost-optimization"],
       GOVERNANCE: ["budgets"],
       ADMINISTRATION: ["organization", "access-control", "attribution", "cost-tracking", "settings"],
-      "DATA SOURCES": ["data-sources", "llm-provider-credentials"],
+      "DATA SOURCES": ["data-sources"],
       GATEWAY: ["api-keys", "providers", "models", "llm-playground", "transform-request"],
       SAFETY: ["guardrails", "guardrails-monitor", "policies"],
       BUILD: ["mcp-servers", "skills", "prompts", "tag-management", "model-hub-table", "api_ref"],
@@ -211,13 +211,10 @@ describe("Sidebar (leftnav)", () => {
       "Invoice Reconciliation",
       "Classic Usage",
       "Cost Optimization",
-      "Logs",
       "Organization",
       "Access Control",
       "Budgets & Forecasts",
       "Cost Allocation",
-      "LLM Provider Credentials",
-      "Virtual Keys",
       "Providers",
       "Models + Endpoints",
       "Playground",
@@ -236,6 +233,11 @@ describe("Sidebar (leftnav)", () => {
     ].forEach((label) => {
       expect(screen.getByText(label)).toBeInTheDocument();
     });
+    // The three the Gateway tab absorbed. An admin reaches all three inside Data Sources, and
+    // every one of their addresses still resolves.
+    expect(screen.queryByText("Logs")).not.toBeInTheDocument();
+    expect(screen.queryByText("Virtual Keys")).not.toBeInTheDocument();
+    expect(screen.queryByText("LLM Provider Credentials")).not.toBeInTheDocument();
     expect(screen.queryByText("Internal Users")).not.toBeInTheDocument();
     expect(screen.queryByText("Old Usage")).not.toBeInTheDocument();
     expect(screen.queryByText("Experimental")).not.toBeInTheDocument();
@@ -295,10 +297,14 @@ describe("Sidebar (leftnav)", () => {
       expect(screen.queryByText("Agents")).not.toBeInTheDocument();
     });
 
-    it("shows Logs to Admin Viewer", () => {
+    it("gives Admin Viewer the request log inside Data Sources rather than as its own entry", () => {
+      // The move applies to every role that can open Data Sources, read-only included: the
+      // difference between manage and view is the actions on a tab, not which tabs exist.
       mockUseAuthorized.mockReturnValue(adminViewerAuth);
       renderWithProviders(<Sidebar {...defaultProps} />);
-      expect(screen.getByText("Logs")).toBeInTheDocument();
+
+      expect(screen.getByText("Data Sources")).toBeInTheDocument();
+      expect(screen.queryByText("Logs")).not.toBeInTheDocument();
     });
   });
 
@@ -485,11 +491,11 @@ describe("Sidebar (leftnav)", () => {
   });
 
   it("marks the selected page's nav item active", () => {
-    renderWithProviders(<Sidebar {...defaultProps} defaultSelectedKey="logs" />);
-    const logs = screen.getByText("Logs").closest("a");
-    expect(logs).toHaveAttribute("data-active", "true");
+    renderWithProviders(<Sidebar {...defaultProps} defaultSelectedKey="new_usage" />);
+    const explorer = screen.getByText("Cost Explorer").closest("a");
+    expect(explorer).toHaveAttribute("data-active", "true");
     // A different item must not be active.
-    expect(screen.getByText("Virtual Keys").closest("a")).not.toHaveAttribute("data-active");
+    expect(screen.getByText("Providers").closest("a")).not.toHaveAttribute("data-active");
   });
 
   it("hides labels but keeps items reachable (icon + link) when collapsed to the rail", () => {
@@ -498,7 +504,7 @@ describe("Sidebar (leftnav)", () => {
     // The item stays navigable in the icon-only rail: its link still renders with
     // an icon (asserting the <a> + svg, not the text, so a removed icon would
     // fail here), while the label is present but CSS-hidden.
-    const label = screen.getByText("Virtual Keys");
+    const label = screen.getByText("Providers");
     const link = label.closest("a");
     expect(link).not.toBeNull();
     expect(link!.querySelector("svg")).not.toBeNull();
@@ -531,12 +537,43 @@ describe("Sidebar (leftnav)", () => {
       expect(screen.queryByText("User Tools")).toBeNull();
     });
 
-    it("leaves LLM Provider Credentials alone, because it belongs to the Gateway tab", () => {
-      // Forwarding credentials, not a connected account. That tab also moves Virtual Keys and
-      // Logs, so it waits for the owner's answer rather than being folded in here.
+    it("folds LLM Provider Credentials into it, as the Gateway tab's upstreams", () => {
+      // Forwarding credentials, not a connected account, which is why they are a view of the
+      // Gateway tab rather than a row on Accounts. /llm-provider-credentials redirects there.
       renderWithProviders(<Sidebar {...defaultProps} />);
 
-      expect(screen.getByText("LLM Provider Credentials")).toBeInTheDocument();
+      expect(screen.queryByText("LLM Provider Credentials")).toBeNull();
+    });
+
+    it("highlights it when standing on the Gateway tab's upstreams view", () => {
+      const { container } = renderWithProviders(
+        <Sidebar {...defaultProps} defaultSelectedKey="llm-provider-credentials" />,
+      );
+
+      expect(container.querySelector('a[href*="data-sources"]')).toHaveAttribute("data-active", "true");
+    });
+
+    it("keeps the request log and virtual keys for a role this page is hidden from", () => {
+      // The carve-out that makes the move safe. Data Sources is hidden from every non-admin role
+      // and these two are not, so moving them unconditionally would take away the two screens a
+      // team member uses most and leave nothing in their place.
+      mockUseAuthorized.mockReturnValue({
+        userId: "internal-user-id",
+        accessToken: "test-access-token",
+        userRole: "internal",
+        isViewOnly: false,
+        token: "test-token",
+        userEmail: "internal@example.com",
+        premiumUser: false,
+        disabledPersonalKeyCreation: false,
+        showSSOBanner: false,
+      });
+      renderWithProviders(<Sidebar {...defaultProps} />);
+
+      expect(screen.getByText("Logs")).toBeInTheDocument();
+      expect(screen.getByText("Virtual Keys")).toBeInTheDocument();
+      expect(screen.queryByText("Data Sources")).toBeNull();
+      mockUseAuthorized.mockReset();
     });
 
     it("highlights it when standing on a page it absorbed", () => {
@@ -685,9 +722,11 @@ describe("getBreadcrumb", () => {
     expect(getBreadcrumb("usage")).toEqual({ section: "Analytics", title: "Classic Usage" });
     expect(getBreadcrumb("prompts")).toEqual({ section: "Build", title: "Prompts" });
     expect(getBreadcrumb("policies")).toEqual({ section: "Safety", title: "Policies" });
+    // Folded into Data Sources as the Gateway tab's upstreams, so the breadcrumb names the page
+    // that owns it rather than an entry that is no longer in the sidebar.
     expect(getBreadcrumb("llm-provider-credentials")).toEqual({
       section: "Data Sources",
-      title: "LLM Provider Credentials",
+      title: "Data Sources",
     });
   });
 

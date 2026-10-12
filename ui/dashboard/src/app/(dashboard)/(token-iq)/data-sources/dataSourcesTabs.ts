@@ -42,7 +42,7 @@ export const DATA_SOURCES_TABS: Readonly<Record<DataSourcesTab, TabSpec>> = {
   gateway: {
     label: "Gateway",
     description: "The Token IQ gateway: observed traffic, request log, virtual keys and upstream endpoints.",
-    built: false,
+    built: true,
   },
   uploads: {
     label: "Uploads",
@@ -96,4 +96,19 @@ export function visibleDataSourcesTabs(viewer: DataSourcesViewer): readonly Data
 /** Whether the sidebar entry leads anywhere at all for this viewer. */
 export function dataSourcesIsVisible(viewer: DataSourcesViewer): boolean {
   return visibleDataSourcesTabs(viewer).length > 0;
+}
+
+/**
+ * Whether the request log and virtual keys have moved into this page's Gateway tab for a viewer.
+ *
+ * They have, for anyone who can open Data Sources, which is what the owner decided on 12 Oct 2026
+ * and what the blueprint asks for. For everyone else they have not and cannot: this page is hidden
+ * from every non-admin role, and the two pages are not. Moving them unconditionally would take the
+ * two screens a team member uses most and leave nothing in their place.
+ *
+ * The sidebar asks this so an entry disappears exactly when the tab that replaced it appears, and
+ * neither address stops resolving either way.
+ */
+export function gatewayPagesMovedFor(viewer: DataSourcesViewer): boolean {
+  return dataSourcesAccess(viewer) !== "hidden" && DATA_SOURCES_TABS.gateway.built;
 }

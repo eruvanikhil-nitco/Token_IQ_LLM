@@ -84,7 +84,7 @@ describe("UserToolsPanel", () => {
 
     expect(await screen.findByRole("link", { name: /llm provider credentials/i })).toHaveAttribute(
       "href",
-      expect.stringContaining("llm-provider-credentials"),
+      expect.stringContaining("data-sources/gateway"),
     );
   });
 

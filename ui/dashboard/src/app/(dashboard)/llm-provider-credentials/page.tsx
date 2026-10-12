@@ -1,19 +1,17 @@
 "use client";
 
-import { LockKeyhole } from "lucide-react";
+import { useEffect } from "react";
 
-import CredentialsPanel from "@/components/model_add/CredentialsPanel";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { gatewayViewHref } from "@/app/(dashboard)/(token-iq)/data-sources/_components/gatewayViews";
 
-export default function LlmProviderCredentialsPage() {
-  return (
-    <main className="flex h-full flex-col gap-6 p-8">
-      <PageHeader
-        icon={<LockKeyhole />}
-        title="LLM Provider Credentials"
-        subtitle="Keys for serving models and read-only keys for reading provider costs."
-      />
-      <CredentialsPanel />
-    </main>
-  );
+/**
+ * Forwarding credentials are the Upstreams view of Data Sources > Gateway now, which is where the
+ * blueprint puts them. The route stays so a bookmark or a link to /llm-provider-credentials still
+ * arrives somewhere, rather than hitting a route that no longer exists.
+ */
+export default function LlmProviderCredentialsRedirect() {
+  useEffect(() => {
+    window.location.replace(gatewayViewHref("upstreams"));
+  }, []);
+  return null;
 }

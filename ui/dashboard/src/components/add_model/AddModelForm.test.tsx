@@ -228,7 +228,7 @@ describe("AddModelForm", () => {
     expect(screen.getByRole("button", { name: /New credential/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Manage LLM Provider Credentials/ })).toHaveAttribute(
       "href",
-      expect.stringContaining("llm-provider-credentials"),
+      expect.stringContaining("data-sources/gateway/?view=upstreams"),
     );
   });
 

@@ -30,7 +30,6 @@ import {
   HeartPulse,
   KeyRound,
   LayoutGrid,
-  LockKeyhole,
   Network,
   PanelLeftClose,
   PanelLeftOpen,
@@ -74,7 +73,10 @@ import {
   accessControlIsVisible,
 } from "@/app/(dashboard)/access-control/accessControlTabs";
 import { SETTINGS_TABS, SETTINGS_TAB_LEGACY_PAGE, settingsIsVisible } from "@/app/(dashboard)/settings/settingsTabs";
-import { dataSourcesIsVisible } from "@/app/(dashboard)/(token-iq)/data-sources/dataSourcesTabs";
+import {
+  dataSourcesIsVisible,
+  gatewayPagesMovedFor,
+} from "@/app/(dashboard)/(token-iq)/data-sources/dataSourcesTabs";
 import BetaBadge from "./BetaBadge";
 import BrandLogo, { BRAND_NAME } from "./BrandLogo";
 import SidebarAccountMenu from "./SidebarAccountMenu/SidebarAccountMenu";
@@ -228,21 +230,15 @@ const menuGroups: MenuGroup[] = [
   {
     groupLabel: "DATA SOURCES",
     items: [
-      // Provider APIs and User Tools, which were two entries, as the Accounts tab of one page.
-      // LLM Provider Credentials stays for now: those are forwarding credentials, which the
-      // blueprint puts on the Gateway tab, and that tab moves Virtual Keys and Logs too.
+      // Four entries folded in here: Provider APIs and User Tools as the Accounts tab, LLM
+      // Provider Credentials as the Gateway tab's Upstreams view, and the request log and virtual
+      // keys as its other two views for anyone who can open this page. Every one of those
+      // addresses still resolves.
       {
         key: "data-sources",
         page: "data-sources",
         label: "Data Sources",
         icon: <Plug {...ICON} />,
-        roles: all_admin_roles,
-      },
-      {
-        key: "llm-provider-credentials",
-        page: "llm-provider-credentials",
-        label: "LLM Provider Credentials",
-        icon: <LockKeyhole {...ICON} />,
         roles: all_admin_roles,
       },
     ],
@@ -349,7 +345,24 @@ const TAB_OWNER: Record<string, string> = Object.fromEntries([
   // Both of these landed on what is now the Accounts tab.
   ["provider-apis", "data-sources"],
   ["user-tools", "data-sources"],
+  // Forwarding credentials are the Gateway tab's Upstreams view.
+  ["llm-provider-credentials", "data-sources"],
 ]);
+
+/**
+ * Whether this entry is a view of Data Sources > Gateway for this viewer rather than a page.
+ *
+ * The request log and virtual keys moved there, which is what the owner decided on 12 Oct 2026.
+ * Both keep their own routes, and every role that cannot open Data Sources keeps its entry here,
+ * because moving them unconditionally would take away the two screens a team member uses most and
+ * leave nothing in their place.
+ */
+const movedIntoTheGatewayTab = (key: string, userRole: string): boolean => {
+  if (key !== "logs" && key !== "api-keys") {
+    return false;
+  }
+  return gatewayPagesMovedFor({ userRole, adminRoles: all_admin_roles });
+};
 
 const findMenuItemKey = (page: string): string => {
   const owner = TAB_OWNER[page] ?? page;
@@ -431,6 +444,7 @@ const Sidebar_: React.FC<SidebarProps> = ({
       if (item.key === "data-sources") {
         return dataSourcesIsVisible({ userRole, adminRoles: all_admin_roles });
       }
+      if (movedIntoTheGatewayTab(item.key, userRole)) return false;
       if (item.key === "settings") {
         return settingsIsVisible({ userRole, adminRoles: all_admin_roles });
       }

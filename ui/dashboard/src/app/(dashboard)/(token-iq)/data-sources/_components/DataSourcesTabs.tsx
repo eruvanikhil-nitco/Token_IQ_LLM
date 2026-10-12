@@ -15,6 +15,7 @@ import {
   type DataSourcesTab,
 } from "../dataSourcesTabs";
 import AccountsTab from "./AccountsTab";
+import GatewayTab from "./GatewayTab";
 import OverviewTab from "./OverviewTab";
 import UploadsTab from "./UploadsTab";
 
@@ -51,6 +52,8 @@ export default function DataSourcesTabs() {
         return <OverviewTab />;
       case "accounts":
         return <AccountsTab />;
+      case "gateway":
+        return <GatewayTab />;
       case "uploads":
         return <UploadsTab canEnter={access === "manage"} />;
       default:

@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { migratedHref } from "@/utils/migratedPages";
+import { gatewayViewHref } from "@/app/(dashboard)/(token-iq)/data-sources/_components/gatewayViews";
 
 const whenever = (value: string | null): string => (value === null ? "Never" : new Date(value).toLocaleString());
 
@@ -38,7 +39,7 @@ export default function ToolConnectionTab({ connection }: { connection: ToolConn
         <p className="text-sm">
           No account is connected yet. Add a read-only key on{" "}
           <Link
-            href={migratedHref("llm-provider-credentials")}
+            href={gatewayViewHref("upstreams")}
             className="text-primary underline-offset-4 hover:underline"
           >
             LLM Provider Credentials

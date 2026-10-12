@@ -332,14 +332,59 @@ month would be the honest guard if one ever ships.
 
 ## Task 5: The Gateway tab, last and alone
 
-- [ ] **Step 1: Decide with the owner whether Virtual Keys and Logs really move**
+- [x] **Step 1: Decide with the owner whether Virtual Keys and Logs really move**
 
 The blueprint says they do. They are also the most-visited pages in the product, and moving them
 behind a tab on a data page is the change most likely to be felt as a regression. Ask before moving,
 and record the answer either way: this is the one task here whose cost is not technical.
 
-- [ ] **Step 2: Whatever that answer is, keep every address alive**
-- [ ] **Step 3: Commit**
+**Asked on 12 Oct 2026. The answer was yes, they move.** So they are views of the Gateway tab for
+anyone who can open Data Sources, and the sidebar no longer lists them for that viewer.
+
+- [x] **Step 2: Whatever that answer is, keep every address alive**
+- [x] **Step 3: Commit**
+
+### What task 5 found
+
+**The move cannot apply to everyone, because the page it moves into is admin-only.** Data Sources is
+manage for Org Admin, view for Finance Admin and hidden for every other role, which is the rule task
+1 built. The request log and virtual keys have no role restriction at all: a team member reads their
+own keys and their own requests there. Moving them unconditionally would take the two screens a
+non-admin uses most and leave nothing in their place, which is not a navigation change but a loss of
+access. So `gatewayPagesMovedFor` is one function the sidebar asks: the entry disappears exactly
+when the tab that replaced it appears, and both routes keep serving the page either way. The
+blueprint's own answer for those roles is My Team and My Usage, which are build step 4.
+
+**Views, not tabs.** The blueprint's navigation rule is that a page has sub-tabs and a sub-tab never
+has its own tabs, and it writes this tab's own address as `/data-sources/gateway?view=upstreams`. So
+the three screens are a `?view=` switcher rather than a second tab strip, which also keeps a link to
+one of them a link to what the reader was looking at. An unknown value opens the first view rather
+than a blank tab, because a stale bookmark would otherwise be indistinguishable from an outage.
+
+**The request log is the flat panel, not the Logs page.** That page carries four tabs of its own, so
+folding it in whole would have been three levels deep. Its other three, the audit log, deleted keys
+and deleted teams, record what administrators did rather than what the gateway observed, so they
+stay on Logs and the view says where they are. Nothing was removed and nothing is unreachable.
+
+**Providers and Models + Endpoints stay pages, and the view links to them.** Both carry their own
+tab strips, Models + Endpoints nine of them, and they are gateway configuration rather than a place
+data arrives from. Upstreams is what the blueprint actually describes on this tab: the credential the
+gateway forwards with, which is the panel LLM Provider Credentials was.
+
+**LLM Provider Credentials is the one entry that moved outright.** It is admin-only already, so there
+is no role carve-out to make: its sidebar entry is gone, `/llm-provider-credentials` redirects to the
+upstreams view, and the three places in the product that linked to it now link to the view directly
+rather than through a redirect.
+
+**No traffic summary.** The blueprint lists "observed traffic" first and every figure available for
+it is either money, which would put a gateway total on the same page as provider bills, or a repeat
+of what the Overview page already says. The request log is the honest answer to what the gateway
+observed, so it is the view the tab opens on.
+
+**Seven entries are now one page.** Provider APIs and User Tools as Accounts, LLM Provider
+Credentials as Upstreams, the request log and virtual keys as the other two views, and Providers and
+Models + Endpoints linked from Upstreams rather than absorbed. Every one of the seven addresses still
+resolves, and a test covers each.
 
 ---
 
