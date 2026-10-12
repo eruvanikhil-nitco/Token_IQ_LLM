@@ -8,7 +8,7 @@ computes the clock-dependent parts so the arithmetic stays pure.
 from __future__ import annotations
 
 import os
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from typing import Annotated, Final
@@ -51,7 +51,8 @@ from token_iq.ledger.uploads import INVOICE_WINDOW_DAYS, BillNotEntered, UploadR
 from token_iq.repositories.attribution_rule_repository import AttributionRuleRepository
 from token_iq.repositories.data_quality_repository import DataQualityRepository
 from token_iq.repositories.invoice_repository import InvoiceRepository
-from token_iq.repositories.ledger_repository import LedgerLine, LedgerRepository
+from token_iq.repositories.ledger_repository import LedgerRepository
+from token_iq.truth.cost_line import CostLine, Owner, ProviderCostFact, Spend, WhoSpent, combine, money_of
 from token_iq.types.attribution import AttributionRule
 from token_iq.types.invoice import InvoiceAdjustment, ProviderInvoice
 
@@ -142,31 +143,69 @@ def _decode_cursor(raw: str) -> tuple[datetime, str] | None:
         return None
 
 
-def _owner_of(line: LedgerLine, rules: tuple[AttributionRule, ...]) -> AttributionRule | None:
-    """The rule that claims this line's account, if any.
+def owner_lookup(rules: tuple[AttributionRule, ...]) -> Callable[[str, str], Owner | None]:
+    """The rule that claims an account, as the truth layer asks for it.
 
     The ledger stores no owner of its own: an owner is a statement about an account, and the
     attribution rules are where that statement lives.
     """
-    return next(
-        (r for r in rules if r.provider == line.provider and r.match_value == line.credential_name),
-        None,
-    )
+
+    def owner_for(provider: str, credential_name: str) -> Owner | None:
+        rule: Final = next(
+            (r for r in rules if r.provider == provider and r.match_value == credential_name),
+            None,
+        )
+        return None if rule is None else Owner(owner_type=rule.owner_type, owner_id=rule.owner_id)
+
+    return owner_for
 
 
-def _line_response(line: LedgerLine, rules: tuple[AttributionRule, ...]) -> LedgerLineResponse:
-    owner: Final = _owner_of(line, rules)
+def compose_ledger_lines(facts: Sequence[ProviderCostFact], rules: tuple[AttributionRule, ...]) -> tuple[CostLine, ...]:
+    """The page's cost lines, composed by the truth layer rather than here.
+
+    The provider facts and nothing else, which is what this screen is: a gateway figure describes
+    the same spend as the provider's, so a ledger listing both would double count. The truth layer
+    is where that rule lives now, and passing it no gateway rows is this screen's own answer to it
+    rather than a second place the rule is applied.
+    """
+    return combine(
+        provider_facts=facts,
+        tool_rows=(),
+        seats=(),
+        gateway=(),
+        owner_for=owner_lookup(rules),
+    ).lines
+
+
+def _why_not_money(line: CostLine) -> str | None:
+    """The sentence a line carries when it is not money, for a screen that shows it anyway."""
+    match line:
+        case Spend():
+            return None
+        case WhoSpent(why=why):
+            return why
+
+
+def _line_response(line: CostLine) -> LedgerLineResponse:
+    """One line as the Ledger screen reads it.
+
+    Exhaustive over the two kinds, so a line that says who spent money counted elsewhere cannot
+    reach this screen unlabelled: this one lists provider spend, and `why` is the sentence any
+    other kind would have to carry.
+    """
+    facts: Final = line.facts
     return LedgerLineResponse(
-        day=line.day.date().isoformat(),
-        provider=line.provider,
-        display_name=_display_name(line.provider),
-        credential_name=line.credential_name,
-        model=line.model,
-        evidence=line.evidence,
-        currency=line.currency,
-        amount=_plain(line.amount),
-        owner_type=owner.owner_type if owner is not None else None,
-        owner_id=owner.owner_id if owner is not None else None,
+        day=facts.day.date().isoformat(),
+        provider=facts.provider or "",
+        display_name=_display_name(facts.provider or ""),
+        credential_name=facts.credential_name or "",
+        model=facts.model,
+        evidence=facts.evidence,
+        currency=facts.currency,
+        amount=_plain(facts.amount),
+        owner_type=None if facts.owner is None else facts.owner.owner_type,
+        owner_id=None if facts.owner is None else facts.owner.owner_id,
+        not_in_total=None if money_of(line) is not None else _why_not_money(line),
     )
 
 
@@ -291,7 +330,7 @@ async def ledger_lines(
     )
 
     return LedgerLinesResponse(
-        lines=tuple(_line_response(line, rules) for line in page.lines),
+        lines=tuple(_line_response(line) for line in compose_ledger_lines(page.lines, rules)),
         next_cursor=None if page.next_cursor is None else _encode_cursor(page.next_cursor),
         totals_by_currency={  # mutable-ok: pydantic serialises a dict field; a mappingproxy is rejected
             currency: _plain(amount) for currency, amount in totals.items()

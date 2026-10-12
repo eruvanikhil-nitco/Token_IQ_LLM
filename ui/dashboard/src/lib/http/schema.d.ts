@@ -29039,13 +29039,12 @@ export interface components {
             day: string;
             /** Display Name */
             display_name: string;
-            /**
-             * Evidence
-             * @enum {string}
-             */
-            evidence: "reconciled" | "priced" | "allocated";
+            /** Evidence */
+            evidence: ("reconciled" | "priced" | "allocated") | null;
             /** Model */
             model: string | null;
+            /** Not In Total */
+            not_in_total?: string | null;
             /** Owner Id */
             owner_id: string | null;
             /** Owner Type */

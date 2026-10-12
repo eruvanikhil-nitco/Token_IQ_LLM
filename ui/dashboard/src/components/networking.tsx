@@ -8770,11 +8770,14 @@ export interface LedgerLine {
   display_name: string;
   credential_name: string;
   model: string | null;
-  evidence: "reconciled" | "priced" | "allocated";
+  /** Null for a line nobody asserted: a seat or an entered bill, where a person read the figure. */
+  evidence: "reconciled" | "priced" | "allocated" | null;
   currency: string;
   amount: string;
   owner_type: string | null;
   owner_id: string | null;
+  /** Why this line is not money, for a line that says who spent money counted elsewhere. */
+  not_in_total?: string | null;
 }
 
 export interface LedgerLinesResponse {

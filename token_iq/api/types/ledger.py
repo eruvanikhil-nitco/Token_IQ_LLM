@@ -66,11 +66,24 @@ class LedgerLineResponse(BaseModel):
     display_name: str
     credential_name: str
     model: str | None
-    evidence: EvidenceLevel
+    evidence: EvidenceLevel | None
+    """What the figure rests on, or null for a line nobody asserted.
+
+    The grades describe what a provider said. A seat or an entered invoice is a figure a person
+    read off a contract, so claiming a grade for one would be a claim about evidence that does not
+    exist. Null rather than a fourth grade, because the three are the provider's own vocabulary.
+    """
+
     currency: str
     amount: str
     owner_type: str | None
     owner_id: str | None
+    not_in_total: str | None = None
+    """Why this line is not money, for a line that says who spent money counted elsewhere.
+
+    Null for ordinary spend. A reader looking at a figure that is missing from the total above it
+    would otherwise have to guess whether the total or the line was wrong.
+    """
 
 
 class LedgerLinesResponse(BaseModel):

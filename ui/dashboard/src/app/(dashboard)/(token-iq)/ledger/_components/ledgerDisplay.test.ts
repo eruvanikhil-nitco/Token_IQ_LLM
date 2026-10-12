@@ -1,13 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  ADJUSTMENT_LABEL,
-  EVIDENCE_LABEL,
-  OUTCOME_LABEL,
-  formatAmount,
-  hasRemainder,
-  remainderDirection,
-} from "./ledgerDisplay";
+import { ADJUSTMENT_LABEL, ENTERED_BY_HAND, EVIDENCE_LABEL, OUTCOME_LABEL, evidenceLabel, evidenceWord, formatAmount, hasRemainder, remainderDirection } from "./ledgerDisplay";
 
 describe("formatAmount", () => {
   it("keeps every digit rather than rounding a ledger line for display", () => {
@@ -69,5 +62,25 @@ describe("remainderDirection", () => {
     expect(remainderDirection("20")).toBe("over");
     expect(remainderDirection("-20")).toBe("under");
     expect(remainderDirection("0")).toBe("none");
+  });
+});
+
+describe("how a line says its figure was arrived at", () => {
+  it("explains each grade the provider gave", () => {
+    expect(evidenceLabel("reconciled")).toContain("provider asserted");
+    expect(evidenceLabel("priced")).toContain("rates");
+    expect(evidenceLabel("allocated")).toContain("gateway");
+  });
+
+  it("says a line nobody asserted was entered by hand", () => {
+    // A seat or an entered bill is a figure a person read off a contract. Blank, the column reads
+    // as a grade that failed to load.
+    expect(evidenceLabel(null)).toBe(ENTERED_BY_HAND);
+    expect(evidenceWord(null)).toBe("entered");
+  });
+
+  it("shows a grade it has no sentence for rather than nothing", () => {
+    expect(evidenceLabel("something-new")).toBe("something-new");
+    expect(evidenceWord("something-new")).toBe("something-new");
   });
 });

@@ -14,6 +14,26 @@ export const EVIDENCE_LABEL: Record<string, string> = {
   allocated: "Only our own gateway records cover this",
 };
 
+export const ENTERED_BY_HAND = "Entered by an administrator, from a contract or a bill";
+
+/**
+ * What a line says about how its figure was arrived at.
+ *
+ * A line with no grade is one nobody asserted: a seat or an entered bill, which is a figure a
+ * person read off a contract. Blank, it would read as a grade that failed to load.
+ */
+export function evidenceLabel(evidence: string | null): string {
+  if (evidence === null) {
+    return ENTERED_BY_HAND;
+  }
+  return EVIDENCE_LABEL[evidence] ?? evidence;
+}
+
+/** The word in the column, for a grade the provider gave or for one nobody did. */
+export function evidenceWord(evidence: string | null): string {
+  return evidence ?? "entered";
+}
+
 export const OUTCOME_LABEL: Record<ReconciliationOutcome, string> = {
   balanced: "Balanced",
   unexplained_difference: "Difference not fully explained",

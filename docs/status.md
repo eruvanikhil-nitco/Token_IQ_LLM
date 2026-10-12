@@ -3185,3 +3185,44 @@ AWS credentials this machine does not have.
 
 Build step 1 is done, all five tasks, and nothing it surfaced is still open. The blueprint's own
 next step is build step 3 onward, which depends on the truth layer rather than on this page.
+
+## 12 Oct 2026, later: build step 3 begins, the truth layer
+
+Build step 1 is finished, so the next thing the blueprint asks for is its middle layer:
+`docs/plans/2026-10-12-blueprint-step-3-truth-layer.md`, five tasks. Build step 3 is marked
+"backend first" and everything after it reads what it produces, so a mistake here is inherited by
+Cost Explorer, recommendations, reconciliation and budgets alike.
+
+### Task 1: one cost line, one composition
+
+Four modules composed the same answer: the ledger read provider facts, the Overview page summed
+pre-summed sources, the combined view compared provider against gateway, and the per-provider
+summary totalled one provider. Each respected the counting rule separately, which means it only had
+to be forgotten once.
+
+`token_iq/truth/cost_line.py` is now the one composition, and the rule is a type rather than a
+convention: every line is either `Spend`, which a total may add, or `WhoSpent`, which says who spent
+money counted somewhere else and can never reach one. `money_of` matches over the two exhaustively,
+so a third kind is a type error rather than a line silently added to every total.
+
+Composed from the facts rather than stored. The blueprint says "table", and a stored table is a
+second source of truth: facts arrive late, a connector re-fetches, a rate is corrected, a rule
+changes, and each makes a stored line wrong in a way that still looks like a figure. What would
+change that is a measured slow read on a real customer's volume, at which point materialising
+happens behind one function and no caller moves.
+
+A line nobody asserted has no evidence grade, and that reached the wire. The three grades are the
+provider's vocabulary; a seat is a figure a person read off a contract, so claiming one would be a
+claim about evidence that does not exist. The grade is nullable, the Ledger screen says "entered"
+with a sentence, and nothing defaults silently.
+
+The ledger reads it now, and its figures did not move: fifty lines, a page summing to 0.00780515,
+and a period total of 0.00780515, the same as before, checked against the running proxy.
+
+### What is left in build step 3
+
+Task 2 names each de-duplication rule, including the one nothing enforces today: two credentials
+reading the same provider account. Task 3 records a customer's own rates, which is what finally
+makes the `priced` grade real. Task 4 is currency, with a rate a customer entered rather than one we
+invented. Task 5 renames Cost Tracking to Pricing & Rates, keeping its address alive, and puts both
+on it.

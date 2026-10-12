@@ -22,6 +22,7 @@ from decimal import Decimal, InvalidOperation
 from types import MappingProxyType
 from typing import Any, Final, get_args
 
+from token_iq.truth.cost_line import ProviderCostFact
 from token_iq.types.provider_billing import EvidenceLevel
 
 _EVIDENCE_LEVELS: Final[frozenset[str]] = frozenset(get_args(EvidenceLevel))
@@ -32,6 +33,7 @@ SELECT f.bucket_start                AS day,
        f.provider                    AS provider,
        f.credential_name             AS credential_name,
        f.model                       AS model,
+       f.meter                       AS meter,
        f.evidence                    AS evidence,
        f.billing_currency            AS currency,
        f.billed_cost::numeric::text  AS amount
@@ -68,19 +70,8 @@ SELECT f.billing_currency               AS currency,
 
 
 @dataclass(frozen=True, slots=True)
-class LedgerLine:
-    day: datetime
-    provider: str
-    credential_name: str
-    model: str | None
-    evidence: EvidenceLevel
-    currency: str
-    amount: Decimal
-
-
-@dataclass(frozen=True, slots=True)
 class LedgerPage:
-    lines: tuple[LedgerLine, ...]
+    lines: tuple[ProviderCostFact, ...]
     next_cursor: tuple[datetime, str] | None
 
 
@@ -113,7 +104,7 @@ def _datetime_or_none(value: object) -> datetime | None:
         return None
 
 
-def _line_or_none(row: object) -> LedgerLine | None:
+def _line_or_none(row: object) -> ProviderCostFact | None:
     """A row we cannot read is dropped rather than guessed at.
 
     Evidence is checked first because it is the claim the line makes about how much authority
@@ -135,11 +126,13 @@ def _line_or_none(row: object) -> LedgerLine | None:
     if amount is None:
         return None
     model: Final = _read(row, "model")
-    return LedgerLine(
+    meter: Final = _read(row, "meter")
+    return ProviderCostFact(
         day=day,
         provider=str(provider),
         credential_name=str(credential_name),
         model=model if isinstance(model, str) else None,
+        meter=meter if isinstance(meter, str) else None,
         evidence=evidence,
         currency=str(currency),
         amount=amount,

@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { useLedger } from "@/app/(dashboard)/hooks/ledger/useLedger";
-import { EVIDENCE_LABEL, formatAmount } from "./ledgerDisplay";
+import { evidenceLabel, evidenceWord, formatAmount } from "./ledgerDisplay";
 
 interface CostLedgerViewProps {
   provider: string;
@@ -64,8 +64,8 @@ export default function CostLedgerView({ provider, periodStart, periodEnd }: Cos
                   <td className="py-2 pr-4">{line.credential_name}</td>
                   <td className="py-2 pr-4">{line.model ?? "—"}</td>
                   <td className="py-2 pr-4">{formatAmount(line.amount, line.currency)}</td>
-                  <td className="py-2 pr-4" title={EVIDENCE_LABEL[line.evidence]}>
-                    {line.evidence}
+                  <td className="py-2 pr-4" title={evidenceLabel(line.evidence)}>
+                    {evidenceWord(line.evidence)}
                   </td>
                   <td className="py-2">{line.owner_id === null ? "—" : `${line.owner_type}: ${line.owner_id}`}</td>
                 </tr>

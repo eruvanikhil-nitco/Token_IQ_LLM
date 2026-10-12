@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from token_iq.ledger.reconciliation import reconcile
 from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.api.ledger import reconciliation_response
+from token_iq.types.attribution import AttributionRule
 from token_iq.types.invoice import InvoiceAdjustment, ProviderInvoice
 from token_iq.api.types.ledger import InvoiceBody
 
@@ -373,3 +374,70 @@ class TestTheWindowTheUploadsTabAsksAbout:
         from token_iq.ledger.uploads import INVOICE_WINDOW_DAYS
 
         assert DEFAULT_DAYS == INVOICE_WINDOW_DAYS
+
+
+class TestTheLedgerReadsOneComposition:
+    """The ledger is the screen closest to the truth layer, so it reads it rather than composing
+    its own version. What is asserted here is that moving it changed no figure, and that the one
+    rule the layer exists to protect still holds at this boundary."""
+
+    def test_a_provider_fact_becomes_a_line_with_its_owner(self) -> None:
+        from token_iq.api.ledger import compose_ledger_lines
+        from token_iq.truth.cost_line import Owner, ProviderCostFact, Spend
+
+        fact: Final = ProviderCostFact(
+            day=START,
+            provider="openrouter",
+            credential_name="openrouter-main",
+            model="openai/gpt-4o",
+            meter="input",
+            evidence="reconciled",
+            currency="USD",
+            amount=Decimal("0.00774700"),
+        )
+        rule: Final = AttributionRule(
+            rule_id="r1",
+            provider="openrouter",
+            match_type="cloud_account",
+            match_value="openrouter-main",
+            owner_type="team",
+            owner_id="platform-team",
+        )
+
+        lines: Final = compose_ledger_lines((fact,), (rule,))
+
+        assert isinstance(lines[0], Spend)
+        assert lines[0].facts.owner == Owner(owner_type="team", owner_id="platform-team")
+        assert lines[0].facts.amount == Decimal("0.00774700")
+
+    def test_the_ledger_lists_no_gateway_line_however_the_layer_grows(self) -> None:
+        """A gateway figure describes the same spend as the provider's, so a ledger listing both
+        would double count. This screen passes no gateway rows, which is its own answer to the
+        rule rather than a second place the rule is applied."""
+        from token_iq.api.ledger import compose_ledger_lines
+        from token_iq.truth.cost_line import WhoSpent
+
+        lines: Final = compose_ledger_lines((), ())
+
+        assert not any(isinstance(line, WhoSpent) for line in lines)
+
+    def test_a_line_no_rule_claims_reaches_the_wire_owned_by_nobody(self) -> None:
+        from token_iq.api.ledger import _line_response, compose_ledger_lines
+        from token_iq.truth.cost_line import ProviderCostFact
+
+        fact: Final = ProviderCostFact(
+            day=START,
+            provider="openrouter",
+            credential_name="nobody-claims-this",
+            model=None,
+            meter=None,
+            evidence="reconciled",
+            currency="USD",
+            amount=Decimal("1.50"),
+        )
+
+        wire: Final = _line_response(compose_ledger_lines((fact,), ())[0])
+
+        assert (wire.owner_type, wire.owner_id) == (None, None)
+        assert wire.amount == "1.50"
+        assert wire.not_in_total is None
