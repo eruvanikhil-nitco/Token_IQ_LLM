@@ -112,7 +112,10 @@ describe("migratedHref / legacyPageHref", () => {
     const { MIGRATED_PAGES } = await import("./migratedPages");
 
     expect(MIGRATED_PAGES.caching).toBe("caching");
-    expect(MIGRATED_PAGES["cost-tracking"]).toBe("cost-tracking");
+    // Renamed to Pricing & Rates by section 12's label table. The legacy id keeps resolving, which
+    // is the whole point of this map: a ?page=cost-tracking bookmark lands on the new page.
+    expect(MIGRATED_PAGES["cost-tracking"]).toBe("pricing-and-rates");
+    expect(MIGRATED_PAGES["pricing-and-rates"]).toBe("pricing-and-rates");
     expect(MIGRATED_PAGES["transform-request"]).toBe("transform-request");
     expect(MIGRATED_PAGES["ui-theme"]).toBe("settings/ui-theme");
     expect(MIGRATED_PAGES.logs).toBe("logs");

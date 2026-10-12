@@ -1,9 +1,17 @@
 "use client";
 
-import { CostTrackingSettings } from "./_components";
-import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
+import { useEffect } from "react";
 
-export default function CostTracking() {
-  const { accessToken, userRole, userId } = useAuthorized();
-  return <CostTrackingSettings userID={userId} userRole={userRole} accessToken={accessToken} />;
+import { migratedHref } from "@/utils/migratedPages";
+
+/**
+ * Cost Tracking is Administration > Pricing & Rates now, the name section 12's label table gives
+ * it. The route stays so a bookmark or a link to /cost-tracking still arrives somewhere, rather
+ * than hitting a route that no longer exists.
+ */
+export default function CostTrackingRedirect() {
+  useEffect(() => {
+    window.location.replace(`${migratedHref("pricing-and-rates")}/`);
+  }, []);
+  return null;
 }

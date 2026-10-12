@@ -2833,6 +2833,55 @@ export const connectAccountCall = async (
   });
 };
 
+/**
+ * Pricing & Rates, read straight from the generated spec because every one of these answers is a
+ * tagged union. A rate conflict, a missing currency pair and an unknown list price are each their
+ * own arm, and restating them by hand is how an arm goes missing.
+ */
+export type ProviderRate = components["schemas"]["RateResponse"];
+export type ProviderRateBody = components["schemas"]["RateBody"];
+export type EffectiveRate =
+  | components["schemas"]["RateApplied"]
+  | components["schemas"]["ListPriceApplies"]
+  | components["schemas"]["RatesConflict"]
+  | components["schemas"]["PriceUnknown"];
+export type CurrencyRate = components["schemas"]["CurrencyRateResponse"];
+export type CurrencyRateBody = components["schemas"]["CurrencyRateBody"];
+export type CurrencyConversion =
+  | components["schemas"]["ConversionNotNeeded"]
+  | components["schemas"]["ConversionAvailable"]
+  | components["schemas"]["ConversionUnavailable"]
+  | components["schemas"]["ConversionConflict"];
+
+/** No try/catch on any of these: the panel needs the server's own refusal to show the reason. */
+export const providerRatesCall = async (accessToken: string): Promise<ProviderRate[]> => {
+  const answer = await apiClient.get<components["schemas"]["RateListResponse"]>(`/pricing/rates`, { accessToken });
+  return answer.rates;
+};
+
+export const addProviderRateCall = async (accessToken: string, body: ProviderRateBody): Promise<ProviderRate> => {
+  return await apiClient.post<ProviderRate>(`/pricing/rates`, { accessToken, body });
+};
+
+export const deleteProviderRateCall = async (accessToken: string, rateId: string): Promise<void> => {
+  await apiClient.delete(`/pricing/rates/${encodeURIComponent(rateId)}`, { accessToken });
+};
+
+export const currencyRatesCall = async (accessToken: string): Promise<CurrencyRate[]> => {
+  const answer = await apiClient.get<components["schemas"]["CurrencyRateListResponse"]>(`/pricing/currency-rates`, {
+    accessToken,
+  });
+  return answer.rates;
+};
+
+export const addCurrencyRateCall = async (accessToken: string, body: CurrencyRateBody): Promise<CurrencyRate> => {
+  return await apiClient.post<CurrencyRate>(`/pricing/currency-rates`, { accessToken, body });
+};
+
+export const deleteCurrencyRateCall = async (accessToken: string, rateId: string): Promise<void> => {
+  await apiClient.delete(`/pricing/currency-rates/${encodeURIComponent(rateId)}`, { accessToken });
+};
+
 export type BedrockPrincipal =
   | components["schemas"]["PrincipalKnownResponse"]
   | components["schemas"]["PrincipalDerivedResponse"]

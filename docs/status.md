@@ -3425,3 +3425,55 @@ reason. 23 of 23 mutants killed.
 Reconciliation's own refusal to compare across currencies is untouched and still correct: nothing
 wires the conversion into it yet, which is a deliberate line rather than an omission, since changing
 what that screen says about a bill belongs with the screen rather than with the plumbing.
+
+## 12 Oct 2026: Pricing & Rates, and build step 3 is done
+
+Task 5, the last of build step 3. Cost Tracking becomes Administration > Pricing & Rates, the name
+section 12's label table gives it, with both addresses resolving: the old path redirects and the
+legacy `?page=cost-tracking` id maps to the new route.
+
+Three tabs. Effective rates is where a customer records what their contracts say, each rate dated
+and attributable. Currency is the rate a period was booked at. The third keeps every control the old
+page had, under a name that says what those controls move.
+
+### There was already a discount mechanism, and it is not the same thing
+
+`cost_discount_config` is one percentage per provider that the gateway applies while recording a
+request. No period, no model, no meter, no provenance, and it cannot re-price a month already
+recorded: change it today and last quarter keeps whatever was configured then, silently. A
+contracted rate is applied when a figure is read, carries its period, and can re-price a closed
+month at the rate that applied then.
+
+Both are now on one page with that difference written between them, because the risk is a customer
+configuring a discount in both places and getting it twice. They cannot double-count in the truth
+layer today, because a priced line comes from tokens and a rate rather than from the gateway's
+recorded figure, and that is the rule whoever builds the gateway reader has to keep. Retiring the
+older setting would change figures a customer has already seen, so it is the owner's call.
+
+### Two departures from the blueprint's tab names
+
+Its third tab is "Internal rate card", which is the margin configuration that already exists, but
+the same tab also holds the provider discounts and the cost calculator, so that name would misname
+two thirds of it. It is "Gateway cost settings". And its second is "Currency & tax": GST is not
+built, and a tab named for it would promise a setting that does not exist, so it is "Currency".
+
+### The form refuses what the server refuses
+
+Not duplication. A form that posts a rate it knows will be rejected makes an administrator read an
+error about a figure they can already see is wrong. The server's refusal stays, because any other
+client would otherwise get through. 24 of 24 mutants killed, including the two that delete the
+sentences explaining why list price is wrong for a negotiated customer and why a rate is never
+inverted.
+
+### One pre-existing flake found, not caused here
+
+`cost_tracking_settings.test.tsx` fails its remove-a-discount case when run in the same batch as
+`leftnav.test.tsx` and passes alone. Reproduced with every change of this task stashed, so it is
+cross-file state in the existing suite rather than a regression. Worth fixing, and not here.
+
+### Build step 3 is complete
+
+One cost line with one composition, four de-duplication rules each named and the fourth now
+surfaced, a customer's own rates with the priced window the counting rule allows, currency without
+an invented rate, and the page that records both. What comes next is build step 4: the app shell,
+the eight roles and Cost Explorer.

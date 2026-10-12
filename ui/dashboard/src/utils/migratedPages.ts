@@ -37,7 +37,10 @@ export const MIGRATED_PAGES: Record<string, string> = {
   // Legacy alias: the old switch matched ?page=claude-code-plugins for the same panel.
   "claude-code-plugins": "skills",
   caching: "caching",
-  "cost-tracking": "cost-tracking",
+  // Administration > Pricing & Rates, which section 12's label table renames Cost Tracking to.
+  // The legacy id and the old path both keep resolving.
+  "cost-tracking": "pricing-and-rates",
+  "pricing-and-rates": "pricing-and-rates",
   "transform-request": "transform-request",
   logs: "logs",
   "model-hub-table": "model-hub-table",

@@ -298,14 +298,45 @@ are each refused with their reason.
 
 ## Task 5: The Pricing & Rates page
 
-- [ ] **Step 1: Cost Tracking becomes Pricing & Rates, keeping its address alive**
+- [x] **Step 1: Cost Tracking becomes Pricing & Rates, keeping its address alive**
 
 The rename section 12's label table asks for, by the same rule as every other merge: the legacy
 `?page=` id and the old path both keep resolving, and a test covers each.
 
-- [ ] **Step 2: The rates and the currency rates on it, read-only for a finance admin**
+- [x] **Step 2: The rates and the currency rates on it**
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
+
+### What task 5 found
+
+**There was already a discount mechanism, and it is not the same thing.** The Cost Tracking page
+configures `cost_discount_config`, one percentage per provider that the gateway applies while
+recording a request. It has no period, no model, no meter and no provenance, and it cannot re-price
+a month already recorded: change it today and last quarter keeps whatever was configured then,
+silently. A contracted rate is applied when a figure is read, carries the period it applies to, and
+can therefore re-price a closed month at the rate that applied then.
+
+Both are now on one page with that difference written between them, because the real risk is a
+customer configuring a discount in both places and getting it twice. The two cannot double-count in
+the truth layer today, since a priced line comes from tokens and a rate rather than from the
+gateway's recorded figure, and that is the rule whoever builds the gateway reader has to keep.
+Retiring the older setting would change figures a customer has already seen, so it is the owner's
+call rather than a tidy-up.
+
+**The page has three tabs and the blueprint asks for three slightly different ones.** Effective
+rates and Currency are the blueprint's first two. Its third is "Internal rate card", which is the
+margin configuration that already exists, but the same tab also holds the provider discounts and
+the cost calculator, so calling it the rate card would misname two thirds of it. It is "Gateway
+cost settings", which says what those controls move. The blueprint's "Currency & tax" loses the
+tax: GST is not built, and a tab named for it would promise a setting that does not exist.
+
+**The form refuses what the server refuses, with the same words.** Not duplication: a form that
+posts a rate it knows will be rejected makes an administrator read an error about a figure they can
+already see is wrong. The server's refusal stays, because any other client would otherwise get
+through.
+
+**Both addresses resolve.** `/cost-tracking` redirects, the legacy `?page=cost-tracking` id maps to
+the new route, and the sidebar entry keeps its key so a link from anywhere still highlights it.
 
 ---
 
