@@ -24,7 +24,7 @@ seam for the old names is in. Phase 8 step 1 is done and step 2, the database ta
 behind a runbook. Phase 9, the navigation labels, finished with the Gateway tab. Phase 10's gate
 is in CI and ratchets as the last two land.
 
-So: build step 4 of 10, task 2 of 6, with the codebase programme complete apart from phase 5
+So: build step 4 of 10, task 3 of 6, with the codebase programme complete apart from phase 5
 (parked) and phase 8 step 2 (deferred, with a runbook).
 
 **Section 11 is the target repository layout, not work and not a phase.** It was checked on 8 Oct
@@ -3530,3 +3530,40 @@ To check it by hand once the proxy runs, with the dashboard dev server on port 3
    whole month" and the note goes
 5. Choose "A month I choose" and pick a closed month. Both pages ask for that whole month, which is
    what the Ledger's own date inputs used to be needed for
+
+## 13 Oct 2026: the eight roles, as a reading rather than a rewrite
+
+Build step 4 task 2. The blueprint's eight roles now exist as a vocabulary in
+`ui/dashboard/src/app/(dashboard)/_access/roles.ts`, with its permission matrix as data, and
+Access Control has a new Roles & Permissions tab that shows them.
+
+An authorisation change fails open, which is why the sequence matters. A wrong mapping does not
+throw, it grants, and the person who notices is the one who should not have been able to see the
+page. So the answer to "what may this person open" is defined as an intersection with what they can
+already open: a mapping that named a stronger role, or a matrix row that granted something new,
+still cannot widen it. A role nothing maps to reads as nothing rather than defaulting to the
+strongest reading.
+
+Two of today's roles read as no blueprint role. `team` is the identity a JWT caller presents and
+`customer` is an end user of somebody else's application, so neither is a person who opens Token IQ.
+
+Four of the eight cannot be assigned in an installation today, because there is no underlying role
+to grant: Finance Admin, both Team Lead roles and Service Account. The new tab says so, per role,
+with the reason. Listing them without that sentence would be offering an account nobody can sign in
+as.
+
+**One decision for the owner.** Adopting the matrix in the sidebar would hide entries that two of
+today's roles have:
+
+| Role | Reads as | Entries it would hide |
+|---|---|---|
+| `proxy_admin_viewer`, `Admin Viewer` | Org Viewer | Organization, Cost Allocation, Pricing & Rates, Settings, Data Sources, Virtual Keys, Router Settings |
+| `internal_user`, `internal_user_viewer` | Team Member | Cost Optimization, Organization |
+
+The blueprint's Org Viewer is read-only over the finance pages rather than over configuration, so an
+Admin Viewer loses seven entries. Nothing acts on this: the module reports the difference and the
+four per-page rules stay as they are until the removal is approved.
+
+86 tests pass over the role module, the tab rule, the new panel and the sidebar. 8 of 8 mutants
+killed, the two worth naming being dropping the intersection with today's pages and reading a viewer
+as an admin.

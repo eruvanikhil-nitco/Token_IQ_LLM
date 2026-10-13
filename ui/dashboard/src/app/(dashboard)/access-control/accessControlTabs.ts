@@ -1,4 +1,4 @@
-export const ACCESS_CONTROL_TABS = ["users", "access-groups", "audit-log"] as const;
+export const ACCESS_CONTROL_TABS = ["users", "roles", "access-groups", "audit-log"] as const;
 
 export type AccessControlTab = (typeof ACCESS_CONTROL_TABS)[number];
 
@@ -6,6 +6,7 @@ export const ACCESS_CONTROL_BASE_TAB: AccessControlTab = "users";
 
 export const ACCESS_CONTROL_TAB_LABELS: Readonly<Record<AccessControlTab, string>> = {
   users: "Users",
+  roles: "Roles & Permissions",
   "access-groups": "Access Groups",
   "audit-log": "Audit Log",
 };
@@ -14,7 +15,8 @@ export const ACCESS_CONTROL_TAB_LABELS: Readonly<Record<AccessControlTab, string
  * The legacy `?page=` id each tab was reachable as, so old links still resolve.
  *
  * The audit log has none: it was a tab inside Admin Settings rather than a page of its own, so
- * nothing ever linked to it directly and there is no old address to keep alive.
+ * nothing ever linked to it directly and there is no old address to keep alive. Roles & Permissions
+ * has none either, being new.
  */
 export const ACCESS_CONTROL_TAB_LEGACY_PAGE: Readonly<Partial<Record<AccessControlTab, string>>> = {
   users: "users",
@@ -46,6 +48,9 @@ export function visibleAccessControlTabs(viewer: AccessControlViewer): readonly 
 
   const allowed: Readonly<Record<AccessControlTab, boolean>> = {
     users: adminRole || (viewer.isOrgAdmin && listAllowsUsers),
+    // It describes the roles an installation has rather than granting one, so it follows the rule
+    // of the Users tab beside it. Nothing on it is an action.
+    roles: adminRole || (viewer.isOrgAdmin && listAllowsUsers),
     "access-groups": adminRole,
     "audit-log": adminRole,
   };

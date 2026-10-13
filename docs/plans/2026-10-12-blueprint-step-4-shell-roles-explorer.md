@@ -136,23 +136,59 @@ steps are in `docs/status.md` for when the proxy runs.
 
 ## Task 2: The eight roles, as a reading of what a person already is
 
-- [ ] **Step 1: Write the failing test that no mapping grants a new power**
+- [x] **Step 1: Write the failing test that no mapping grants a new power**
 
 For each of today's roles, the blueprint role it reads as, and an assertion that the powers of the
 result are a subset of the powers it had. This is the test that makes the rest of the task safe.
 
-- [ ] **Step 2: One module that answers what a role may do, with the eight names**
+- [x] **Step 2: One module that answers what a role may do, with the eight names**
 
 `TIQ_MATRIX` is the blueprint's own answer per page and role. The module states it once, the
 sidebar and every page read it, and the four existing per-page functions become callers rather than
 second opinions.
 
-- [ ] **Step 3: Say plainly which of the eight an installation cannot grant yet**
+- [x] **Step 3: Say plainly which of the eight an installation cannot grant yet**
 
 Finance Admin, Org Viewer and both Team Lead roles have no underlying role to grant. A screen that
 offered them would be offering an account nobody can sign in as.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
+
+### What task 2 found
+
+The eight roles are in `_access/roles.ts`, with the blueprint's matrix as data in its own words
+rather than flattened to a level, because "Own team" and "View; upload invoices" say different
+things and choosing one word for both is where a reading becomes a guess.
+
+`allowedPages` is defined as an intersection with what the person can already see. That is the
+safety property and it is structural rather than careful: a mapping that named a stronger role, or a
+matrix row that granted something new, still cannot widen the answer past today's. A role nothing
+maps to reads as null and gets nothing, which is the direction an authorisation mistake has to fail
+in. 8 of 8 mutants killed, including dropping the intersection and reading a viewer as an admin.
+
+Two of today's roles read as no blueprint role at all. `team` is the identity a JWT caller presents
+and `customer` is an end user of somebody else's application: neither is a person who opens Token
+IQ, and giving either one a role would invent an account that can sign in.
+
+**The one thing this task does not do, because it is a removal.** Adopting the matrix in the sidebar
+would take entries away from two of today's roles, measured on 13 Oct:
+
+| Role | Reads as | Entries the matrix would hide |
+|---|---|---|
+| `proxy_admin`, `Admin` | Org Owner | none |
+| `org_admin` | Org Admin | none |
+| `proxy_admin_viewer`, `Admin Viewer` | Org Viewer | Organization, Cost Allocation, Pricing & Rates, Settings, Data Sources, Virtual Keys, Router Settings |
+| `internal_user`, `internal_user_viewer` | Team Member | Cost Optimization, Organization |
+
+The blueprint's Org Viewer is read-only over finance rather than over configuration, which is why an
+Admin Viewer loses seven entries. Each of those is defensible, and taking a page away from somebody
+who has it today needs the owner's say, so `pagesTheBlueprintHides` reports the difference and
+nothing acts on it. The four per-page functions keep their own rule until that decision.
+
+Roles & Permissions is a new tab on Access Control rather than a change to an existing one. It
+names all eight, says which four cannot be assigned and why, and says what the other four are
+assigned as. A screen that listed Finance Admin without that sentence would be offering an account
+nobody can sign in as, which a customer finds out after inviting somebody.
 
 ---
 

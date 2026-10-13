@@ -12,6 +12,7 @@ import { useTabRouting } from "@/app/(dashboard)/hooks/useTabRouting";
 import { createTabRoutes } from "@/utils/tabRoutes";
 import { ViewUserDashboard } from "@/app/(dashboard)/users/_components";
 import { AccessGroupsPage } from "@/app/(dashboard)/access-groups/_components/AccessGroupsPage";
+import RolesPanel from "./RolesPanel";
 
 import {
   ACCESS_CONTROL_BASE_TAB,
@@ -24,7 +25,7 @@ import {
 const routes = createTabRoutes("access-control", ACCESS_CONTROL_TABS);
 
 /**
- * Administration > Access Control: Users, Access Groups and the audit log.
+ * Administration > Access Control: Users, Roles & Permissions, Access Groups and the audit log.
  *
  * Users and Access Groups were sidebar entries; the audit log was a tab inside Admin Settings,
  * which is why it has no legacy address of its own. Each tab keeps its own URL, so the old
@@ -44,7 +45,7 @@ export default function AccessControlTabs() {
   };
   const visible = visibleAccessControlTabs(viewer);
 
-  const baseTabKey = visible.includes(ACCESS_CONTROL_BASE_TAB) ? ACCESS_CONTROL_BASE_TAB : (visible[0] ?? "");
+  const baseTabKey = visible.includes(ACCESS_CONTROL_BASE_TAB) ? ACCESS_CONTROL_BASE_TAB : visible[0] ?? "";
   const { activeKey, onTabChange } = useTabRouting({ routes, baseTabKey, visibleKeys: visible });
 
   const panel = (tab: AccessControlTab) => {
@@ -58,6 +59,9 @@ export default function AccessControlTabs() {
           accessToken={accessToken}
         />
       );
+    }
+    if (tab === "roles") {
+      return <RolesPanel />;
     }
     return tab === "access-groups" ? <AccessGroupsPage /> : <AuditLogView />;
   };

@@ -28,11 +28,20 @@ const viewer = (over: Partial<AccessControlViewer> = {}): AccessControlViewer =>
 });
 
 describe("which tabs Administration > Access Control shows", () => {
-  it("gives an admin all three, in a fixed order", () => {
-    expect(visibleAccessControlTabs(viewer())).toEqual(["users", "access-groups", "audit-log"]);
+  it("gives an admin every tab, in a fixed order", () => {
+    expect(visibleAccessControlTabs(viewer())).toEqual(["users", "roles", "access-groups", "audit-log"]);
   });
 
-  it("gives a non-admin nothing, because all three were admin-only pages", () => {
+  it("shows the roles tab to whoever may already see who the users are", () => {
+    // It describes the roles an installation has rather than granting anything, so it follows the
+    // rule of the Users tab beside it rather than inventing a third one.
+    const orgAdmin = viewer({ userRole: INTERNAL_USER, isOrgAdmin: true });
+
+    expect(visibleAccessControlTabs(orgAdmin)).toContain("roles");
+    expect(visibleAccessControlTabs(viewer({ userRole: INTERNAL_USER }))).not.toContain("roles");
+  });
+
+  it("gives a non-admin nothing, because every tab here was an admin-only page", () => {
     const seen = visibleAccessControlTabs(viewer({ userRole: INTERNAL_USER }));
 
     expect(seen).toEqual([]);
@@ -44,21 +53,21 @@ describe("which tabs Administration > Access Control shows", () => {
     // audit log was reachable only through admin-only Admin Settings.
     const orgAdmin = viewer({ userRole: INTERNAL_USER, isOrgAdmin: true });
 
-    expect(visibleAccessControlTabs(orgAdmin)).toEqual(["users"]);
+    expect(visibleAccessControlTabs(orgAdmin)).toEqual(["users", "roles"]);
     expect(accessControlIsVisible(orgAdmin)).toBe(true);
   });
 
   it("ignores the per-installation allowlist for an admin, as the sidebar always did", () => {
     const restricted = viewer({ enabledPagesInternalUsers: [] });
 
-    expect(visibleAccessControlTabs(restricted)).toEqual(["users", "access-groups", "audit-log"]);
+    expect(visibleAccessControlTabs(restricted)).toEqual(["users", "roles", "access-groups", "audit-log"]);
   });
 
   it("applies the allowlist to an organization admin, tab by tab", () => {
     const named = viewer({ userRole: INTERNAL_USER, isOrgAdmin: true, enabledPagesInternalUsers: ["users"] });
     const notNamed = viewer({ userRole: INTERNAL_USER, isOrgAdmin: true, enabledPagesInternalUsers: ["logs"] });
 
-    expect(visibleAccessControlTabs(named)).toEqual(["users"]);
+    expect(visibleAccessControlTabs(named)).toEqual(["users", "roles"]);
     expect(visibleAccessControlTabs(notNamed)).toEqual([]);
   });
 
