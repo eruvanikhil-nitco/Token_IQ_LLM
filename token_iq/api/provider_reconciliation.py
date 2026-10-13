@@ -16,10 +16,11 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from token_iq.access.scope import ScopeRefused, readable_scope, refusal_message
 from token_iq.connectors.billing.connector import BillingConnector, registered_connectors
 from token_iq.connectors.billing.runner import LOOKBACK
 from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
-from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import CommonProxyErrors, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
     BillingProbeResponse,
@@ -88,10 +89,11 @@ async def provider_reconciliation(
     """Every request in the window, priced by us and by the provider, with the difference."""
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
-    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
+    refused: Final = readable_scope(user_api_key_dict, subject="the provider reconciliation")
+    if isinstance(refused, ScopeRefused):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={"error": "Only a proxy admin may read cross-team provider reconciliation."},
+            detail={"error": refusal_message(refused)},
         )
     if prisma_client is None:
         raise HTTPException(
@@ -226,10 +228,11 @@ async def provider_billing_probe(
     """Try one provider's billing API now and report what came back."""
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
-    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
+    refused: Final = readable_scope(user_api_key_dict, subject="a provider's billing API")
+    if isinstance(refused, ScopeRefused):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={"error": "Only a proxy admin may probe a provider's billing API."},
+            detail={"error": refusal_message(refused)},
         )
 
     return await run_billing_probe(
@@ -279,10 +282,11 @@ async def daily_reconciliation(
     """
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
-    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
+    refused: Final = readable_scope(user_api_key_dict, subject="the provider reconciliation")
+    if isinstance(refused, ScopeRefused):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={"error": "Only a proxy admin may read cross-team provider reconciliation."},
+            detail={"error": refusal_message(refused)},
         )
     if prisma_client is None:
         raise HTTPException(

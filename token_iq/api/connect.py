@@ -21,14 +21,15 @@ from typing import Annotated, Final
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import TypeAdapter
 
+from token_iq.access.scope import ScopeRefused, readable_scope, refusal_message
 from token_iq.api.provider_reconciliation import run_billing_probe
 from token_iq.api.types.connect import (
     AccountConnected,
+    BedrockPrincipalResponse,
     ConnectionTestFailed,
     ConnectRequest,
     ConnectResponse,
     ExternalIdAlreadyIssued,
-    BedrockPrincipalResponse,
     ExternalIdMinted,
     ExternalIdRequest,
     ExternalIdResponse,
@@ -60,7 +61,7 @@ from token_iq.connectors.billing.credential_purpose import (
     billing_credential_problem,
     billing_provider_for_vendor,
 )
-from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import CommonProxyErrors, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import BillingProbeResponse
 from token_iq.gateway.types.utils import CredentialItem
@@ -99,8 +100,9 @@ def _proxy_error(status_code: int, message: str) -> HTTPException:
 
 
 def _admin_or_403(user_api_key_dict: UserAPIKeyAuth) -> None:
-    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
-        raise _proxy_error(status.HTTP_403_FORBIDDEN, CommonProxyErrors.not_allowed_access.value)
+    refused: Final = readable_scope(user_api_key_dict, subject="provider connections")
+    if isinstance(refused, ScopeRefused):
+        raise _proxy_error(status.HTTP_403_FORBIDDEN, refusal_message(refused))
 
 
 def provider_or_400(vendor: str) -> str:

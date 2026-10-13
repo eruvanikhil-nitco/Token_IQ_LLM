@@ -16,6 +16,7 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from token_iq.access.scope import ScopeRefused, readable_scope, refusal_message
 from token_iq.api.types.attribution import (
     AttributionRuleBody,
     AttributionRuleDeletedResponse,
@@ -26,7 +27,7 @@ from token_iq.api.types.attribution import (
 )
 from token_iq.attribution.gap_owner import AttributedGap, attribute
 from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
-from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import CommonProxyErrors, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.repositories.attribution_rule_repository import AttributionRuleRepository
 from token_iq.repositories.gap_repository import GapRepository
@@ -57,8 +58,9 @@ def _proxy_error(status_code: int, message: str) -> HTTPException:
 
 
 def _admin_or_403(user_api_key_dict: UserAPIKeyAuth) -> None:
-    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
-        raise _proxy_error(status.HTTP_403_FORBIDDEN, "Only a proxy admin may read or change attribution rules.")
+    refused: Final = readable_scope(user_api_key_dict, subject="the attribution rules")
+    if isinstance(refused, ScopeRefused):
+        raise _proxy_error(status.HTTP_403_FORBIDDEN, refusal_message(refused))
 
 
 def _known_provider_or_404(provider: str) -> None:

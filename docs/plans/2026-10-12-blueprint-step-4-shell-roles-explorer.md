@@ -194,14 +194,47 @@ nobody can sign in as, which a customer finds out after inviting somebody.
 
 ## Task 3: Scope, enforced where the data is read
 
-- [ ] **Step 1: A test per endpoint that a scoped caller is refused another team's data**
+- [x] **Step 1: A test per endpoint that a scoped caller is refused another team's data**
 
 The security task. Every endpoint that returns money takes the scope from the caller's own identity
 rather than from a query parameter, and a parameter that disagrees with the identity is a refusal.
 
-- [ ] **Step 2: One function the endpoints share, and a repository that filters where it reads**
+- [x] **Step 2: One function the endpoints share, and a repository that filters where it reads**
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
+
+### What task 3 found
+
+**The premise this task was written on does not hold yet, and that is the finding.** Every endpoint
+under `token_iq/api/` is proxy-admin-only. There is no scoped caller to refuse another team's data,
+because the only identity these endpoints admit already sees every team. So a test per endpoint that
+a scoped caller is refused would have asserted a situation that cannot arise.
+
+What is real is the shape of the failure when a non-admin role is first admitted, and the twelve
+copies of the rule that made it likely. Twelve places to widen means a thirteenth endpoint can be
+written without the check and nothing fails: its own tests pass, its page works, and the first
+person to notice is whoever sees somebody else's spend.
+
+So three things exist instead. `token_iq/access/scope.py` answers the scope question once as a
+value, with `WholeOrganisation | OneTeam | OnlySelf | NoAccess`, read from the caller's identity and
+never from a parameter. `scope_for_team` refuses a parameter that disagrees with the identity rather
+than narrowing it, because a silent narrowing answers a request for another team's spend with this
+team's and teaches the caller to trust a filter that decides nothing. And all thirteen call sites
+now share one rule, so widening is one edit in one place.
+
+The sweep is the part worth keeping: `tests/token_iq/api/test_every_route_refuses_a_non_admin.py`
+enumerates every route the product mounts and asserts that no non-admin role is answered with a
+success and that no route reaches a database before refusing. A 5xx there would mean the refusal came
+after the read, which is a filter rather than a rule. A new endpoint is swept in by existing, the
+same way `token_iq/proxy/routers.py` mounts it.
+
+**A defect found and not fixed, because fixing it is a grant.** An admin viewer and an org admin both
+read the whole organisation and the sidebar already offers them these pages, but every endpoint
+behind them admits only `proxy_admin`, so both roles see an entry and then an error. The admitted set
+is now one named constant with that written next to it. Admitting a role is the owner's decision.
+
+The repository filter in step 2's title is deliberately not built. There is nothing for it to filter
+by yet, and a filter no caller can reach is a filter nobody will notice is wrong.
 
 ---
 

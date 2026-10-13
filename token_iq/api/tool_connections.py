@@ -13,6 +13,7 @@ from typing import Final
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from token_iq.access.scope import ScopeRefused, readable_scope, refusal_message
 from token_iq.api.types.tool_connections import (
     ToolConnection,
     ToolConnectionAccount,
@@ -26,7 +27,7 @@ from token_iq.connectors.billing.connection_state import (
 )
 from token_iq.connectors.tools.credential_purpose import TOOL_NAMES
 from token_iq.connectors.tools.fetch_profile import TOOL_FETCH_PROFILES
-from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import CommonProxyErrors, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.repositories.provider_sync_run_repository import ProviderSyncRunRepository
 from token_iq.repositories.tool_usage_fact_repository import ToolUsageFactRepository
@@ -123,8 +124,9 @@ async def build_tool_connections(
 
 
 def _admin_or_403(user_api_key_dict: UserAPIKeyAuth) -> None:
-    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
-        raise _proxy_error(status.HTTP_403_FORBIDDEN, "Only a proxy admin may read user tool connections.")
+    refused: Final = readable_scope(user_api_key_dict, subject="user tool connections")
+    if isinstance(refused, ScopeRefused):
+        raise _proxy_error(status.HTTP_403_FORBIDDEN, refusal_message(refused))
 
 
 @router.get("/tool/connections", response_model=ToolConnectionsResponse)

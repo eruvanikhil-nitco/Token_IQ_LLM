@@ -14,6 +14,7 @@ from typing import Final, TypeAlias
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from token_iq.access.scope import ScopeRefused, readable_scope, refusal_message
 from token_iq.connectors.billing.connection_state import (
     ConnectionState,
     account_state,
@@ -23,7 +24,7 @@ from token_iq.connectors.billing.connection_state import (
 from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
 from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES, FetchProfile
 from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
-from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import CommonProxyErrors, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
     ProviderConnection,
@@ -58,8 +59,9 @@ def _proxy_error(status_code: int, message: str) -> HTTPException:
 
 
 def _admin_or_403(user_api_key_dict: UserAPIKeyAuth) -> None:
-    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
-        raise _proxy_error(status.HTTP_403_FORBIDDEN, "Only a proxy admin may read provider connections.")
+    refused: Final = readable_scope(user_api_key_dict, subject="provider connections")
+    if isinstance(refused, ScopeRefused):
+        raise _proxy_error(status.HTTP_403_FORBIDDEN, refusal_message(refused))
 
 
 def _fetch_detail(profile: FetchProfile) -> ProviderFetchDetail:

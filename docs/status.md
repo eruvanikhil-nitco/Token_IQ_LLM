@@ -24,7 +24,7 @@ seam for the old names is in. Phase 8 step 1 is done and step 2, the database ta
 behind a runbook. Phase 9, the navigation labels, finished with the Gateway tab. Phase 10's gate
 is in CI and ratchets as the last two land.
 
-So: build step 4 of 10, task 3 of 6, with the codebase programme complete apart from phase 5
+So: build step 4 of 10, task 4 of 6, with the codebase programme complete apart from phase 5
 (parked) and phase 8 step 2 (deferred, with a runbook).
 
 **Section 11 is the target repository layout, not work and not a phase.** It was checked on 8 Oct
@@ -3567,3 +3567,37 @@ four per-page rules stay as they are until the removal is approved.
 86 tests pass over the role module, the tab rule, the new panel and the sidebar. 8 of 8 mutants
 killed, the two worth naming being dropping the intersection with today's pages and reading a viewer
 as an admin.
+
+## 13 Oct 2026, later: scope, and the twelve copies of one rule
+
+Build step 4 task 3, the security task. It set out to prove that a scoped caller is refused another
+team's data, and the first thing it found is that there is no scoped caller: every endpoint under
+`token_iq/api/` admits only `proxy_admin`, so the only identity that reaches a money figure already
+sees every team.
+
+The rule behind that was written out twelve times, once per module, with twelve different refusal
+messages. Twelve places to widen means the thirteenth endpoint can be written without the check and
+nothing fails: its tests pass, its page works, and the first person to notice is whoever sees
+somebody else's spend. All thirteen call sites now share one function, so widening is one edit.
+
+`token_iq/access/scope.py` answers the scope question once, as a value, from the caller's identity
+and never from a parameter. A request that names a team is checked against the identity and refused
+when it disagrees, rather than narrowed to what the caller may see, because narrowing answers a
+request for another team's spend with this team's and teaches a caller to trust a filter that
+decides nothing.
+
+The sweep is the part that will keep paying: `tests/token_iq/api/test_every_route_refuses_a_non_admin.py`
+calls every route the product mounts, as each non-administrator role, and asserts that none answers
+with a success and none reaches a database before refusing. A 5xx there would mean the refusal came
+after the read. A new endpoint is swept in by existing, which is the same property that mounts it.
+
+**A defect found and not fixed, because the fix is a grant.** An admin viewer and an org admin read
+the whole organisation, and the sidebar offers them Overview, Invoice Reconciliation, Pricing &
+Rates and the rest, but every endpoint behind those pages admits only the proxy admin. Both roles
+see an entry and then an error. The admitted set is now one named constant with that written beside
+it, so admitting them is a one-line decision for the owner rather than twelve edits.
+
+The repository filter is deliberately not built. Nothing can reach it until a scoped caller is
+admitted, and a filter no caller reaches is one nobody will notice is wrong.
+
+32 tests over the scope module and the sweep, with the thirteen endpoints' own suites unchanged.

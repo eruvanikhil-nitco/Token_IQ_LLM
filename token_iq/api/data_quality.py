@@ -15,6 +15,7 @@ from typing import Annotated, Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from token_iq.access.scope import ScopeRefused, readable_scope, refusal_message
 from token_iq.api.provider_connections import build_provider_connections
 from token_iq.api.types.data_quality import (
     CoveredInvoices,
@@ -27,7 +28,7 @@ from token_iq.api.types.data_quality import (
 )
 from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
 from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
-from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import CommonProxyErrors, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.ledger.uploads import INVOICE_WINDOW_DAYS
 from token_iq.overview.data_quality import (
@@ -75,8 +76,9 @@ def _proxy_error(status_code: int, message: str) -> HTTPException:
 
 
 def _admin_or_403(user_api_key_dict: UserAPIKeyAuth) -> None:
-    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
-        raise _proxy_error(status.HTTP_403_FORBIDDEN, CommonProxyErrors.not_allowed_access.value)
+    refused: Final = readable_scope(user_api_key_dict, subject="the data-quality checks")
+    if isinstance(refused, ScopeRefused):
+        raise _proxy_error(status.HTTP_403_FORBIDDEN, refusal_message(refused))
 
 
 def to_wire(issue: DataQualityIssue) -> IssueResponse:

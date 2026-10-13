@@ -18,6 +18,7 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from token_iq.access.scope import ScopeRefused, readable_scope, refusal_message
 from token_iq.api.types.seats import (
     SeatBody,
     SeatDeletedResponse,
@@ -61,8 +62,9 @@ def _proxy_error(status_code: int, message: str) -> HTTPException:
 
 
 def _admin_or_403(user_api_key_dict: UserAPIKeyAuth) -> None:
-    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
-        raise _proxy_error(status.HTTP_403_FORBIDDEN, "Only a proxy admin may read or change seats.")
+    refused: Final = readable_scope(user_api_key_dict, subject="seats and commitments")
+    if isinstance(refused, ScopeRefused):
+        raise _proxy_error(status.HTTP_403_FORBIDDEN, refusal_message(refused))
 
 
 def _self_or_admin_or_403(user_api_key_dict: UserAPIKeyAuth, user_id: str) -> None:
